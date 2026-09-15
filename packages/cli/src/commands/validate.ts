@@ -218,6 +218,13 @@ export async function regenerateRouteTree(root: string): Promise<string | null> 
         autoCodeSplitting: true,
         routesDirectory,
         generatedRouteTree,
+        // The generator writes each file to a temporary path and renames it into
+        // place. Its default temporary directory is `.tanstack/tmp` resolved
+        // against `process.cwd()`, which on Windows is often a different volume
+        // from the copy below (the repository on D:, the system temp on C:) and
+        // the rename fails with EXDEV. Keeping it inside the copy also stops the
+        // command from writing into the project it is validating.
+        tmpDir: join(work, ".tanstack", "tmp"),
         disableLogging: true,
       },
       work

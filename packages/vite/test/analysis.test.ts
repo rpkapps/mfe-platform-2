@@ -134,7 +134,11 @@ describe("analyzeSourceFile", () => {
 
 describe("project analysis", () => {
   it("lists source files without generated, declaration and test files", () => {
-    const files = listSourceFiles(dir).map((file) => file.slice(dir.length + 1))
+    // `listSourceFiles` returns filesystem paths; the separator is the platform's
+    // (`mergeAnalyses` is what normalises them before they reach the manifest).
+    const files = listSourceFiles(dir).map((file) =>
+      file.slice(dir.length + 1).replace(/\\/g, "/")
+    )
     expect(files).toEqual([
       "commands.tsx",
       "help.tsx",
