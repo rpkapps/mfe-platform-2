@@ -116,7 +116,7 @@ Testing (@platform/mfe-react/testing): createTestBridge({ mfeId, user, permissio
 
 ## Shell (host) essentials
 
-createPlatformHost({ runtimeConfig, navigation, registry?, context?, notifications?, credentials?, telemetry?, storage?, loader?, policy?, devtools?, hostKind? })
+createPlatformHost({ runtimeConfig, navigation, registry?, context?, notifications?, credentials?, telemetry?, storage?, loader?, policy?, devtools? })
   -> host.remotes.{list,get,mount,mountWidget,retry,setLocalOverride,matchRoute,sharedReport,register,faults,setFault}, host.commands.{run,abort,running}, host.config.{get,subscribe,refresh}, host.snapshot()
 @platform/host has NO peer dependencies: no React, no router, no design system. Headless API it exports for a shell's own UI:
   createCommandSearchIndex, SEARCH_GROUPS, scoreEntry, runCommand, createCommandRunner, commandHref, isCommandAvailable,
