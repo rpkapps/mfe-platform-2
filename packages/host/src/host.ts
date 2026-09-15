@@ -1,5 +1,6 @@
 import {
   composeTelemetryAdapters,
+  describeCause,
   createBreadcrumbStore,
   createBrowserStorageBackend,
   createCommandRegistry,
@@ -34,6 +35,8 @@ import {
   type TelemetryAdapter,
   type WidgetHandle,
 } from "@platform-internal/core"
+
+import { ensureRemoteStylesheets } from "./styles-loader"
 import {
   createDiagnosticsBus,
   createSnapshot,
@@ -780,10 +783,13 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         manifestUrl: record.manifestUrl!,
         dev: manifest.dev !== undefined,
       })
-      const definition = await loader.load(manifest, {
-        manifestUrl: record.manifestUrl!,
-        signal: loadOptions.signal,
-      })
+      const [definition] = await Promise.all([
+        loader.load(manifest, { manifestUrl: record.manifestUrl!, signal: loadOptions.signal }),
+        ensureRemoteStylesheets(manifest, record.manifestUrl!).catch((error: unknown) => {
+          diagnostics.emit({ type: "log", mfeId, message: "stylesheet load failed", detail: describeCause(error) })
+          return []
+        }),
+      ])
       updateRecord(mfeId, { state: "negotiating" })
       const report = safeSharedReport(mfeId)
       if (report.length)

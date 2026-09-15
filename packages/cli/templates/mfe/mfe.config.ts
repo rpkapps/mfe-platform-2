@@ -39,7 +39,7 @@ export default defineMfeConfig({
   // shared: { "date-fns": { singleton: false, scope: "default" } }, // version groups; react is never a singleton
   // css: { scope: true, ownerAttribute: "data-mfe", foundation: "shell" },
   // tecton: "auto",                   // true | false | "auto" (detect @tecton/react)
-  // tailwind: true,                   // options for @tailwindcss/vite
+  // tailwind is a plugin-only option: platform({ tailwind: false }) in vite.config.ts
   // manifest: { fileName: "platform-manifest.json" },
   // federation: (config) => config,   // last-resort hook on the generated federation config
   // runtime: { react: "^__REACT_MAJOR__.0.0" }, // override the React compatibility metadata
