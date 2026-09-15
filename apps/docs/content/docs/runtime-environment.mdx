@@ -22,9 +22,9 @@ The declaration is an **allow-list**: only these keys reach the MFE, with `defau
 ## Type them
 
 ```ts title="src/platform.d.ts"
-import "@platform/react"
+import "@platform/mfe-react"
 
-declare module "@platform/react" {
+declare module "@platform/mfe-react" {
   interface Register {
     env: { API_BASE_URL: string; PAGE_SIZE: number; FEATURE_MAP: boolean }
     featureFlags: { "assets.bulk-edit": boolean }
@@ -37,7 +37,7 @@ The `Register` interface follows TanStack's pattern: augment it once and `useRun
 ## Read them
 
 ```tsx
-import { useRuntimeEnv } from "@platform/react"
+import { useRuntimeEnv } from "@platform/mfe-react"
 
 function AssetList() {
   const env = useRuntimeEnv()

@@ -97,8 +97,8 @@ Plugin-only options (not read from `mfe.config.ts`):
 
 - **Identity**: package name → `mfeId`, persisted on the first run.
 - **Routes**: every file under `src/routes` → route metadata in the manifest (`path`, `fullPath`, `guarded`, `breadcrumb`, `navigation`, `permissionGroups` from `staticData`).
-- **Capabilities**: static analysis of `@platform/react` imports and calls. `createPlatformStorage({ scope: "session" })` requests `storage.session`, `useRegisterCommand` requests `commands`, and so on. `context`, `navigation`, `telemetry` and `overlays` are always granted.
-- **Shared dependencies**: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`, `react-aria-components` and `sonner` when they are dependencies, with the requested ranges from `package.json` and the installed versions as fallbacks.
+- **Capabilities**: static analysis of `@platform/mfe-react` imports and calls. `createPlatformStorage({ scope: "session" })` requests `storage.session`, `useRegisterCommand` requests `commands`, and so on. `context`, `navigation`, `telemetry` and `overlays` are always granted.
+- **Shared dependencies**: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/mfe-react`, `@tecton/react`, `zod`, `react-aria-components` and `sonner` when they are dependencies, with the requested ranges from `package.json` and the installed versions as fallbacks.
 - **Registrations**: `createMfe({ registrations })` entries are listed as static (`static: true`); `useRegisterCommand`, `useRegisterSettingsGroup`, `useRegisterHelp`, `useRegisterReleaseNotes` and `createWidget` calls with literal definitions are listed too, so the command palette and the settings host know about them before the remote is loaded. A widget that is not an inline `createWidget` call, or a definition built at runtime, is skipped with a warning.
 - **Release information**: `package.json` version, `PLATFORM_BUILD_ID` (default: a hash of `mfeId@version@builtAt`) and the commit from `GITHUB_SHA`, `CI_COMMIT_SHA`, `PLATFORM_COMMIT_SHA` or `git rev-parse HEAD`.
 - **Tecton**: enabled when `@tecton/react` is a dependency; its version, the CSS protocol and the foundation are recorded in `manifest.tecton`.
@@ -110,7 +110,7 @@ Run `pnpm manifest` at any time to see the result of inference without building.
 The plugin generates `src/routeTree.gen.ts`; `createMfe({ routeTree })` builds a `MfeRouter<typeof routeTree>` from it. Register that router with TanStack once, in `src/platform.d.ts`, and every `Route.useLoaderData()`, `Route.useSearch()`, `Link to`, `params` and `redirect({ to })` in the MFE is checked against the route tree:
 
 ```ts title="src/platform.d.ts"
-import type { MfeRouter } from "@platform/react"
+import type { MfeRouter } from "@platform/mfe-react"
 import type { routeTree } from "./routeTree.gen"
 
 declare module "@tanstack/react-router" {
@@ -120,7 +120,7 @@ declare module "@tanstack/react-router" {
 }
 ```
 
-The scaffold ships this file (together with the `Register` augmentation of `@platform/react` for `env` and `featureFlags`). Without it TanStack falls back to untyped routes; nothing breaks at runtime.
+The scaffold ships this file (together with the `Register` augmentation of `@platform/mfe-react` for `env` and `featureFlags`). Without it TanStack falls back to untyped routes; nothing breaks at runtime.
 
 ## Restart-requiring changes
 

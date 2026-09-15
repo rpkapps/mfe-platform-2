@@ -7,7 +7,7 @@ import {
   useRegisterCommand,
   useRuntimeEnv,
   useTelemetry,
-} from "@platform/react"
+} from "@platform/mfe-react"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { Button } from "@tecton/react/components/button"

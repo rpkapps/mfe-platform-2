@@ -1,4 +1,4 @@
-import { createTestBridge, renderMfe } from "@platform/react/testing"
+import { createTestBridge, renderMfe } from "@platform/mfe-react/testing"
 import { within } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 

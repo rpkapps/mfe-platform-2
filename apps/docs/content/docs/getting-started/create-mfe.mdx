@@ -58,7 +58,7 @@ my-mfe/
 │   │   ├── api.ts             # data access using useRuntimeEnv().API_BASE_URL
 │   │   └── storage.ts         # createPlatformStorage stores (local with migration, session)
 │   └── __tests__/
-│       ├── mfe.test.tsx       # renderMfe + createTestBridge from @platform/react/testing
+│       ├── mfe.test.tsx       # renderMfe + createTestBridge from @platform/mfe-react/testing
 │       └── setup.ts           # jest-dom, observers, matchMedia stubs
 ├── mfe.config.ts              # defineMfeConfig({ displayName, navigation, env, … })
 ├── vite.config.ts             # plugins: [platform()]
@@ -76,7 +76,7 @@ my-mfe/
 `src/mfe.tsx` is the only platform-specific file you need to know about. It default-exports the remote definition; the generated entry (`.platform/entry.tsx`) wraps it with `withTecton` and exposes it to the host.
 
 ```tsx title="src/mfe.tsx"
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget } from "@platform/mfe-react"
 import { z } from "zod"
 
 import "./styles.css"
@@ -108,12 +108,12 @@ export default createMfe({
 `src/platform.d.ts` registers the MFE router with TanStack, so `Route.useLoaderData()`, `Route.useSearch()`, `Link to` and `params` are typed everywhere in the MFE, and it types the runtime environment and feature flags:
 
 ```ts title="src/platform.d.ts"
-import "@platform/react"
-import type { MfeRouter } from "@platform/react"
+import "@platform/mfe-react"
+import type { MfeRouter } from "@platform/mfe-react"
 
 import type { routeTree } from "./routeTree.gen"
 
-declare module "@platform/react" {
+declare module "@platform/mfe-react" {
   interface Register {
     env: { API_BASE_URL: string }
     featureFlags: { "assets.bulk-edit": boolean }

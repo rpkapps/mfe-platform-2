@@ -29,7 +29,7 @@ function bundles(dir: string): string[] {
 }
 
 const targets = [
-  ...bundles(join(root, "packages/react/dist")),
+  ...bundles(join(root, "packages/mfe-react/dist")),
   ...bundles(join(root, "packages/host/dist")),
 ]
 

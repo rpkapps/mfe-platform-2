@@ -1,5 +1,5 @@
 import * as React from "react"
-import { createPlatformStorage, useMfeInstance } from "@platform/react"
+import { createPlatformStorage, useMfeInstance } from "@platform/mfe-react"
 import { TEST_IDS } from "@platform-internal/conformance"
 import { z } from "zod"
 

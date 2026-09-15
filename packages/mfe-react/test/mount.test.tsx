@@ -57,6 +57,9 @@ describe("createMfe", () => {
       (event) => event.type === "mount.completed"
     )
     expect(completed).toMatchObject({ reactVersion: expect.stringMatching(/^1[89]\./) })
+    // A version field never carries a package name; the host resolves the
+    // router version, the remote cannot.
+    expect(completed).not.toHaveProperty("routerVersion")
     expect(bridge.telemetryEvents.some((event) => event.name === "mount")).toBe(true)
 
     await disposeAsync(handle)

@@ -2,7 +2,7 @@ import rule from "../../src/eslint/rules/no-cross-root-component-passing"
 import { ruleTester } from "./rule-tester"
 
 const imports =
-  'import { useRegisterCommand, useNotifications, createPlatformStorage, useTelemetry } from "@platform/react"\n'
+  'import { useRegisterCommand, useNotifications, createPlatformStorage, useTelemetry } from "@platform/mfe-react"\n'
 const tsx = "/project/src/a.tsx"
 
 ruleTester.run("no-cross-root-component-passing", rule, {

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useRegisterSettingsGroup, useRuntimeEnv } from "@platform/react"
+import { useRegisterSettingsGroup, useRuntimeEnv } from "@platform/mfe-react"
 import { z } from "zod"
 
 import { fetchRegions } from "@/lib/api"

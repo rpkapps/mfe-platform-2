@@ -1,7 +1,7 @@
 // {{^tecton}}
 import * as React from "react"
 // {{/tecton}}
-import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/react"
+import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/mfe-react"
 // {{#tecton}}
 import { Button } from "@tecton/react/components/button"
 import {

@@ -7,7 +7,7 @@ import {
   useRuntimeEnv,
   useTelemetry,
   type MfeRouterContext,
-} from "@platform/react"
+} from "@platform/mfe-react"
 import { TEST_IDS } from "@platform-internal/conformance"
 import { z } from "zod"
 

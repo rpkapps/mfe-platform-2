@@ -4,7 +4,7 @@ import {
   useRegisterSettingsGroup,
   usePlatformStorage,
   createPlatformStorage,
-} from "@platform/react"
+} from "@platform/mfe-react"
 
 export const prefs = createPlatformStorage({
   scope: "local",

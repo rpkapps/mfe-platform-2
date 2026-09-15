@@ -1,7 +1,7 @@
 import rule from "../../src/eslint/rules/stable-mfe-id"
 import { ruleTester, validFile } from "./rule-tester"
 
-const imports = 'import { createMfe } from "@platform/react"\n'
+const imports = 'import { createMfe } from "@platform/mfe-react"\n'
 
 ruleTester.run("stable-mfe-id", rule, {
   valid: [

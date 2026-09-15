@@ -18,16 +18,16 @@ The scaffold has exactly one place for each concern. Add features by adding file
 | Storage             | `src/lib/storage.ts`                         | `createPlatformStorage`                                                                                   |
 | Data access         | `src/lib/api.ts`                             | `useRuntimeEnv().API_BASE_URL` / `context.platform.runtime.env`                                           |
 | Help, release notes | `src/mfe.tsx` (`registrations`)              | static entries; `useRegisterHelp` / `useRegisterReleaseNotes` for state-dependent ones                    |
-| Typing              | `src/platform.d.ts`                          | `Register` augmentations for `@platform/react` (env, feature flags) and `@tanstack/react-router` (router) |
+| Typing              | `src/platform.d.ts`                          | `Register` augmentations for `@platform/mfe-react` (env, feature flags) and `@tanstack/react-router` (router) |
 | Configuration       | `mfe.config.ts`                              | `defineMfeConfig`                                                                                         |
 | Identity            | `.platform/identity.json`                    | generated once; committed                                                                                 |
 | Styles              | `src/styles.css`                             | imported by `src/mfe.tsx`; scoped under `[data-mfe]` at build time                                        |
-| Tests               | `src/__tests__/*.test.tsx`, `e2e/*.spec.ts`  | `@platform/react/testing`; Playwright against the harness                                                 |
+| Tests               | `src/__tests__/*.test.tsx`, `e2e/*.spec.ts`  | `@platform/mfe-react/testing`; Playwright against the harness                                                 |
 
 ## Bootstrap
 
 ```tsx title="src/mfe.tsx"
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget } from "@platform/mfe-react"
 import { z } from "zod"
 
 import "./styles.css"
@@ -52,7 +52,7 @@ The root route declares the platform context type and the breadcrumb root. Every
 
 ```tsx title="src/routes/__root.tsx"
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, type MfeRouterContext } from "@platform/react"
+import { MfeErrorBoundary, type MfeRouterContext } from "@platform/mfe-react"
 
 export const Route = createRootRouteWithContext<MfeRouterContext>()({
   staticData: { breadcrumb: "My MFE" },
@@ -105,7 +105,7 @@ function AssetDetail() {
 ## A command
 
 ```tsx title="src/routes/index.tsx"
-import { useNotifications, useRegisterCommand } from "@platform/react"
+import { useNotifications, useRegisterCommand } from "@platform/mfe-react"
 
 function Dashboard() {
   const { notify } = useNotifications()
@@ -124,7 +124,7 @@ function Dashboard() {
 ## A settings group
 
 ```tsx title="src/routes/settings.tsx"
-import { useRegisterSettingsGroup } from "@platform/react"
+import { useRegisterSettingsGroup } from "@platform/mfe-react"
 import { z } from "zod"
 
 function SettingsPage() {
@@ -157,7 +157,7 @@ function SettingsPage() {
 ## A storage store
 
 ```ts title="src/lib/storage.ts"
-import { createPlatformStorage } from "@platform/react"
+import { createPlatformStorage } from "@platform/mfe-react"
 import { z } from "zod"
 
 export const dashboardStorage = createPlatformStorage({
@@ -180,7 +180,7 @@ export const dashboardStorage = createPlatformStorage({
 ## A widget
 
 ```tsx title="src/widgets/asset-card.tsx"
-import { useNavigation, useMfeInstance, useRegisterCommand } from "@platform/react"
+import { useNavigation, useMfeInstance, useRegisterCommand } from "@platform/mfe-react"
 
 export function AssetCard({ assetId, compact }: { assetId: string; compact?: boolean }) {
   const navigation = useNavigation()

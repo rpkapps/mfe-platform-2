@@ -1,6 +1,6 @@
 import { within } from "@testing-library/dom"
 import { describe, expect, it } from "vitest"
-import { createTestBridge, renderMfe } from "@platform/react/testing"
+import { createTestBridge, renderMfe } from "@platform/mfe-react/testing"
 import { TEST_IDS, USERS } from "@platform-internal/conformance"
 
 import definition from "../mfe"

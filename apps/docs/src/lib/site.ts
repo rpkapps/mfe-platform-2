@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "MFE Platform",
   description:
     "Independently deployed React micro-frontends and widgets with TanStack Router folder routing, Vite builds, platform-managed Module Federation, isolated React roots and Tecton UI.",
-  packages: ["@platform/react", "@platform/vite", "@platform/cli", "@platform/host"],
+  packages: ["@platform/mfe-react", "@platform/vite", "@platform/cli", "@platform/host"],
   createCommand: "pnpm dlx @platform/cli create my-mfe",
   /** Public origin used in diagnostics (`docsUrl`) and in llms.txt. */
   origin: "https://platform.docs.local",

@@ -15,7 +15,7 @@ Every route receives the platform context through TanStack's router context. Dec
 
 ```tsx title="src/routes/__root.tsx"
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
-import type { MfeRouterContext } from "@platform/react"
+import type { MfeRouterContext } from "@platform/mfe-react"
 
 export const Route = createRootRouteWithContext<MfeRouterContext>()({
   component: () => <Outlet />,

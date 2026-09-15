@@ -26,33 +26,41 @@ describe("shared dependency inference", () => {
     expect(byName["@tanstack/history"]).toMatchObject({ scope: "default", shared: true })
     expect(byName["@tecton/react"]).toMatchObject({ shared: false, reason: "source-package" })
     expect(byName.lodash).toBeUndefined()
-    expect(byName["@platform/react"]).toBeUndefined()
+    expect(byName["@platform/mfe-react"]).toBeUndefined()
   })
   it("bundles the SDK per remote unless the remote opts in", () => {
     const bundled = inferSharedDependencies({
-      dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", "@platform/react": "catalog:" },
-      installed: { "@platform/react": "0.1.0" },
+      dependencies: {
+        react: "^19.0.0",
+        "react-dom": "^19.0.0",
+        "@platform/mfe-react": "catalog:",
+      },
+      installed: { "@platform/mfe-react": "0.1.0" },
     })
     const bundledByName = Object.fromEntries(bundled.requests.map((r) => [r.name, r]))
-    expect(bundledByName["@platform/react"]).toMatchObject({
+    expect(bundledByName["@platform/mfe-react"]).toMatchObject({
       scope: "react19",
       shared: false,
       reason: "per-remote",
       requiredVersion: "^0.1.0",
     })
-    expect(bundledByName["@platform/react/tecton"]).toBeUndefined()
+    expect(bundledByName["@platform/mfe-react/tecton"]).toBeUndefined()
     const result = inferSharedDependencies({
-      dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", "@platform/react": "^0.1.0" },
-      installed: { "@platform/react": "0.1.0" },
-      overrides: { "@platform/react": true },
+      dependencies: {
+        react: "^19.0.0",
+        "react-dom": "^19.0.0",
+        "@platform/mfe-react": "^0.1.0",
+      },
+      installed: { "@platform/mfe-react": "0.1.0" },
+      overrides: { "@platform/mfe-react": true },
     })
     const byName = Object.fromEntries(result.requests.map((r) => [r.name, r]))
-    expect(byName["@platform/react"]).toMatchObject({
+    expect(byName["@platform/mfe-react"]).toMatchObject({
       scope: "react19",
       shared: true,
       reason: "configured",
     })
-    expect(byName["@platform/react/tecton"]).toMatchObject({
+    expect(byName["@platform/mfe-react/tecton"]).toMatchObject({
       scope: "react19",
       shared: true,
       requiredVersion: "^0.1.0",

@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useMfeInstance, useRegisterCommand } from "@platform/react"
+import { useMfeInstance, useRegisterCommand } from "@platform/mfe-react"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import {

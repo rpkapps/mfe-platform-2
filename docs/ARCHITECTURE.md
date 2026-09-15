@@ -11,7 +11,7 @@ This document is the contract every package in this repository implements. Read 
 | `@platform-internal/diagnostics`       | Diagnostic bus, snapshot, redaction                                                                                                                                             | browser                                 |
 | `@platform-internal/devtools`          | Developer tools UI, React 19 + React Flow, loaded lazily by the host                                                                                                            | browser                                 |
 | `@platform-internal/conformance`       | Shared fixtures and checks for conformance apps and E2E                                                                                                                         | node/test                               |
-| `@platform/react`                      | MFE SDK (React 18 or 19)                                                                                                                                                        | browser                                 |
+| `@platform/mfe-react`                  | MFE SDK (React 18 or 19)                                                                                                                                                        | browser                                 |
 | `@platform/vite`                       | Vite plugin turning a TanStack Router project into a remote                                                                                                                     | node                                    |
 | `@platform/cli`                        | `platform create/dev/build/manifest/validate/lint/test`, `@platform/cli/eslint`                                                                                                 | node                                    |
 | `@platform/host`                       | Shell runtime (React 19), harness, Docker entrypoint                                                                                                                            | browser + node                          |
@@ -48,14 +48,14 @@ interface RemoteDefinition {
 
 `HostBridge` (core `remote.ts`) is the only thing the host hands over: navigation, context store, capabilities, registries, breadcrumbs, storage backend, telemetry, overlay manager, diagnostics, notifications, settings value port, host flags. Plain data and functions only.
 
-## `@platform/react` API surface
+## `@platform/mfe-react` API surface
 
 ```ts
 // bootstrap (src/mfe.tsx)
 export default createMfe({ mfeId?, routeTree?, widgets?, registrations?, errorComponent?, pendingComponent?, notFoundComponent?, wrap?, router? })
 createWidget({ id?, component, propsSchema?, title?, description? })
 createMfeRouter({ routeTree, bridge, ...tanstackRouterOptions })   // used by createMfe; public for advanced cases
-withTecton(definition)                                             // @platform/react/tecton: PortalProvider + theme sync, applied by the generated entry
+withTecton(definition)                                             // @platform/mfe-react/tecton: PortalProvider + theme sync, applied by the generated entry
 
 // hooks (primitives)
 usePlatform()                       // full PlatformContextValue (typed)
@@ -95,9 +95,9 @@ createFileRoute("/assets/$assetId")({
 context.platform: { user, permissions, permissionGroups, tenant, project, job, locale, timezone, theme, featureFlags, capabilities, runtime, telemetry, navigation, getState(), subscribe(), revision }
 
 // typing
-declare module "@platform/react" { interface Register { env: { API_BASE_URL: string }; featureFlags: {...} } }
+declare module "@platform/mfe-react" { interface Register { env: { API_BASE_URL: string }; featureFlags: {...} } }
 
-// testing (@platform/react/testing)
+// testing (@platform/mfe-react/testing)
 createTestBridge({ mfeId, user?, permissionGroups?, env?, capabilities?, navigation? })
 renderMfe(definition, { bridge?, path? })
 ```

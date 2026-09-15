@@ -1,4 +1,4 @@
-import { createPlatformStorage } from "@platform/react"
+import { createPlatformStorage } from "@platform/mfe-react"
 import { z } from "zod"
 
 export const reportPrefs = createPlatformStorage({

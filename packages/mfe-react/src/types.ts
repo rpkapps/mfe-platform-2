@@ -35,7 +35,7 @@ import type {
  * your MFE:
  *
  * ```ts
- * declare module "@platform/react" {
+ * declare module "@platform/mfe-react" {
  *   interface Register {
  *     env: { API_BASE_URL: string }
  *     featureFlags: { "assets.bulk-edit": boolean }

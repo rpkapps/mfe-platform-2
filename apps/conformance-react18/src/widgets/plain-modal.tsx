@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createPortal } from "react-dom"
-import { useOverlayContainer } from "@platform/react"
+import { useOverlayContainer } from "@platform/mfe-react"
 
 /**
  * A modal without any UI library: rendered through a React portal into the

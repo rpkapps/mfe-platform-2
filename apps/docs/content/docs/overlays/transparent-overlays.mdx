@@ -9,7 +9,7 @@ CSS is scoped under `[data-mfe="asset-tracker"]` and the MFE root is a `div` som
 
 ## The adapter
 
-`withTecton(definition)` (from `@platform/react/tecton`, applied automatically by the generated entry when Tecton is enabled) adds an enhancer that wraps every root of the MFE in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with the per-mount container from `useOverlayContainer()`:
+`withTecton(definition)` (from `@platform/mfe-react/tecton`, applied automatically by the generated entry when Tecton is enabled) adds an enhancer that wraps every root of the MFE in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with the per-mount container from `useOverlayContainer()`:
 
 ```tsx
 // what withTecton does

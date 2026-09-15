@@ -1,5 +1,5 @@
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, useMfeInstance, type MfeRouterContext } from "@platform/react"
+import { MfeErrorBoundary, useMfeInstance, type MfeRouterContext } from "@platform/mfe-react"
 // {{#tecton}}
 import { Badge } from "@tecton/react/components/badge"
 // {{/tecton}}

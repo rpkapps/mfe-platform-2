@@ -21,7 +21,7 @@ export const ERROR_CODES = {
   },
   PROTOCOL_INCOMPATIBLE: {
     docs: "/module-federation#protocol-compatibility",
-    hint: "Upgrade the remote's @platform/react and @platform/vite, or the host's @platform/host, so the protocol majors match.",
+    hint: "Upgrade the remote's @platform/mfe-react and @platform/vite, or the host's @platform/host, so the protocol majors match.",
   },
   REMOTE_LOAD_FAILED: {
     docs: "/failure-handling#remote-loading",

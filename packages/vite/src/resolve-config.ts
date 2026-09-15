@@ -108,7 +108,7 @@ const RUNTIME_PACKAGES = [
   "react",
   "react-dom",
   "@tanstack/react-router",
-  "@platform/react",
+  "@platform/mfe-react",
   TECTON_PACKAGE,
 ]
 
@@ -239,11 +239,11 @@ export async function resolvePlatformConfig(
       builtWith: installed["@tanstack/react-router"],
     }
   const platformReactRange =
-    runtimeOverrides.platformReact ?? rangeFor("@platform/react", packageJson, installed)
+    runtimeOverrides.platformReact ?? rangeFor("@platform/mfe-react", packageJson, installed)
   if (platformReactRange)
     runtime.platformReact = {
       requiredVersion: platformReactRange,
-      builtWith: installed["@platform/react"],
+      builtWith: installed["@platform/mfe-react"],
     }
   if (!reactRange)
     warnings.push(

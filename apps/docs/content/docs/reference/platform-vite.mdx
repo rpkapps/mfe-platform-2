@@ -30,7 +30,7 @@ import { platform } from "@platform/vite"
 export default defineConfig({ plugins: [platform()], test: { environment: "jsdom" } })
 ```
 
-Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__` and `__PLATFORM_ROUTE_PREFIX__` (`createMfe()` reads the first) and dedupes `react`, `react-dom`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/history`, `@tanstack/react-store` and `@platform/react` to the project root.
+Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__` and `__PLATFORM_ROUTE_PREFIX__` (`createMfe()` reads the first) and dedupes `react`, `react-dom`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/history`, `@tanstack/react-store` and `@platform/mfe-react` to the project root.
 
 ### Vite defaults applied
 

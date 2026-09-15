@@ -1,6 +1,6 @@
 # __DISPLAY_NAME__
 
-> Platform micro-frontend (`__MFE_ID__`): TanStack Router routes under `__ROUTE_PREFIX__`, widgets, commands, settings and storage through `@platform/react`.
+> Platform micro-frontend (`__MFE_ID__`): TanStack Router routes under `__ROUTE_PREFIX__`, widgets, commands, settings and storage through `@platform/mfe-react`.
 
 ## Project
 - [README](README.md): commands and layout

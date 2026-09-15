@@ -7,7 +7,7 @@ import {
   useRegisterCommand,
   useRegisterSettingsGroup,
   useTelemetry,
-} from "@platform/react"
+} from "@platform/mfe-react"
 
 export const Route = createFileRoute("/")({
   staticData: { navigation: { title: "Dashboard" } },

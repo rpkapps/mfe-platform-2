@@ -19,7 +19,7 @@ export default createRule<Options, MessageIds>({
     },
     messages: {
       rawStorage:
-        "Raw `{{name}}` access is outside the platform storage contract: keys are not namespaced by mfeId, not validated and not synchronised. Use `createPlatformStorage({ scope, key, schema, defaults })` from @platform/react.",
+        "Raw `{{name}}` access is outside the platform storage contract: keys are not namespaced by mfeId, not validated and not synchronised. Use `createPlatformStorage({ scope, key, schema, defaults })` from @platform/mfe-react.",
       cookieWrite:
         "Writing `document.cookie` from MFE code is not supported; platform-managed state goes through `createPlatformStorage` or the settings API.",
     },

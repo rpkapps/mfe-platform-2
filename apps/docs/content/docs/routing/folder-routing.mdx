@@ -57,7 +57,7 @@ export const Route = createFileRoute("/assets/")({
 Route ids, params, search and loader data flow from the generated tree once the MFE router is registered with TanStack. `createMfe` builds a `MfeRouter<typeof routeTree>`; the scaffold registers it in `src/platform.d.ts`:
 
 ```ts title="src/platform.d.ts"
-import type { MfeRouter } from "@platform/react"
+import type { MfeRouter } from "@platform/mfe-react"
 import type { routeTree } from "./routeTree.gen"
 
 declare module "@tanstack/react-router" {
@@ -87,7 +87,7 @@ staticData: {
 }
 ```
 
-The `StaticDataRouteOption` interface is augmented by `@platform/react`, so these keys are typed.
+The `StaticDataRouteOption` interface is augmented by `@platform/mfe-react`, so these keys are typed.
 
 ## What the platform adds
 
@@ -102,7 +102,7 @@ Nothing in the route files is platform-specific. The integration is supplied aro
 `createMfe` covers every normal case. When you need extra TanStack router options, pass them through `createMfe({ router })`; `createMfeRouter` is public for tests and unusual hosts:
 
 ```ts
-import { createMfeRouter } from "@platform/react"
+import { createMfeRouter } from "@platform/mfe-react"
 
 const router = createMfeRouter({
   routeTree,

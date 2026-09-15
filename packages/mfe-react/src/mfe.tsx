@@ -202,11 +202,13 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
       // Headless mounts (the host renders nothing visible, e.g. to activate root-level
       // registrations) keep everything but the breadcrumb bar.
       if (!bridge.host.headless) bridge.breadcrumbs.setActive(bridge.instanceId)
+      // No `routerVersion`: the remote cannot read the router's version at
+      // runtime, and a package name in a version field is worse than nothing.
+      // The host resolves the real one from the shared report and the manifest.
       bridge.diagnostics.emit({
         type: "mount.completed",
         durationMs: Math.round(now() - startedAt),
         reactVersion,
-        routerVersion: "@tanstack/react-router",
         ...owner,
       })
       span.end({ reactVersion })

@@ -4,8 +4,8 @@ import {
   useRegisterCommand,
   useTelemetry,
   useNavigation,
-} from "@platform/react"
-import type { CommandDefinition } from "@platform/react"
+} from "@platform/mfe-react"
+import type { CommandDefinition } from "@platform/mfe-react"
 
 const exportCommand = {
   id: "export-csv",

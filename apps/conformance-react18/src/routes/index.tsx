@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRegisterCommand } from "@platform/react"
+import { useRegisterCommand } from "@platform/mfe-react"
 import { REPORTS, TEST_IDS } from "@platform-internal/conformance"
 
 import { reportPrefs } from "@/lib/storage"

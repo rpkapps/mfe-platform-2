@@ -37,7 +37,7 @@ pnpm dlx @platform/cli create my-mfe          # or npx @platform/cli create my-m
 | `--mfe-id <id>`                       | inferred | Override the `mfeId` inferred from the package name (`@acme/my-mfe` → `my-mfe`)                                        |
 | `--display-name <name>`               | inferred | Override the display name (title case of the id)                                                                       |
 
-`name` may be scoped (`@acme/asset-tracker`); the folder is the last segment. The scaffold is listed file by file in [Create an MFE](/docs/getting-started/create-mfe). With `--link-platform`, `@platform/react`, `@platform/vite`, `@platform/cli`, `@platform/host` and `@tecton/react` are packed with `pnpm pack` into `.platform/packs/*.tgz` and referenced as `file:./.platform/packs/<name>.tgz` dependencies, so they install exactly like published packages (without pnpm the package directories are linked with `file:` paths). Without it the platform packages use `^0.1.0` and Tecton the pinned git specifier.
+`name` may be scoped (`@acme/asset-tracker`); the folder is the last segment. The scaffold is listed file by file in [Create an MFE](/docs/getting-started/create-mfe). With `--link-platform`, `@platform/mfe-react`, `@platform/vite`, `@platform/cli`, `@platform/host` and `@tecton/react` are packed with `pnpm pack` into `.platform/packs/*.tgz` and referenced as `file:./.platform/packs/<name>.tgz` dependencies, so they install exactly like published packages (without pnpm the package directories are linked with `file:` paths). Without it the platform packages use `^0.1.0` and Tecton the pinned git specifier.
 
 ### `dev`
 

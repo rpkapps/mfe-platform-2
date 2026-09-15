@@ -25,7 +25,7 @@ import {
   type NodePath,
 } from "./ast"
 
-export const SDK_PACKAGE = "@platform/react"
+export const SDK_PACKAGE = "@platform/mfe-react"
 
 const STORAGE_APIS = new Set(["createPlatformStorage", "usePlatformStorage"])
 const REGISTRATION_COMPONENTS: Record<

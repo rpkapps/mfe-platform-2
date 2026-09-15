@@ -9,18 +9,18 @@ Packages bound to a React instance share inside the scope of their React major; 
 
 | Scope                 | Packages                                                                                                                           |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store` and, when opted in, `@platform/react` |
+| `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store` and, when opted in, `@platform/mfe-react` |
 | `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                 |
 
 Example: the shell uses React 19, MFE A and MFE B use React 18. The result is one React 19 instance for the shell (and React 19 remotes) and one shared React 18 instance for A and B. A React 18 request is never satisfied by React 19 because the scopes are distinct.
 
 ## What is inferred
 
-`@platform/vite` reads `package.json` and requests sharing for the packages it depends on among: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`. Each request records the range from `package.json` (`requiredVersion`), the installed version (`version`, the bundled fallback), the scope, `singleton`, `shared`, the `reason` (`inferred`, `configured`, `pinned`, `disabled`, `source-package`, `per-remote`) and `pairedWith`.
+`@platform/vite` reads `package.json` and requests sharing for the packages it depends on among: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/mfe-react`, `@tecton/react`, `zod`. Each request records the range from `package.json` (`requiredVersion`), the installed version (`version`, the bundled fallback), the scope, `singleton`, `shared`, the `reason` (`inferred`, `configured`, `pinned`, `disabled`, `source-package`, `per-remote`) and `pairedWith`.
 
 ## The SDK
 
-`@platform/react` is bundled into every remote (`reason: per-remote`). The SDK binds the React contexts of the remote it is built into and, through `@platform/react/tecton`, the React Aria portal context of that remote's Tecton copy; a shared SDK resolved from another remote would portal overlays through a foreign context and they would land in `document.body` instead of the owner-tagged overlay root. A remote that only needs the SDK's neutral helpers may opt in with `shared: { "@platform/react": true }`; the subpath entries then share with it.
+`@platform/mfe-react` is bundled into every remote (`reason: per-remote`). The SDK binds the React contexts of the remote it is built into and, through `@platform/mfe-react/tecton`, the React Aria portal context of that remote's Tecton copy; a shared SDK resolved from another remote would portal overlays through a foreign context and they would land in `document.body` instead of the owner-tagged overlay root. A remote that only needs the SDK's neutral helpers may opt in with `shared: { "@platform/mfe-react": true }`; the subpath entries then share with it.
 
 React Aria (`react-aria-components`, `react-aria`) and `sonner` are not shared either: they are React-context libraries bundled with the Tecton copy of each remote.
 

@@ -2,7 +2,7 @@ import rule from "../../src/eslint/rules/valid-settings-definition"
 import { ruleTester } from "./rule-tester"
 
 const imports =
-  'import { useRegisterSettingsGroup, useRegisterSettingsField, SettingsRegistration } from "@platform/react"\nimport { z } from "zod"\n'
+  'import { useRegisterSettingsGroup, useRegisterSettingsField, SettingsRegistration } from "@platform/mfe-react"\nimport { z } from "zod"\n'
 
 ruleTester.run("valid-settings-definition", rule, {
   valid: [

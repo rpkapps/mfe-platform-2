@@ -119,7 +119,7 @@ describe("platform create", () => {
       typecheck: "tsc --noEmit",
     })
     expect(pkg.dependencies.react).toBe("^19.0.0")
-    expect(pkg.dependencies["@platform/react"]).toBe("^0.1.0")
+    expect(pkg.dependencies["@platform/mfe-react"]).toBe("^0.1.0")
     expect(pkg.dependencies["@tecton/react"]).toMatch(/^github:rpkapps\/tecton-ui-1#/)
     expect(pkg.dependencies["react-aria-components"]).toBeDefined()
     expect(pkg.devDependencies["@platform/cli"]).toBe("^0.1.0")
@@ -169,7 +169,7 @@ describe("platform create", () => {
       git: false,
     })
     const pkg = json(result.dir, "package.json")
-    expect(pkg.dependencies["@platform/react"]).toMatch(
+    expect(pkg.dependencies["@platform/mfe-react"]).toMatch(
       /^file:.*platform-react.*\.tgz$|^file:.*\/packages\/react$/
     )
     expect(pkg.devDependencies["@platform/vite"]).toMatch(

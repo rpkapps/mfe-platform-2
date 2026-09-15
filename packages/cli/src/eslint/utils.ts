@@ -18,13 +18,13 @@ export const LINT_DOCS_URL = `${DOCS_BASE_URL}/linting`
 export const createRule = ESLintUtils.RuleCreator((name) => `${LINT_DOCS_URL}#${name}`)
 
 export const PLATFORM_PACKAGES = [
-  "@platform/react",
-  "@platform/react/tecton",
-  "@platform/react/testing",
+  "@platform/mfe-react",
+  "@platform/mfe-react/tecton",
+  "@platform/mfe-react/testing",
 ]
 
 export function isPlatformSource(source: string): boolean {
-  return source === "@platform/react" || source.startsWith("@platform/react/")
+  return source === "@platform/mfe-react" || source.startsWith("@platform/mfe-react/")
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +340,7 @@ export function isComponentOrHookName(name: string | null): boolean {
   return /^use[A-Z0-9_]/.test(name) || /^[A-Z]/.test(name)
 }
 
-/** Track which local identifiers were imported from `@platform/react` (and what they were called there). */
+/** Track which local identifiers were imported from `@platform/mfe-react` (and what they were called there). */
 export function collectPlatformImports(program: TSESTree.Program): Map<string, string> {
   const imports = new Map<string, string>()
   for (const statement of program.body) {
@@ -361,7 +361,7 @@ export function collectPlatformImports(program: TSESTree.Program): Map<string, s
   return imports
 }
 
-/** Resolve a callee to its `@platform/react` export name (`useRegisterCommand`, or `platform.useRegisterCommand`). */
+/** Resolve a callee to its `@platform/mfe-react` export name (`useRegisterCommand`, or `platform.useRegisterCommand`). */
 export function platformCalleeName(
   callee: TSESTree.Expression,
   imports: Map<string, string>

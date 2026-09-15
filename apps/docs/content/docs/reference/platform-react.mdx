@@ -1,11 +1,11 @@
 ---
-title: "@platform/react"
+title: "@platform/mfe-react"
 description: The MFE-facing SDK. Every export with its signature and a short description.
 ---
 
-Install: `pnpm add @platform/react` (a scaffolded project already has it). Peer dependencies: `react` and `react-dom` 18.2+ or 19, `@tanstack/react-router` ^1.170, optionally `@tecton/react` (for `@platform/react/tecton`).
+Install: `pnpm add @platform/mfe-react` (a scaffolded project already has it). Peer dependencies: `react` and `react-dom` 18.2+ or 19, `@tanstack/react-router` ^1.170, optionally `@tecton/react` (for `@platform/mfe-react/tecton`).
 
-Entry points: `@platform/react` (SDK), `@platform/react/tecton` (`withTecton`), `@platform/react/testing` (test bridge and render helpers).
+Entry points: `@platform/mfe-react` (SDK), `@platform/mfe-react/tecton` (`withTecton`), `@platform/mfe-react/testing` (test bridge and render helpers).
 
 ## Bootstrap
 
@@ -52,10 +52,10 @@ Used by `createMfe`; public for tests and custom bootstraps. Creates the router 
 
 The TanStack `RouterHistory` adapter over a `ShellNavigation` (`{ normalizeHref?, prefix? }`; returns a `ShellHistory` with `dispose()`). Exposed for custom bootstraps; `createMfeRouter` calls it for you.
 
-### `withTecton(definition, options?)` — `@platform/react/tecton`
+### `withTecton(definition, options?)` — `@platform/mfe-react/tecton`
 
 ```ts
-import { withTecton } from "@platform/react/tecton"
+import { withTecton } from "@platform/mfe-react/tecton"
 export default withTecton(definition) // options: { theme?: "inherit" }
 ```
 
@@ -148,7 +148,7 @@ createPlatformStorage<TValue>({
 `createMfe` builds a `MfeRouter<typeof routeTree>`. Register it once (the scaffold does it in `src/platform.d.ts`) so `Route.useLoaderData()`, `Route.useSearch()`, `Link` targets and params are typed across the MFE:
 
 ```ts title="src/platform.d.ts"
-import type { MfeRouter } from "@platform/react"
+import type { MfeRouter } from "@platform/mfe-react"
 import type { routeTree } from "./routeTree.gen"
 
 declare module "@tanstack/react-router" {
@@ -160,10 +160,10 @@ declare module "@tanstack/react-router" {
 
 Re-exported contracts from the core: `PlatformError`, `isPlatformError`, `toPlatformError`, `ERROR_CODES`, `PLATFORM_PROTOCOL_VERSION`, `CAPABILITY_IDS`, `shallowEqual`, and the types `PlatformErrorCode`, `CapabilityId`, `CommandDefinition`, `CommandRunContext`, `CommandState`, `SettingsGroupDefinition`, `SettingsFieldDefinition`, `SettingsOption`, `OptionsProvider`, `AsyncOptionsContext`, `FieldValidationState`, `HelpEntryDefinition`, `ReleaseNoteDefinition`, `BreadcrumbEntry`, `BreadcrumbTrail`, `Telemetry`, `TelemetrySpan`, `TelemetryAttributes`, `HostBridge`, `RemoteDefinition`, `MountHandle`, `WidgetHandle`, `MountOptions`, `WidgetMountOptions`, `ShellLocation`, `ShellNavigation`, `PlatformUser`, `TenantContext`, `ProjectContext`, `JobContext`, `Theme`, `InstanceContextState`, `PermissionHelpers`, `StorageScope`, `StorageDiagnostic`, `StorageStore`, `AnySchema`, `StandardSchemaV1`, `Disposer`, `Equality`.
 
-## Testing — `@platform/react/testing`
+## Testing — `@platform/mfe-react/testing`
 
 ```ts
-import { createTestBridge, renderMfe, PlatformTestProvider } from "@platform/react/testing"
+import { createTestBridge, renderMfe, PlatformTestProvider } from "@platform/mfe-react/testing"
 
 createTestBridge({
   mfeId: string,

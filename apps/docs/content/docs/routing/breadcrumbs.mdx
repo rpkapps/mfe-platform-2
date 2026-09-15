@@ -44,7 +44,7 @@ This is what the `asset-tracker` and `legacy-reports` fixtures do; the E2E suite
 For labels that depend on component state, `useBreadcrumb` overrides the current route's entry (`label`, `href`, `state`, `hidden`, or a plain string); pass `null` to fall back to the static data:
 
 ```tsx
-import { useBreadcrumb } from "@platform/react"
+import { useBreadcrumb } from "@platform/mfe-react"
 
 function AssetPage() {
   const { asset } = Route.useLoaderData()

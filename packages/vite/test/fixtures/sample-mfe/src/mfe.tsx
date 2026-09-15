@@ -1,4 +1,4 @@
-// Plain remote definition: the fixture must not depend on @platform/react being built.
+// Plain remote definition: the fixture must not depend on @platform/mfe-react being built.
 import "./styles.css"
 import { routeTree } from "./routeTree.gen"
 

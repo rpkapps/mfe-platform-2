@@ -1,5 +1,5 @@
 import * as React from "react"
-import { useNavigation, usePlatform } from "@platform/react"
+import { useNavigation, usePlatform } from "@platform/mfe-react"
 import { REPORTS, TEST_IDS } from "@platform-internal/conformance"
 
 export function ReportSummary({ reportId }: { reportId: string }) {

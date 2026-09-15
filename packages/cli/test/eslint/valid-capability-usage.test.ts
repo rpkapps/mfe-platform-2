@@ -3,18 +3,18 @@ import { ruleTester, validFile } from "./rule-tester"
 
 ruleTester.run("valid-capability-usage", rule, {
   valid: [
-    'import { useCapability } from "@platform/react"\nconst ok = useCapability("storage.local")',
-    'import { useCapability } from "@platform/react"\nconst ok = useCapability(id)',
+    'import { useCapability } from "@platform/mfe-react"\nconst ok = useCapability("storage.local")',
+    'import { useCapability } from "@platform/mfe-react"\nconst ok = useCapability(id)',
     {
-      code: 'import { useTelemetry, usePlatform } from "@platform/react"',
+      code: 'import { useTelemetry, usePlatform } from "@platform/mfe-react"',
       filename: validFile("src", "routes", "index.tsx"),
     },
     // no mfe.config → nothing is removed
-    'import { useNotifications } from "@platform/react"',
+    'import { useNotifications } from "@platform/mfe-react"',
   ],
   invalid: [
     {
-      code: 'import { useCapability } from "@platform/react"\nconst ok = useCapability("teleportation")',
+      code: 'import { useCapability } from "@platform/mfe-react"\nconst ok = useCapability("teleportation")',
       errors: [
         {
           messageId: "unknownCapability",
@@ -27,11 +27,11 @@ ruleTester.run("valid-capability-usage", rule, {
       ],
     },
     {
-      code: 'import * as platform from "@platform/react"\nplatform.useCapability("Storage")',
+      code: 'import * as platform from "@platform/mfe-react"\nplatform.useCapability("Storage")',
       errors: [{ messageId: "unknownCapability" }],
     },
     {
-      code: 'import { useNotifications, useTelemetry } from "@platform/react"',
+      code: 'import { useNotifications, useTelemetry } from "@platform/mfe-react"',
       filename: validFile("src", "routes", "index.tsx"),
       errors: [
         {

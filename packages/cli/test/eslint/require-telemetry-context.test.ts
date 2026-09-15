@@ -1,7 +1,7 @@
 import rule from "../../src/eslint/rules/require-telemetry-context"
 import { ruleTester } from "./rule-tester"
 
-const imports = 'import { useTelemetry } from "@platform/react"\n'
+const imports = 'import { useTelemetry } from "@platform/mfe-react"\n'
 
 ruleTester.run("require-telemetry-context", rule, {
   valid: [

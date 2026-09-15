@@ -1,4 +1,4 @@
-import { createMfe, createWidget, useNotifications } from "@platform/react"
+import { createMfe, createWidget, useNotifications } from "@platform/mfe-react"
 import { loadRemote } from "@module-federation/runtime"
 
 import { entry } from "../.platform/entry"

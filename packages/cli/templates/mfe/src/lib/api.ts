@@ -1,4 +1,4 @@
-import { useRuntimeEnv } from "@platform/react"
+import { useRuntimeEnv } from "@platform/mfe-react"
 
 /**
  * Data access. The API base URL is a runtime environment value (mfe.config.ts → env,
