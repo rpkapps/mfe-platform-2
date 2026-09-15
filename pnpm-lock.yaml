@@ -199,7 +199,6 @@ catalogs:
       version: 19.3.0
 
 importers:
-
   .:
     devDependencies:
       '@eslint/js':
@@ -250,161 +249,6 @@ importers:
       typescript-eslint:
         specifier: 'catalog:'
         version: 8.70.0(eslint@9.39.5(jiti@2.7.0))(typescript@6.0.3)
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-
-  apps/conformance-react18:
-    dependencies:
-      '@platform-internal/conformance':
-        specifier: workspace:*
-        version: link:../../internal/conformance
-      '@platform/mfe-react':
-        specifier: workspace:*
-        version: link:../../packages/mfe-react
-      '@tanstack/react-router':
-        specifier: 'catalog:'
-        version: 1.170.36(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react:
-        specifier: catalog:react18
-        version: 18.3.1
-      react-dom:
-        specifier: catalog:react18
-        version: 18.3.1(react@18.3.1)
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.5
-    devDependencies:
-      '@platform/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@platform/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      '@testing-library/dom':
-        specifier: 'catalog:'
-        version: 10.4.2
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
-      '@testing-library/react':
-        specifier: 'catalog:'
-        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      '@testing-library/user-event':
-        specifier: 'catalog:'
-        version: 14.6.7(@testing-library/dom@10.4.2)
-      '@types/node':
-        specifier: 'catalog:'
-        version: 22.20.2
-      '@types/react':
-        specifier: catalog:react18
-        version: 18.3.31
-      '@types/react-dom':
-        specifier: catalog:react18
-        version: 18.3.7(@types/react@18.3.31)
-      eslint:
-        specifier: 'catalog:'
-        version: 9.39.5(jiti@2.7.0)
-      jsdom:
-        specifier: 'catalog:'
-        version: 30.0.1
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.3.3
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-
-  apps/conformance-react19:
-    dependencies:
-      '@platform-internal/conformance':
-        specifier: workspace:*
-        version: link:../../internal/conformance
-      '@platform/mfe-react':
-        specifier: workspace:*
-        version: link:../../packages/mfe-react
-      '@tanstack/react-router':
-        specifier: 'catalog:'
-        version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@tecton/react':
-        specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
-      class-variance-authority:
-        specifier: 'catalog:'
-        version: 0.7.1
-      cn:
-        specifier: 'catalog:'
-        version: 0.2.6
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.46.0(react@19.3.0)
-      react:
-        specifier: catalog:react19
-        version: 19.3.0
-      react-aria-components:
-        specifier: 'catalog:'
-        version: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react-dom:
-        specifier: catalog:react19
-        version: 19.3.0(react@19.3.0)
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.5
-    devDependencies:
-      '@platform/cli':
-        specifier: workspace:*
-        version: link:../../packages/cli
-      '@platform/vite':
-        specifier: workspace:*
-        version: link:../../packages/vite
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      '@testing-library/dom':
-        specifier: 'catalog:'
-        version: 10.4.2
-      '@testing-library/jest-dom':
-        specifier: 'catalog:'
-        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
-      '@testing-library/react':
-        specifier: 'catalog:'
-        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@testing-library/user-event':
-        specifier: 'catalog:'
-        version: 14.6.7(@testing-library/dom@10.4.2)
-      '@types/node':
-        specifier: 'catalog:'
-        version: 22.20.2
-      '@types/react':
-        specifier: catalog:react19
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: catalog:react19
-        version: 19.3.0(@types/react@19.3.0)
-      eslint:
-        specifier: 'catalog:'
-        version: 9.39.5(jiti@2.7.0)
-      jsdom:
-        specifier: 'catalog:'
-        version: 30.0.1
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.3.3
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
@@ -509,7 +353,226 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  apps/conformance-widget-a:
+  apps/docs:
+    dependencies:
+      '@platform-internal/core':
+        specifier: workspace:*
+        version: link:../../internal/core
+      '@tailwindcss/vite':
+        specifier: 'catalog:'
+        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@tanstack/react-router':
+        specifier: 'catalog:'
+        version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@tanstack/react-start':
+        specifier: 'catalog:'
+        version: 1.168.54(esbuild@0.28.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@tecton/react':
+        specifier: 'catalog:'
+        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+      class-variance-authority:
+        specifier: 'catalog:'
+        version: 0.7.1
+      cn:
+        specifier: 'catalog:'
+        version: 0.2.6
+      fumadocs-core:
+        specifier: 'catalog:'
+        version: 16.15.10(@mdx-js/mdx@3.1.1)(@tanstack/react-router@1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.46.0(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
+      fumadocs-mdx:
+        specifier: 'catalog:'
+        version: 15.4.0(@types/mdast@4.0.4)(@types/mdx@2.0.14)(@types/react@19.3.0)(fumadocs-core@16.15.10(@mdx-js/mdx@3.1.1)(@tanstack/react-router@1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.46.0(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.46.0(react@19.3.0)
+      next-themes:
+        specifier: 'catalog:'
+        version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react:
+        specifier: catalog:react19
+        version: 19.3.0
+      react-aria-components:
+        specifier: 'catalog:'
+        version: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      react-dom:
+        specifier: catalog:react19
+        version: 19.3.0(react@19.3.0)
+      shiki:
+        specifier: 'catalog:'
+        version: 4.4.3
+      sonner:
+        specifier: 'catalog:'
+        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
+      '@types/mdx':
+        specifier: 'catalog:'
+        version: 2.0.14
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.2
+      '@types/react':
+        specifier: catalog:react19
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: catalog:react19
+        version: 19.3.0(@types/react@19.3.0)
+      '@vitejs/plugin-react':
+        specifier: 'catalog:'
+        version: 6.1.1(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+
+  apps/field-widgets:
+    dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
+      '@platform/mfe-react':
+        specifier: workspace:*
+        version: link:../../packages/mfe-react
+      '@tanstack/react-router':
+        specifier: 'catalog:'
+        version: 1.170.36(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: catalog:react18
+        version: 18.3.1
+      react-dom:
+        specifier: catalog:react18
+        version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
+      '@platform/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@platform/vite':
+        specifier: workspace:*
+        version: link:../../packages/vite
+      '@tailwindcss/vite':
+        specifier: 'catalog:'
+        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@testing-library/user-event':
+        specifier: 'catalog:'
+        version: 14.6.7(@testing-library/dom@10.4.2)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.2
+      '@types/react':
+        specifier: catalog:react18
+        version: 18.3.31
+      '@types/react-dom':
+        specifier: catalog:react18
+        version: 18.3.7(@types/react@18.3.31)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.7.0)
+      jsdom:
+        specifier: 'catalog:'
+        version: 30.0.1
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
+  apps/production-reports:
+    dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
+      '@platform/mfe-react':
+        specifier: workspace:*
+        version: link:../../packages/mfe-react
+      '@tanstack/react-router':
+        specifier: 'catalog:'
+        version: 1.170.36(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      react:
+        specifier: catalog:react18
+        version: 18.3.1
+      react-dom:
+        specifier: catalog:react18
+        version: 18.3.1(react@18.3.1)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
+      '@platform/cli':
+        specifier: workspace:*
+        version: link:../../packages/cli
+      '@platform/vite':
+        specifier: workspace:*
+        version: link:../../packages/vite
+      '@tailwindcss/vite':
+        specifier: 'catalog:'
+        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@testing-library/user-event':
+        specifier: 'catalog:'
+        version: 14.6.7(@testing-library/dom@10.4.2)
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.2
+      '@types/react':
+        specifier: catalog:react18
+        version: 18.3.31
+      '@types/react-dom':
+        specifier: catalog:react18
+        version: 18.3.7(@types/react@18.3.31)
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.5(jiti@2.7.0)
+      jsdom:
+        specifier: 'catalog:'
+        version: 30.0.1
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
+  apps/subsurface-widgets:
     dependencies:
       '@platform-internal/conformance':
         specifier: workspace:*
@@ -594,7 +657,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
-  apps/conformance-widget-b:
+  apps/well-planner:
     dependencies:
       '@platform-internal/conformance':
         specifier: workspace:*
@@ -604,13 +667,28 @@ importers:
         version: link:../../packages/mfe-react
       '@tanstack/react-router':
         specifier: 'catalog:'
-        version: 1.170.36(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@tecton/react':
+        specifier: 'catalog:'
+        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+      class-variance-authority:
+        specifier: 'catalog:'
+        version: 0.7.1
+      cn:
+        specifier: 'catalog:'
+        version: 0.2.6
+      lucide-react:
+        specifier: 'catalog:'
+        version: 1.46.0(react@19.3.0)
       react:
-        specifier: catalog:react18
-        version: 18.3.1
+        specifier: catalog:react19
+        version: 19.3.0
+      react-aria-components:
+        specifier: 'catalog:'
+        version: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-dom:
-        specifier: catalog:react18
-        version: 18.3.1(react@18.3.1)
+        specifier: catalog:react19
+        version: 19.3.0(react@19.3.0)
       zod:
         specifier: 'catalog:'
         version: 4.6.5
@@ -632,7 +710,7 @@ importers:
         version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
       '@testing-library/react':
         specifier: 'catalog:'
-        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@testing-library/user-event':
         specifier: 'catalog:'
         version: 14.6.7(@testing-library/dom@10.4.2)
@@ -640,11 +718,11 @@ importers:
         specifier: 'catalog:'
         version: 22.20.2
       '@types/react':
-        specifier: catalog:react18
-        version: 18.3.31
+        specifier: catalog:react19
+        version: 19.3.0
       '@types/react-dom':
-        specifier: catalog:react18
-        version: 18.3.7(@types/react@18.3.31)
+        specifier: catalog:react19
+        version: 19.3.0(@types/react@19.3.0)
       eslint:
         specifier: 'catalog:'
         version: 9.39.5(jiti@2.7.0)
@@ -663,85 +741,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-
-  apps/docs:
-    dependencies:
-      '@platform-internal/core':
-        specifier: workspace:*
-        version: link:../../internal/core
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      '@tanstack/react-router':
-        specifier: 'catalog:'
-        version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@tanstack/react-start':
-        specifier: 'catalog:'
-        version: 1.168.54(esbuild@0.28.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      '@tecton/react':
-        specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
-      class-variance-authority:
-        specifier: 'catalog:'
-        version: 0.7.1
-      cn:
-        specifier: 'catalog:'
-        version: 0.2.6
-      fumadocs-core:
-        specifier: 'catalog:'
-        version: 16.15.10(@mdx-js/mdx@3.1.1)(@tanstack/react-router@1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.46.0(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5)
-      fumadocs-mdx:
-        specifier: 'catalog:'
-        version: 15.4.0(@types/mdast@4.0.4)(@types/mdx@2.0.14)(@types/react@19.3.0)(fumadocs-core@16.15.10(@mdx-js/mdx@3.1.1)(@tanstack/react-router@1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.3.0)(lucide-react@1.46.0(react@19.3.0))(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(zod@4.6.5))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.46.0(react@19.3.0)
-      next-themes:
-        specifier: 'catalog:'
-        version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react:
-        specifier: catalog:react19
-        version: 19.3.0
-      react-aria-components:
-        specifier: 'catalog:'
-        version: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      react-dom:
-        specifier: catalog:react19
-        version: 19.3.0(react@19.3.0)
-      shiki:
-        specifier: 'catalog:'
-        version: 4.4.3
-      sonner:
-        specifier: 'catalog:'
-        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.3.3
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.5
-    devDependencies:
-      '@types/mdx':
-        specifier: 'catalog:'
-        version: 2.0.14
-      '@types/node':
-        specifier: 'catalog:'
-        version: 22.20.2
-      '@types/react':
-        specifier: catalog:react19
-        version: 19.3.0
-      '@types/react-dom':
-        specifier: catalog:react19
-        version: 19.3.0(@types/react@19.3.0)
-      '@vitejs/plugin-react':
-        specifier: 'catalog:'
-        version: 6.1.1(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      typescript:
-        specifier: 'catalog:'
-        version: 6.0.3
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
   internal/conformance:
     dependencies:

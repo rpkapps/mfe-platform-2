@@ -213,4 +213,26 @@ describe("the lockfile resolves every dependency over HTTPS", () => {
       .map(([number, line]) => `pnpm-lock.yaml:${number}: ${line.trim()}`)
     expect(offences).toEqual([])
   })
+
+  it("names one importer per workspace package, and no others", () => {
+    // Renaming a workspace directory without regenerating the lockfile leaves
+    // importers pointing at directories that no longer exist. Every install
+    // here still works, because `node_modules` is already linked; CI installs
+    // with `--frozen-lockfile` and fails on the first specifier it cannot
+    // match. So the lockfile's importers are checked against the directories
+    // on disk.
+    const lockfile = readFileSync(join(root, "pnpm-lock.yaml"), "utf8")
+    const section = lockfile.slice(lockfile.indexOf("\nimporters:\n") + 1)
+    const importers = section
+      .slice(0, section.search(/\n(?=\S)/) + 1)
+      .split("\n")
+      .map((line) => /^ {2}(\S+):$/.exec(line)?.[1])
+      .filter((name): name is string => Boolean(name) && name !== ".")
+    const packages = ["apps", "packages", "internal"].flatMap((group) =>
+      readdirSync(join(root, group))
+        .map((dir) => `${group}/${dir}`)
+        .filter((dir) => existsSync(join(root, dir, "package.json")))
+    )
+    expect([...importers].sort()).toEqual([...packages].sort())
+  })
 })
