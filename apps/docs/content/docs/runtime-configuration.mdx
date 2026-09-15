@@ -56,13 +56,13 @@ The entrypoint reads only `PLATFORM_*` variables, merges them over an optional b
 | `PLATFORM_MFE_<ID>_ALLOWED_ORIGINS`                                                | `mfes.<id>.allowedOrigins`                     |
 | `PLATFORM_MFE_<ID>_ENV_<KEY>`                                                      | `mfes.<id>.env.<KEY>`                          |
 
-`<ID>` is the `mfeId` upper-cased with `-` → `_` (`asset-tracker` → `ASSET_TRACKER`). Values `true`/`false` become booleans and numeric strings become numbers. Pass `--known asset-tracker,legacy-reports` (or a base document) so ids containing digits or ambiguous separators map unambiguously.
+`<ID>` is the `mfeId` upper-cased with `-` → `_` (`well-planner` → `WELL_PLANNER`). Values `true`/`false` become booleans and numeric strings become numbers. Pass `--known well-planner,production-reports` (or a base document) so ids containing digits or ambiguous separators map unambiguously.
 
 ```bash
 PLATFORM_ENVIRONMENT=staging \
-PLATFORM_MFE_ASSET_TRACKER_MANIFEST_URL=https://remotes.example.com/asset-tracker/platform-manifest.json \
-PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.staging.example.com \
-PLATFORM_MFE_LEGACY_REPORTS_ENABLED=false \
+PLATFORM_MFE_WELL_PLANNER_MANIFEST_URL=https://remotes.example.com/well-planner/platform-manifest.json \
+PLATFORM_MFE_WELL_PLANNER_ENV_API_BASE_URL=https://api.staging.example.com \
+PLATFORM_MFE_PRODUCTION_REPORTS_ENABLED=false \
 platform-host-entrypoint --out ./public/platform-config.json
 ```
 
@@ -77,11 +77,11 @@ platform-host-entrypoint --out ./public/platform-config.json
   "release": { "version": "3.4.0", "commit": "9f2c1a" },
   "shared": { "SUPPORT_URL": "https://support.example.com" },
   "mfes": {
-    "asset-tracker": {
-      "manifestUrl": "https://remotes.example.com/asset-tracker/platform-manifest.json",
+    "well-planner": {
+      "manifestUrl": "https://remotes.example.com/well-planner/platform-manifest.json",
       "env": { "API_BASE_URL": "https://api.staging.example.com" }
     },
-    "legacy-reports": { "enabled": false, "env": {} }
+    "production-reports": { "enabled": false, "env": {} }
   },
   "devtools": { "policy": "flag", "environments": ["development", "local", "test", "staging"] },
   "cache": { "manifestMaxAgeSeconds": 60, "bustOnRetry": true },
@@ -110,7 +110,7 @@ A fetch failure raises `RUNTIME_CONFIG_FETCH_FAILED`: serve `/platform-config.js
 
 ## Validation
 
-The document is validated before the platform starts, in the entrypoint and again in the host. Invalid documents raise `RUNTIME_CONFIG_INVALID` listing every issue (`mfes.Asset-Tracker: mfeId must be kebab-case`). The platform never starts with a partially valid configuration.
+The document is validated before the platform starts, in the entrypoint and again in the host. Invalid documents raise `RUNTIME_CONFIG_INVALID` listing every issue (`mfes.Well-Planner: mfeId must be kebab-case`). The platform never starts with a partially valid configuration.
 
 ## Per-MFE enablement
 

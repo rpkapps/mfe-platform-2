@@ -68,8 +68,8 @@ function WellDetail() {
           <PageHeaderEyebrow>
             {well.field} · {WELL_TYPE_META[well.type]}
           </PageHeaderEyebrow>
-          <PageHeaderTitle data-testid={ids.wellTitle} className="font-mono">
-            {well.name}{" "}
+          <PageHeaderTitle className="font-mono">
+            <span data-testid={ids.wellTitle}>{well.name}</span>{" "}
             <Badge variant={status.tone} appearance="outline">
               {status.label}
             </Badge>

@@ -35,16 +35,16 @@ The JSON Schema is published at [`/schemas/manifest.json`](/schemas/manifest.jso
 
 ## MFE id
 
-`mfeId` is the stable identity of an independently deployed remote. It is kebab-case (`asset-tracker`), starts with a letter and is inferred from the package name on the first run (`@acme/asset-tracker` → `asset-tracker`). Invalid ids fail with `MFE_ID_INVALID`; the override is `mfeId` in `mfe.config.ts`.
+`mfeId` is the stable identity of an independently deployed remote. It is kebab-case (`well-planner`), starts with a letter and is inferred from the package name on the first run (`@acme/well-planner` → `well-planner`). Invalid ids fail with `MFE_ID_INVALID`; the override is `mfeId` in `mfe.config.ts`.
 
-Do not confuse it with `instanceId` (one per mount, `asset-tracker#3`) or an App Finder "app id": widget libraries and utility remotes have an `mfeId` but no App Finder entry.
+Do not confuse it with `instanceId` (one per mount, `well-planner#3`) or an App Finder "app id": widget libraries and utility remotes have an `mfeId` but no App Finder entry.
 
 ## Identity persistence
 
 The first build or dev run writes `.platform/identity.json`:
 
 ```json title=".platform/identity.json"
-{ "mfeId": "asset-tracker", "createdAt": "2026-01-15T09:30:00.000Z" }
+{ "mfeId": "well-planner", "createdAt": "2026-01-15T09:30:00.000Z" }
 ```
 
 Commit it. From then on the persisted id wins over inference, so renaming the package or its display name never silently changes storage keys, command ids or settings namespaces. Setting `mfeId` explicitly in `mfe.config.ts` renames the remote and updates the file — that is a deliberate migration, and stored data under the old namespace is not carried over.
@@ -70,5 +70,5 @@ A hidden remote is still a complete platform remote: it can own deep-linkable ro
 ## Inspecting
 
 - `pnpm manifest` in the remote project.
-- `curl https://remotes.example.com/asset-tracker/platform-manifest.json`.
+- `curl https://remotes.example.com/well-planner/platform-manifest.json`.
 - Developer tools → _Overview_: effective manifest URL, its source and the loaded manifest.

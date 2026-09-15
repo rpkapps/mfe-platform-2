@@ -11,12 +11,12 @@ description: A platform for independently deployed React micro-frontends and wid
 ┌──────────── Shell (@platform/host + @platform/host-react, React 19, SSR) ─────────────┐
 │  history · context store · registries · overlay manager · breadcrumbs · runtime config · credentials │
 │                                                                                                  │
-│   /asset-tracker/*  ─►  <MfeOutlet>  ─►  fetch platform-manifest.json ─► validate ─► negotiate   │
+│   /well-planner/*  ─►  <MfeOutlet>  ─►  fetch platform-manifest.json ─► validate ─► negotiate   │
 │                                            shared deps ─► load remote entry ─► mount(container)  │
 │                                                                                                  │
-│   ┌──────────────── React root: asset-tracker (React 19) ───────────────┐  ┌─ widget-b root ─┐  │
-│   │ <div data-mfe="asset-tracker">  TanStack Router + shell history     │  │ (React 18)      │  │
-│   │   routes/__root.tsx · routes/index.tsx · routes/assets/$assetId.tsx │  │ mountWidget()   │  │
+│   ┌──────────────── React root: well-planner (React 19) ───────────────┐  ┌─ field-widgets root ─┐  │
+│   │ <div data-mfe="well-planner">  TanStack Router + shell history     │  │ (React 18)      │  │
+│   │   routes/__root.tsx · routes/index.tsx · routes/wells/$wellId.tsx │  │ mountWidget()   │  │
 │   └─────────────────────────────────────────────────────────────────────┘  └─────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────────────────────────────┘
         ▲ HostBridge: plain data + functions (navigation, context store, registries, storage,

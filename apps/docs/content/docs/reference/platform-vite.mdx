@@ -41,7 +41,7 @@ Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__
 ```ts title="mfe.config.ts"
 import { defineMfeConfig } from "@platform/vite/config"
 
-export default defineMfeConfig({ routePrefix: "/assets", navigation: { title: "Assets" } })
+export default defineMfeConfig({ routePrefix: "/wells", navigation: { title: "Wells" } })
 ```
 
 Identity function that types `mfe.config.ts` (`mfe.config.mts`, `.js`, `.mjs` are also found). The file must default-export an object. Precedence per key: plugin options → `mfe.config.ts` → persisted identity → inference from `package.json` and the source tree. Changing the file requires restarting `platform dev` ([restart diagnostics](/docs/local-development#restart-diagnostics)).

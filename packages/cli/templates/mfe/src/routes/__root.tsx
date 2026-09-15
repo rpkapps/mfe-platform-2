@@ -22,7 +22,7 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 
 const links = [
   { to: "/", label: "Dashboard" },
-  { to: "/assets", label: "Assets" },
+  { to: "/wells", label: "Wells" },
   { to: "/settings", label: "Settings" },
 ] as const
 

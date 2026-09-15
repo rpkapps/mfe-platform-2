@@ -554,7 +554,6 @@ export const TEST_IDS = {
     settingsHost: "shell-settings-host",
     helpSlot: "shell-help-slot",
     releaseNotesSlot: "shell-release-notes-slot",
-    counter: "shell-counter",
   },
   wellPlanner: {
     root: "well-planner-root",

@@ -42,25 +42,25 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 
 ## Permission checks
 
-```tsx title="src/routes/assets/$assetId.tsx"
+```tsx title="src/routes/wells/$wellId.tsx"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/assets/$assetId")({
-  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["assets:read"] },
+export const Route = createFileRoute("/wells/$wellId")({
+  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["wells:read"] },
   beforeLoad: ({ context, params }) => {
-    if (!context.platform.permissions.hasGroup("assets:read")) {
-      throw redirect({ to: "/", search: { denied: params.assetId } })
+    if (!context.platform.permissions.hasGroup("wells:read")) {
+      throw redirect({ to: "/", search: { denied: params.wellId } })
     }
-    if (params.assetId === "restricted" && !context.platform.permissions.hasGroup("admin")) {
+    if (params.wellId === "restricted" && !context.platform.permissions.hasGroup("admin")) {
       throw new Error(
-        "Only admins may open the restricted asset (guard error stays inside the MFE)."
+        "Only admins may open the restricted well (guard error stays inside the MFE)."
       )
     }
   },
 })
 ```
 
-This is the `asset-tracker` fixture. The E2E suite switches the shell user to one without `assets:read` while `/asset-tracker/assets/pump-42` is open and sees the redirect to `/asset-tracker?denied=pump-42` — no remount, the shell untouched — and, for a viewer opening `restricted`, the guard error rendered by the route's `errorComponent`.
+This is the `well-planner` fixture. The E2E suite switches the shell user to one without `wells:read` while `/well-planner/wells/w01` is open and sees the redirect to `/well-planner?denied=w01` — no remount, the shell untouched — and, for a viewer opening `restricted`, the guard error rendered by the route's `errorComponent`.
 
 `staticData.permissionGroups` is optional and only feeds the manifest: the shell can [preflight](/docs/permission-groups#preflight) the remote before loading it, and the palette hides routes the user cannot open. The `beforeLoad` check is the one that decides.
 
@@ -82,15 +82,15 @@ beforeLoad: ({ context }) => {
 Loaders run on the client after the MFE mounts (only the shell is server-rendered). A thrown error lands in the nearest `errorComponent`:
 
 ```tsx
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   loader: async ({ params, context }) => {
-    const asset = await fetchAsset(params.assetId)
-    if (!asset) throw notFound()
-    return asset
+    const well = await fetchWell(params.wellId)
+    if (!well) throw notFound()
+    return well
   },
   pendingComponent: () => <Skeleton className="h-32" />,
   errorComponent: ({ error, reset }) => <AssetError error={error} onRetry={reset} />,
-  notFoundComponent: () => <p>No such asset.</p>,
+  notFoundComponent: () => <p>No such well.</p>,
   component: AssetPage,
 })
 ```
@@ -108,7 +108,7 @@ Context changes (a new project, a changed permission group) bump `context.platfo
 Use `revision` in a loader's dependencies when you cache by hand:
 
 ```ts
-loader: ({ context }) => queryClient.ensureQueryData(assetsQuery(context.platform.project?.id))
+loader: ({ context }) => queryClient.ensureQueryData(wellsQuery(context.platform.project?.id))
 ```
 
 ## Where failures land

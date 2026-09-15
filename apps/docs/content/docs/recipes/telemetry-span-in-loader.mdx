@@ -3,25 +3,25 @@ title: Telemetry span in a loader
 description: Time a route loader with a span that is automatically enriched with the MFE, instance and route.
 ---
 
-```tsx title="src/routes/assets/$assetId.tsx"
+```tsx title="src/routes/wells/$wellId.tsx"
 import { createFileRoute, notFound } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   loader: async ({ context, params, abortController }) => {
     const { telemetry, runtime } = context.platform
-    const span = telemetry.span("load-asset", { assetId: params.assetId })
+    const span = telemetry.span("load-well", { wellId: params.wellId })
     try {
-      const response = await fetch(`${runtime.env.API_BASE_URL}/assets/${params.assetId}`, {
+      const response = await fetch(`${runtime.env.API_BASE_URL}/wells/${params.wellId}`, {
         signal: abortController.signal,
       })
       if (response.status === 404) {
         span.end({ outcome: "not-found" })
         throw notFound()
       }
-      if (!response.ok) throw new Error(`Asset request failed (${response.status})`)
-      const asset = await response.json()
+      if (!response.ok) throw new Error(`Well request failed (${response.status})`)
+      const well = await response.json()
       const child = span.child("parse")
-      const parsed = assetSchema.parse(asset)
+      const parsed = wellSchema.parse(well)
       child.end()
       span.end({ outcome: "ok" })
       return parsed
@@ -34,17 +34,17 @@ export const Route = createFileRoute("/assets/$assetId")({
 })
 ```
 
-What the adapter receives (with a span-capable adapter, or as `span:load-asset` events otherwise):
+What the adapter receives (with a span-capable adapter, or as `span:load-well` events otherwise):
 
 ```json
 {
-  "span.name": "load-asset",
+  "span.name": "load-well",
   "span.duration_ms": 118,
-  "assetId": "pump-42",
+  "wellId": "w01",
   "outcome": "ok",
-  "mfeId": "asset-tracker",
-  "instanceId": "asset-tracker#1",
-  "route": "/assets/$assetId",
+  "mfeId": "well-planner",
+  "instanceId": "well-planner#1",
+  "route": "/wells/$wellId",
   "environment": "staging",
   "release": "3.4.0",
   "remoteRelease": "2.1.0",

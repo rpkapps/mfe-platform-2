@@ -91,9 +91,9 @@ export function ShellHeader({
 
   return (
     <AppShellHeader>
-      {hasHost ? (
-        <AppFinder shellName="Conformance Shell" data-testid={ids.appFinderTrigger} />
-      ) : null}
+      <span data-testid={ids.appFinder}>
+        {hasHost ? <AppFinder shellName="Conformance Shell" /> : null}
+      </span>
       <ShellDivider className="hidden md:block" />
       <div data-testid={ids.breadcrumbs} className="hidden min-w-0 md:block">
         {hasHost ? <Breadcrumbs /> : null}

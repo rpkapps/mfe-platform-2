@@ -13,6 +13,7 @@ import {
 } from "@tecton/react/tecton/app-finder"
 
 import { useHostSelector, usePlatformHost, useShellLocation } from "@platform/host-react"
+import { TEST_IDS } from "@platform-internal/conformance"
 
 const TONES: AppFinderTone[] = [
   "blue",
@@ -130,6 +131,7 @@ export function AppFinder({ shellName = "Home", className, extra = [] }: AppFind
         name={currentApp?.name ?? shellName}
         tone={currentApp ? toneOf(currentApp.id) : "neutral"}
         className={className}
+        data-testid={TEST_IDS.shell.appFinderTrigger}
         data-platform-app-finder=""
       >
         {currentApp ? codeOf(currentApp.name) : codeOf(shellName)}

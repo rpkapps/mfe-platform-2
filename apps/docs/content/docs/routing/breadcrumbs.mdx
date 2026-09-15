@@ -6,8 +6,8 @@ description: Breadcrumbs come from ordinary TanStack route metadata. The shell r
 ## Static labels
 
 ```tsx
-export const Route = createFileRoute("/assets/")({
-  staticData: { breadcrumb: "Assets" },
+export const Route = createFileRoute("/wells/")({
+  staticData: { breadcrumb: "Wells" },
 })
 ```
 
@@ -16,9 +16,9 @@ export const Route = createFileRoute("/assets/")({
 A function receives the route match (params, loader data, search) and returns the label; mark it `dynamic` so the manifest records that it changes per navigation. A function that throws makes the entry `unavailable`:
 
 ```tsx
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   staticData: {
-    breadcrumb: { label: (match) => `Asset ${match.params.assetId}`, dynamic: true },
+    breadcrumb: { label: (match) => `Well ${match.params.wellId}`, dynamic: true },
   },
 })
 ```
@@ -28,16 +28,16 @@ export const Route = createFileRoute("/assets/$assetId")({
 Return the label from the loader. A `breadcrumb` key of the loader data is picked up automatically; `fromLoader` names another key. While the loader is pending the entry is in the `loading` state (with the static `label` as placeholder, if any); if the loader fails the entry becomes `unavailable`:
 
 ```tsx
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   staticData: { breadcrumb: { fromLoader: "breadcrumb" } },
   loader: async ({ params }) => {
-    const asset = await loadAsset(params.assetId)
-    return { asset, breadcrumb: asset.name }
+    const well = await loadWell(params.wellId)
+    return { well, breadcrumb: well.name }
   },
 })
 ```
 
-This is what the `asset-tracker` and `legacy-reports` fixtures do; the E2E suite expects `Asset Tracker › Assets › Pump 42` at `/asset-tracker/assets/pump-42`.
+This is what the `well-planner` and `production-reports` fixtures do; the E2E suite expects `Well Planner › Wells › 16/2-D-12 H` at `/well-planner/wells/w01`.
 
 ## Manual override
 
@@ -47,8 +47,8 @@ For labels that depend on component state, `useBreadcrumb` overrides the current
 import { useBreadcrumb } from "@platform/mfe-react"
 
 function AssetPage() {
-  const { asset } = Route.useLoaderData()
-  useBreadcrumb(asset.nickname ? { label: asset.nickname } : null)
+  const { well } = Route.useLoaderData()
+  useBreadcrumb(well.nickname ? { label: well.nickname } : null)
   return null
 }
 ```
@@ -58,16 +58,16 @@ function AssetPage() {
 - Every entry links to its route's location (params and search included) as a shell href; the last entry is rendered as text.
 - `hidden: true` keeps an entry out of the bar but in accessible announcements.
 - Routes without `breadcrumb` static data (and without a `breadcrumb` loader key or override) contribute no entry.
-- The MFE root entry (kind `mfe-root`) uses the root route's `staticData.breadcrumb` (`createRootRouteWithContext<MfeRouterContext>()({ staticData: { breadcrumb: "Asset Tracker" } })`), then `createMfe({ displayName })`, then the `mfeId`. It links to the route prefix.
+- The MFE root entry (kind `mfe-root`) uses the root route's `staticData.breadcrumb` (`createRootRouteWithContext<MfeRouterContext>()({ staticData: { breadcrumb: "Well Planner" } })`), then `createMfe({ displayName })`, then the `mfeId`. It links to the route prefix.
 - Shell entries (`kind: "shell"`) come first and are set by the host with `host.breadcrumbs.setShell(entries)`.
 
 ## States
 
-| State         | Rendered as                | Announced as            |
-| ------------- | -------------------------- | ----------------------- |
-| `ready`       | label (link when not last) | `Pump 42`               |
-| `loading`     | skeleton                   | `… (loading)`           |
-| `unavailable` | muted label                | `Pump 42 (unavailable)` |
+| State         | Rendered as                | Announced as                |
+| ------------- | -------------------------- | --------------------------- |
+| `ready`       | label (link when not last) | `16/2-D-12 H`               |
+| `loading`     | skeleton                   | `… (loading)`               |
+| `unavailable` | muted label                | `16/2-D-12 H (unavailable)` |
 
 ## Rendering in the shell
 

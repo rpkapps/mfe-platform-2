@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { ArrowRightIcon } from "lucide-react"
-import { AppFinder } from "@/components"
-import { MFE_IDS, TEST_IDS } from "@platform-internal/conformance"
+import { MFE_IDS } from "@platform-internal/conformance"
 
 import { LinkButton } from "@tecton/react/components/button"
 import {
@@ -18,8 +17,6 @@ import {
   PageHeaderEyebrow,
   PageHeaderTitle,
 } from "@tecton/react/tecton/page-header"
-
-import { useShellHost } from "@/lib/platform"
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -46,7 +43,6 @@ const DESTINATIONS = [
 ]
 
 function Home() {
-  const host = useShellHost()
   return (
     <div className="flex flex-col gap-6">
       <PageHeader>
@@ -60,19 +56,6 @@ function Home() {
           </PageHeaderDescription>
         </PageHeaderContent>
       </PageHeader>
-
-      <div data-testid={TEST_IDS.shell.appFinder} className="flex items-center gap-3">
-        {host ? (
-          <>
-            <AppFinder />
-            <span className="text-muted-foreground text-sm">
-              Every discoverable application, grouped by category.
-            </span>
-          </>
-        ) : (
-          <p className="text-muted-foreground text-sm">Starting platform…</p>
-        )}
-      </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         {DESTINATIONS.map((item) => (

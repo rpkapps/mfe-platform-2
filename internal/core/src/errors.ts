@@ -109,7 +109,7 @@ export const ERROR_CODES = {
   },
   MFE_ID_INVALID: {
     docs: "/manifests#mfe-id",
-    hint: "`mfeId` is kebab-case (`asset-tracker`); it is inferred from the package name and persisted in `.platform/identity.json`.",
+    hint: "`mfeId` is kebab-case (`well-planner`); it is inferred from the package name and persisted in `.platform/identity.json`.",
   },
   DEV_RESTART_REQUIRED: {
     docs: "/local-development#restart-diagnostics",

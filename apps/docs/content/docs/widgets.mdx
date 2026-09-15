@@ -7,16 +7,16 @@ description: Widgets are React components that the shell or other surfaces mount
 
 A widget is an ordinary component. `createWidget` attaches its metadata and props schema; the definition lives in `src/mfe.tsx` under a kebab-case key that becomes the widget id:
 
-```tsx title="src/widgets/asset-card.tsx"
+```tsx title="src/widgets/well-summary.tsx"
 import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/mfe-react"
 
-export function AssetCard({ assetId, compact }: { assetId: string; compact?: boolean }) {
+export function WellSummary({ wellId, compact }: { wellId: string; compact?: boolean }) {
   const navigation = useNavigation()
   const { instanceId, routePrefix } = useMfeInstance()
   useRegisterCommand({
-    id: "open-asset",
-    label: `Open ${assetId}`,
-    handler: () => navigation.navigate(`${routePrefix ?? ""}/assets/${assetId}`),
+    id: "open-well",
+    label: `Open ${wellId}`,
+    handler: () => navigation.navigate(`${routePrefix ?? ""}/wells/${wellId}`),
   })
   return (
     <Card data-instance={instanceId} className={compact ? "py-2" : undefined}>
@@ -33,11 +33,11 @@ import { z } from "zod"
 export default createMfe({
   routeTree, // omit it for a widget-only library
   widgets: {
-    "asset-card": createWidget({
-      title: "Asset card",
-      description: "Summary card for one asset with a details dialog.",
-      component: AssetCard,
-      propsSchema: z.object({ assetId: z.string(), compact: z.boolean().optional() }),
+    "well-summary": createWidget({
+      title: "Well summary",
+      description: "Summary card for one well with a details dialog.",
+      component: WellSummary,
+      propsSchema: z.object({ wellId: z.string(), compact: z.boolean().optional() }),
     }),
   },
 })
@@ -54,9 +54,9 @@ The definition lists every widget (`widgets[]`: `id`, `title`, `description`); t
 ```tsx title="apps/shell/src/routes/dashboard.tsx"
 import { WidgetSlot } from "@platform/host-react"
 
-<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" slot="dashboard-asset-card" props={{ assetId: "pump-42" }} />
-<WidgetSlot mfeId="widget-a" widgetId="kpi-tile" slot="kpi-1" props={{ label: "Production", value: kpi, unit: "bbl/d" }} />
-<WidgetSlot mfeId="widget-b" widgetId="counter-widget" slot="counter-0" props={{ label: "Counter 1", step: 1 }} />
+<WidgetSlot mfeId="well-planner" widgetId="well-summary" slot="dashboard-well-summary" props={{ wellId: "w01" }} />
+<WidgetSlot mfeId="subsurface-widgets" widgetId="production-kpi" slot="kpi-1" props={{ label: "Production", value: kpi, unit: "bbl/d" }} />
+<WidgetSlot mfeId="field-widgets" widgetId="rig-status" slot="counter-0" props={{ label: "Counter 1", step: 1 }} />
 ```
 
 `WidgetSlot` props: `mfeId`, `widgetId`, `props?`, `slot?` (a stable name for the instance, reported in diagnostics), `fallback?`, `errorFallback?(error, retry)`, `className?`. Each slot produces a separate **instance** with its own React root, `instanceId`, overlay root and command namespace. Props are plain data, validated against `propsSchema` on mount and on every update; invalid props render the slot's error state (`data-platform-widget-state="error"`) without touching other instances. Programmatically: `host.remotes.mountWidget(mfeId, widgetId, { container, props, slot? })` returns a `WidgetInstance` with `setProps(props)` and `dispose()`.
@@ -79,7 +79,7 @@ import { WidgetSlot } from "@platform/host-react"
 | Telemetry | `instanceId` and `widgetId` attributes on every event                             |
 | Settings  | shared per MFE; a second instance registering the same group is a no-op           |
 
-The `counter-widget` fixture (React 18, `widget-b`) mounts several times on the conformance dashboard with an instance-scoped session store; every instance keeps its own count.
+The `rig-status` fixture (React 18, `field-widgets`) mounts several times on the conformance dashboard with an instance-scoped session store; every instance keeps its own count.
 
 ## Overlays from widgets
 
@@ -95,8 +95,8 @@ A remote without routes is a widget library:
 
 ```tsx title="src/mfe.tsx"
 export default createMfe({
-  widgets: { "kpi-tile": createWidget({ … }), "modal-widget": createWidget({ … }) },
-  registrations: { commands: [{ id: "refresh-kpis", label: "Refresh KPIs", group: "Widgets" }], help: [{ id: "kpi-tiles", title: "KPI tiles" }] },
+  widgets: { "production-kpi": createWidget({ … }), "fda-status": createWidget({ … }) },
+  registrations: { commands: [{ id: "refresh-kpis", label: "Refresh KPIs", group: "Widgets" }], help: [{ id: "production-kpis", title: "KPI tiles" }] },
 })
 ```
 
@@ -109,18 +109,18 @@ import { createTestBridge } from "@platform/mfe-react/testing"
 import definition from "../mfe"
 
 const bridge = createTestBridge({
-  mfeId: "asset-tracker",
-  widgetId: "asset-card",
+  mfeId: "well-planner",
+  widgetId: "well-summary",
   routePrefix: null,
 })
 const container = document.body.appendChild(document.createElement("div"))
 const handle = definition.mountWidget({
   container,
   bridge,
-  widgetId: "asset-card",
-  props: { assetId: "pump-42" },
+  widgetId: "well-summary",
+  props: { wellId: "w01" },
 })
-expect(container.querySelector('[data-platform-widget="asset-card"]')).not.toBeNull()
-handle.setProps({ assetId: "valve-7" })
+expect(container.querySelector('[data-platform-widget="well-summary"]')).not.toBeNull()
+handle.setProps({ wellId: "w03" })
 handle.dispose()
 ```

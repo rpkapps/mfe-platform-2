@@ -16,18 +16,18 @@ The dev manifest is served at `http://localhost:5173/platform-manifest.json` wit
 <Step>Open the staging shell with an override</Step>
 
 ```text
-https://shell.staging.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:5173/platform-manifest.json
+https://shell.staging.example.com/well-planner?platform.override.well-planner=http://localhost:5173/platform-manifest.json
 ```
 
 The shell stores the override in `localStorage["platform:manifest-overrides"]` and loads your local remote; every other remote, the context, permissions and runtime configuration are staging's.
 
 <Step>Confirm in the developer tools</Step>
 
-Enable them once (`localStorage.setItem("platform:devtools", "1")`, allowed in staging by the default policy). The _Overview_ tab shows `asset-tracker` with source `override`, the local URL and `dev.hmr`.
+Enable them once (`localStorage.setItem("platform:devtools", "1")`, allowed in staging by the default policy). The _Overview_ tab shows `well-planner` with source `override`, the local URL and `dev.hmr`.
 
 <Step>Clear the override</Step>
 
-Run `localStorage.removeItem("platform:manifest-overrides")` (or `host.remotes.setLocalOverride("asset-tracker", null)` from the shell).
+Run `localStorage.removeItem("platform:manifest-overrides")` (or `host.remotes.setLocalOverride("well-planner", null)` from the shell).
 
 </Steps>
 

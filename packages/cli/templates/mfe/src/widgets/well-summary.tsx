@@ -21,12 +21,12 @@ import {
 } from "@tecton/react/components/dialog"
 // {{/tecton}}
 
-export interface AssetCardProps {
-  assetId: string
+export interface WellSummaryProps {
+  wellId: string
   /** Plain data from the host; widgets never fetch on the shell's behalf. */
   name?: string
   status?: string
-  site?: string
+  field?: string
   compact?: boolean
 }
 
@@ -35,15 +35,15 @@ export interface AssetCardProps {
  * `createWidget` in src/mfe.tsx). Props are validated against `propsSchema`. Commands
  * registered here are instance-scoped and removed when the widget is disposed.
  */
-export function AssetCard({ assetId, name, status, site, compact }: AssetCardProps) {
+export function WellSummary({ wellId, name, status, field, compact }: WellSummaryProps) {
   const navigation = useNavigation()
   const { routePrefix } = useMfeInstance()
-  const detailHref = `${routePrefix ?? ""}/assets/${assetId}`
-  const title = name ?? assetId
-  const subtitle = [status, site].filter(Boolean).join(" · ")
+  const detailHref = `${routePrefix ?? ""}/wells/${wellId}`
+  const title = name ?? wellId
+  const subtitle = [status, field].filter(Boolean).join(" · ")
 
   useRegisterCommand({
-    id: "open-asset",
+    id: "open-well",
     label: `Open ${title}`,
     group: "Widgets",
     handler: () => navigation.navigate(detailHref),
@@ -51,7 +51,7 @@ export function AssetCard({ assetId, name, status, site, compact }: AssetCardPro
 
   // {{#tecton}}
   return (
-    <Card data-asset={assetId} className={compact ? "py-2" : undefined}>
+    <Card data-well={wellId} className={compact ? "py-2" : undefined}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{subtitle || "Open for details"}</CardDescription>
@@ -81,7 +81,7 @@ export function AssetCard({ assetId, name, status, site, compact }: AssetCardPro
   const [open, setOpen] = React.useState(false)
   return (
     <section
-      data-asset={assetId}
+      data-well={wellId}
       className={
         compact ? "border-border rounded-md border p-2" : "border-border rounded-md border p-4"
       }

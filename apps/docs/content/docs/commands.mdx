@@ -10,16 +10,16 @@ import { useRegisterCommand } from "@platform/mfe-react"
 
 function AssetCommands() {
   useRegisterCommand({
-    id: "new-asset",
-    label: "New asset",
-    description: "Create an asset in the current project",
-    group: "Assets",
+    id: "new-well",
+    label: "New well",
+    description: "Create a well in the current programme",
+    group: "Wells",
     keywords: ["create", "add"],
     shortcut: "mod+shift+n",
-    permissionGroups: ["assets:write"],
+    permissionGroups: ["wells:write"],
     availability: () => featureEnabled,
-    handler: ({ platform }) => platform.navigation.navigateWithin("/assets/new"),
-    telemetry: { feature: "assets" },
+    handler: ({ platform }) => platform.navigation.navigateWithin("/wells/new"),
+    telemetry: { feature: "wells" },
   })
   return null
 }
@@ -55,7 +55,7 @@ An invalid definition (bad id, missing label, neither handler nor route, malform
 
 ## Namespacing
 
-You write `new-asset`; the registry stores `asset-tracker:new-asset`. Widget commands are instance-scoped automatically: `asset-tracker:refresh@asset-tracker#3`. Route MFEs can opt in with `useRegisterCommand(definition, deps, { instanceScoped: true })`.
+You write `new-well`; the registry stores `well-planner:new-well`. Widget commands are instance-scoped automatically: `well-planner:refresh@well-planner#3`. Route MFEs can opt in with `useRegisterCommand(definition, deps, { instanceScoped: true })`.
 
 ## Shortcuts
 
@@ -70,7 +70,7 @@ Conflicts are rejected deterministically: **the first registration keeps the sho
 ```tsx
 useRegisterCommand({
   id: "sync",
-  label: "Sync assets",
+  label: "Sync wells",
   handler: async ({ signal, platform }) => {
     const response = await fetch(`${platform.runtime.env.API_BASE_URL}/sync`, { signal })
     if (!response.ok) throw new Error(`sync failed: ${response.status}`)
@@ -101,7 +101,7 @@ export default createMfe({
   routeTree,
   registrations: {
     commands: [
-      { id: "open-assets", label: "Open assets", route: "/assets", keywords: ["inventory"] },
+      { id: "open-wells", label: "Open wells", route: "/wells", keywords: ["inventory"] },
     ],
   },
 })
@@ -109,4 +109,4 @@ export default createMfe({
 
 They end up in the manifest (`commands[]` with `static: true`); running one loads the remote and navigates.
 
-A static command states its `id` and `label` as literals, because the manifest is built from the source without running it. A command a component registers is different: it may label itself from its props — `` label: `Open ${asset.name}` `` is the usual shape for a widget command — and it is then left out of the manifest and registered when the MFE loads, which is no loss, since only a command with a `route` can be offered before that. So a runtime label is ordinary and not reported; a static registration that cannot state its label is.
+A static command states its `id` and `label` as literals, because the manifest is built from the source without running it. A command a component registers is different: it may label itself from its props — `` label: `Open ${well.name}` `` is the usual shape for a widget command — and it is then left out of the manifest and registered when the MFE loads, which is no loss, since only a command with a `route` can be offered before that. So a runtime label is ordinary and not reported; a static registration that cannot state its label is.

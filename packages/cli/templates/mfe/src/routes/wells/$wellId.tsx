@@ -1,51 +1,51 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
-import { fetchAsset } from "@/lib/api"
+import { fetchWell } from "@/lib/api"
 
 /**
  * Native TanStack guard: the platform context is ordinary route context. The manifest
  * lists `permissionGroups` so the shell can preflight, but the guard is what enforces it.
  * The loader publishes the breadcrumb label through `staticData.breadcrumb.fromLoader`.
  */
-export const Route = createFileRoute("/assets/$assetId")({
-  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["assets:read"] },
+export const Route = createFileRoute("/wells/$wellId")({
+  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["wells:read"] },
   beforeLoad: ({ context, params }) => {
-    if (!context.platform.permissions.hasGroup("assets:read")) {
-      throw redirect({ to: "/", search: { denied: params.assetId } })
+    if (!context.platform.permissions.hasGroup("wells:read")) {
+      throw redirect({ to: "/", search: { denied: params.wellId } })
     }
   },
   loader: async ({ context, params, abortController }) => {
-    const span = context.platform.telemetry.span("asset.load", { assetId: params.assetId })
+    const span = context.platform.telemetry.span("well.load", { wellId: params.wellId })
     try {
-      const asset = await fetchAsset(
+      const well = await fetchWell(
         context.platform.fetch,
         context.platform.runtime.env.API_BASE_URL,
-        params.assetId,
+        params.wellId,
         abortController.signal
       )
       span.end()
-      return { asset, breadcrumb: asset.name }
+      return { well, breadcrumb: well.name }
     } catch (error) {
       span.fail(error)
       throw error
     }
   },
-  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading asset…</p>,
+  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading well…</p>,
   errorComponent: ({ error }: { error: unknown }) => (
     <p role="alert" className="text-destructive text-sm">
       {error instanceof Error ? error.message : String(error)}
     </p>
   ),
-  component: AssetDetail,
+  component: WellDetail,
 })
 
-function AssetDetail() {
-  const { asset } = Route.useLoaderData()
+function WellDetail() {
+  const { well } = Route.useLoaderData()
   return (
     <div className="flex flex-col gap-2">
-      <h2 className="text-lg font-medium">{asset.name}</h2>
+      <h2 className="text-lg font-medium">{well.name}</h2>
       <p className="text-muted-foreground text-sm">
-        {asset.site} · {asset.status}
+        {well.field} · {well.status}
       </p>
     </div>
   )

@@ -22,11 +22,11 @@ MFE developers use ordinary Tecton components and normal Tailwind classes. No pr
 :root { --primary: … }
 @keyframes pulse { … }
 
-/* emitted for mfeId "asset-tracker" */
-[data-mfe="asset-tracker"] .mt-4 { margin-top: 1rem }
-[data-mfe="asset-tracker"] [data-slot="button"] { … }
-[data-mfe="asset-tracker"] { --primary: … }
-@keyframes asset-tracker-pulse { … }  /* and animation-name references are rewritten */
+/* emitted for mfeId "well-planner" */
+[data-mfe="well-planner"] .mt-4 { margin-top: 1rem }
+[data-mfe="well-planner"] [data-slot="button"] { … }
+[data-mfe="well-planner"] { --primary: … }
+@keyframes well-planner-pulse { … }  /* and animation-name references are rewritten */
 ```
 
 Scoped:
@@ -68,4 +68,4 @@ export default defineMfeConfig({
 
 ## Verifying
 
-`platform build` prints whether the CSS is scoped and how many assets were emitted (`css: scoped under [data-mfe], 1 asset`); the manifest records `css.scoped` and `css.assets`. The E2E smoke test loads the `legacy-reports` remote, which declares `:root { --legacy-accent }` and a `.legacy-card` rule, and asserts that the variable is absent on `document.documentElement` and present on `[data-mfe="legacy-reports"]`, and that a `.legacy-card` outside the remote gets no border.
+`platform build` prints whether the CSS is scoped and how many assets were emitted (`css: scoped under [data-mfe], 1 asset`); the manifest records `css.scoped` and `css.assets`. The E2E smoke test loads the `production-reports` remote, which declares `:root { --legacy-accent }` and a `.legacy-card` rule, and asserts that the variable is absent on `document.documentElement` and present on `[data-mfe="production-reports"]`, and that a `.legacy-card` outside the remote gets no border.

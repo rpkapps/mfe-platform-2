@@ -5,7 +5,7 @@ description: Each MFE owns a route subtree under a prefix inferred from its mfeI
 
 ## Default
 
-The prefix is `/${mfeId}`: the `asset-tracker` MFE is mounted under `/asset-tracker`, and its route `/assets/$assetId` is reachable at `/asset-tracker/assets/pump-42`.
+The prefix is `/${mfeId}`: the `well-planner` MFE is mounted under `/well-planner`, and its route `/wells/$wellId` is reachable at `/well-planner/wells/w01`.
 
 ## Override
 
@@ -29,10 +29,10 @@ A prefix:
 Invalid prefixes fail the build with `ROUTE_PREFIX_INVALID` and are rejected by manifest validation in the host.
 
 ```text
-/asset-tracker        ✓
+/well-planner        ✓
 /legacy/reports       ✓
 /Assets               ✗ uppercase
-/assets/              ✗ trailing slash
+/wells/              ✗ trailing slash
 assets                ✗ missing leading slash
 ```
 

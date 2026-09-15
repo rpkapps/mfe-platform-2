@@ -1,13 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 
-import { fetchAssets } from "@/lib/api"
+import { fetchWells } from "@/lib/api"
 
-export const Route = createFileRoute("/assets/")({
+export const Route = createFileRoute("/wells/")({
   staticData: {
-    breadcrumb: "Assets",
+    breadcrumb: "Wells",
     navigation: {
-      title: "Assets",
-      description: "All tracked assets",
+      title: "Wells",
+      description: "All tracked wells",
       keywords: ["list"],
       order: 1,
     },
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/assets/")({
   // Loaders read the runtime env and the authenticated fetch through the route
   // context; they re-run when the context changes.
   loader: ({ context, abortController }) =>
-    fetchAssets(
+    fetchWells(
       context.platform.fetch,
       context.platform.runtime.env.API_BASE_URL,
       abortController.signal
@@ -26,25 +26,25 @@ export const Route = createFileRoute("/assets/")({
       {error instanceof Error ? error.message : String(error)}
     </p>
   ),
-  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading assets…</p>,
-  component: AssetList,
+  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading wells…</p>,
+  component: WellList,
 })
 
-function AssetList() {
-  const assets = Route.useLoaderData()
+function WellList() {
+  const wells = Route.useLoaderData()
   return (
     <ul className="divide-border flex flex-col divide-y text-sm">
-      {assets.map((asset) => (
-        <li key={asset.id} className="flex items-center gap-3 py-2">
-          <span className="asset-status-dot bg-current" data-status={asset.status} />
+      {wells.map((well) => (
+        <li key={well.id} className="flex items-center gap-3 py-2">
+          <span className="well-status-dot bg-current" data-status={well.status} />
           <Link
-            to="/assets/$assetId"
-            params={{ assetId: asset.id }}
+            to="/wells/$wellId"
+            params={{ wellId: well.id }}
             className="underline-offset-4 hover:underline"
           >
-            {asset.name}
+            {well.name}
           </Link>
-          <span className="text-muted-foreground ml-auto">{asset.site}</span>
+          <span className="text-muted-foreground ml-auto">{well.field}</span>
         </li>
       ))}
     </ul>

@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as AssetsIndexRouteImport } from './routes/assets/index'
-import { Route as AssetsAssetIdRouteImport } from './routes/assets/$assetId'
+import { Route as WellsIndexRouteImport } from './routes/wells/index'
+import { Route as WellsWellIdRouteImport } from './routes/wells/$wellId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,49 +24,49 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssetsIndexRoute = AssetsIndexRouteImport.update({
-  id: '/assets/',
-  path: '/assets/',
+const WellsIndexRoute = WellsIndexRouteImport.update({
+  id: '/wells/',
+  path: '/wells/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AssetsAssetIdRoute = AssetsAssetIdRouteImport.update({
-  id: '/assets/$assetId',
-  path: '/assets/$assetId',
+const WellsWellIdRoute = WellsWellIdRouteImport.update({
+  id: '/wells/$wellId',
+  path: '/wells/$wellId',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/assets/$assetId': typeof AssetsAssetIdRoute
-  '/assets/': typeof AssetsIndexRoute
+  '/wells/$wellId': typeof WellsWellIdRoute
+  '/wells/': typeof WellsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/assets/$assetId': typeof AssetsAssetIdRoute
-  '/assets': typeof AssetsIndexRoute
+  '/wells/$wellId': typeof WellsWellIdRoute
+  '/wells': typeof WellsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/assets/$assetId': typeof AssetsAssetIdRoute
-  '/assets/': typeof AssetsIndexRoute
+  '/wells/$wellId': typeof WellsWellIdRoute
+  '/wells/': typeof WellsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/assets/$assetId' | '/assets/'
+  fullPaths: '/' | '/settings' | '/wells/$wellId' | '/wells/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/assets/$assetId' | '/assets'
-  id: '__root__' | '/' | '/settings' | '/assets/$assetId' | '/assets/'
+  to: '/' | '/settings' | '/wells/$wellId' | '/wells'
+  id: '__root__' | '/' | '/settings' | '/wells/$wellId' | '/wells/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
-  AssetsAssetIdRoute: typeof AssetsAssetIdRoute
-  AssetsIndexRoute: typeof AssetsIndexRoute
+  WellsWellIdRoute: typeof WellsWellIdRoute
+  WellsIndexRoute: typeof WellsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,18 +85,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/assets/': {
-      id: '/assets/'
-      path: '/assets'
-      fullPath: '/assets/'
-      preLoaderRoute: typeof AssetsIndexRouteImport
+    '/wells/': {
+      id: '/wells/'
+      path: '/wells'
+      fullPath: '/wells/'
+      preLoaderRoute: typeof WellsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/assets/$assetId': {
-      id: '/assets/$assetId'
-      path: '/assets/$assetId'
-      fullPath: '/assets/$assetId'
-      preLoaderRoute: typeof AssetsAssetIdRouteImport
+    '/wells/$wellId': {
+      id: '/wells/$wellId'
+      path: '/wells/$wellId'
+      fullPath: '/wells/$wellId'
+      preLoaderRoute: typeof WellsWellIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -105,8 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
-  AssetsAssetIdRoute: AssetsAssetIdRoute,
-  AssetsIndexRoute: AssetsIndexRoute,
+  WellsWellIdRoute: WellsWellIdRoute,
+  WellsIndexRoute: WellsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

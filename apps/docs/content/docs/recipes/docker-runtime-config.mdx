@@ -44,14 +44,14 @@ services:
       PLATFORM_RELEASE_VERSION: 3.4.0
       PLATFORM_ALLOWED_ORIGINS: https://remotes.staging.example.com
       PLATFORM_SHARED_SUPPORT_URL: https://support.example.com
-      PLATFORM_MFE_ASSET_TRACKER_MANIFEST_URL: https://remotes.staging.example.com/asset-tracker/platform-manifest.json
-      PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL: https://api.staging.example.com/assets
-      PLATFORM_MFE_ASSET_TRACKER_ENV_PAGE_SIZE: "50"
-      PLATFORM_MFE_LEGACY_REPORTS_MANIFEST_URL: https://legacy.staging.example.com/reports/platform-manifest.json
-      PLATFORM_MFE_LEGACY_REPORTS_ENABLED: "false"
+      PLATFORM_MFE_WELL_PLANNER_MANIFEST_URL: https://remotes.staging.example.com/well-planner/platform-manifest.json
+      PLATFORM_MFE_WELL_PLANNER_ENV_API_BASE_URL: https://api.staging.example.com/wells
+      PLATFORM_MFE_WELL_PLANNER_ENV_PAGE_SIZE: "50"
+      PLATFORM_MFE_PRODUCTION_REPORTS_MANIFEST_URL: https://legacy.staging.example.com/reports/platform-manifest.json
+      PLATFORM_MFE_PRODUCTION_REPORTS_ENABLED: "false"
       PLATFORM_DEVTOOLS_POLICY: flag
       # refused with a warning: looks like a secret
-      PLATFORM_MFE_ASSET_TRACKER_ENV_API_TOKEN: nope
+      PLATFORM_MFE_WELL_PLANNER_ENV_API_TOKEN: nope
     ports:
       - "3000:3000"
 ```
@@ -65,11 +65,11 @@ The generated document:
   "release": { "version": "3.4.0" },
   "shared": { "SUPPORT_URL": "https://support.example.com" },
   "mfes": {
-    "asset-tracker": {
-      "manifestUrl": "https://remotes.staging.example.com/asset-tracker/platform-manifest.json",
-      "env": { "API_BASE_URL": "https://api.staging.example.com/assets", "PAGE_SIZE": 50 }
+    "well-planner": {
+      "manifestUrl": "https://remotes.staging.example.com/well-planner/platform-manifest.json",
+      "env": { "API_BASE_URL": "https://api.staging.example.com/wells", "PAGE_SIZE": 50 }
     },
-    "legacy-reports": {
+    "production-reports": {
       "manifestUrl": "https://legacy.staging.example.com/reports/platform-manifest.json",
       "enabled": false,
       "env": {}
@@ -84,6 +84,6 @@ The generated document:
 
 Checks:
 
-- `docker compose logs shell` shows the refused variable (`PLATFORM_MFE_ASSET_TRACKER_ENV_API_TOKEN`) and the per-key provenance.
-- In the app, `useRuntimeEnv().PAGE_SIZE` is the number `50`; `legacy-reports` renders the _disabled_ state.
+- `docker compose logs shell` shows the refused variable (`PLATFORM_MFE_WELL_PLANNER_ENV_API_TOKEN`) and the per-key provenance.
+- In the app, `useRuntimeEnv().PAGE_SIZE` is the number `50`; `production-reports` renders the _disabled_ state.
 - Changing a variable and restarting the container changes behaviour without rebuilding the image.

@@ -30,7 +30,10 @@ package. It lives in `apps/conformance-shell/src/components/`, built on the head
 ```
 apps/docs                  documentation site (TanStack Start + Fumadocs, Tecton styles)
 apps/conformance-shell     reference shell: hosts the remotes and owns the chrome in src/components
-apps/conformance-*         fixture MFEs (React 19 with Tecton, React 18 without, hidden widget libraries)
+apps/well-planner          example MFE: React 19 + Tecton, routes, widgets, commands, settings, auth
+apps/production-reports    example MFE: React 18, no design system, legacy route prefix
+apps/subsurface-widgets    hidden widget library: React 19 + Tecton
+apps/field-widgets         hidden widget library: React 18, no design system
 packages/                  public packages
 internal/                  private packages bundled into the public ones
 test/e2e                   Playwright suites (Windows + Linux CI)

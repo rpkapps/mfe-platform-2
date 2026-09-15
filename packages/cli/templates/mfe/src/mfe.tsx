@@ -3,7 +3,7 @@ import { z } from "zod"
 
 import "./styles.css"
 import { routeTree } from "./routeTree.gen"
-import { AssetCard } from "./widgets/asset-card"
+import { WellSummary } from "./widgets/well-summary"
 
 /**
  * The one bootstrap. `createMfe` returns the remote definition the shell mounts in an
@@ -13,15 +13,15 @@ import { AssetCard } from "./widgets/asset-card"
 export default createMfe({
   routeTree,
   widgets: {
-    "asset-card": createWidget({
-      title: "Asset card",
-      description: "Summary of one asset with a details dialog.",
-      component: AssetCard,
+    "well-summary": createWidget({
+      title: "Well card",
+      description: "Summary of one well with a details dialog.",
+      component: WellSummary,
       propsSchema: z.object({
-        assetId: z.string(),
+        wellId: z.string(),
         name: z.string().optional(),
         status: z.string().optional(),
-        site: z.string().optional(),
+        field: z.string().optional(),
         compact: z.boolean().optional(),
       }),
     }),
@@ -33,8 +33,8 @@ export default createMfe({
       {
         id: "getting-started",
         title: "__DISPLAY_NAME__: getting started",
-        description: "Find assets, open details and adjust display settings.",
-        keywords: ["assets", "help"],
+        description: "Find wells, open details and adjust display settings.",
+        keywords: ["wells", "help"],
         route: "/",
       },
     ],

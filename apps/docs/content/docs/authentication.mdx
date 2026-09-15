@@ -14,14 +14,14 @@ port is the reason none of them is needed.
 
 ## Calling an API
 
-```tsx title="src/routes/assets.tsx"
+```tsx title="src/routes/wells.tsx"
 import { usePlatformFetch } from "@platform/mfe-react"
 
 function AssetList() {
   const platformFetch = usePlatformFetch()
   // `audience` names the API, not the provider: the shell maps it to whatever
   // its IdP calls that resource.
-  const load = () => platformFetch("/api/assets", { audience: "assets" })
+  const load = () => platformFetch("/api/wells", { audience: "wells" })
   // …
 }
 ```
@@ -39,9 +39,9 @@ It does **not** interpret the response. A 404 or a 500 comes back as an ordinary
 because only the caller knows what those mean:
 
 ```tsx
-const response = await platformFetch("/api/assets", { audience: "assets" })
-if (!response.ok) throw new Error(`Assets API: ${response.status}`)
-return (await response.json()) as Asset[]
+const response = await platformFetch("/api/wells", { audience: "wells" })
+if (!response.ok) throw new Error(`Wells API: ${response.status}`)
+return (await response.json()) as Well[]
 ```
 
 Reach for the raw token only when a client library demands one:
@@ -50,7 +50,7 @@ Reach for the raw token only when a client library demands one:
 import { useCredentials } from "@platform/mfe-react"
 
 const credentials = useCredentials()
-const token = await credentials.getToken({ audience: "assets", scopes: ["assets.read"] })
+const token = await credentials.getToken({ audience: "wells", scopes: ["wells.read"] })
 ```
 
 `credentials.subscribe(listener)` fires on login, logout, silent refresh and tenant switch, so
@@ -120,23 +120,23 @@ remains authoritative.
 
 `createTestBridge` from `@platform/mfe-react/testing` has a credential port built in.
 
-```tsx title="src/__tests__/assets.test.tsx"
+```tsx title="src/__tests__/wells.test.tsx"
 import { createTestBridge } from "@platform/mfe-react/testing"
 
 // Grants `auth` and issues "test-token"; `bridge.credentials.requests`
 // records every TokenRequest the code made.
-const bridge = createTestBridge({ mfeId: "asset-tracker", capabilities: ["auth"] })
+const bridge = createTestBridge({ mfeId: "well-planner", capabilities: ["auth"] })
 
 // A specific token, and an API origin the shell allows:
 const withApi = createTestBridge({
-  mfeId: "asset-tracker",
+  mfeId: "well-planner",
   capabilities: ["auth"],
   token: "abc",
   credentialOrigins: ["https://api.example.com"],
 })
 
 // What an MFE sees in a shell that cannot authenticate it: every getToken rejects.
-const denied = createTestBridge({ mfeId: "asset-tracker", token: false })
+const denied = createTestBridge({ mfeId: "well-planner", token: false })
 ```
 
 ## Failure codes

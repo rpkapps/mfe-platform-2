@@ -15,14 +15,14 @@ import {
  * that cannot load its data renders its `errorComponent`, so a 401 looks like a
  * 401 instead of three plausible-looking rows.
  */
-export interface Asset {
+export interface Well {
   id: string
   name: string
-  status: "online" | "offline" | "maintenance"
-  site: string
+  status: "producing" | "drilling" | "planned" | "suspended"
+  field: string
 }
 
-export interface Region {
+export interface Field {
   id: string
   name: string
 }
@@ -47,33 +47,29 @@ async function getJson<T>(
   return (await response.json()) as T
 }
 
-export function fetchAssets(
+export function fetchWells(
   platformFetch: PlatformFetch,
   baseUrl: string,
   signal?: AbortSignal
-): Promise<Asset[]> {
-  return getJson<Asset[]>(platformFetch, `${baseUrl}/assets`, signal)
+): Promise<Well[]> {
+  return getJson<Well[]>(platformFetch, `${baseUrl}/wells`, signal)
 }
 
-export function fetchAsset(
+export function fetchWell(
   platformFetch: PlatformFetch,
   baseUrl: string,
-  assetId: string,
+  wellId: string,
   signal?: AbortSignal
-): Promise<Asset> {
-  return getJson<Asset>(
-    platformFetch,
-    `${baseUrl}/assets/${encodeURIComponent(assetId)}`,
-    signal
-  )
+): Promise<Well> {
+  return getJson<Well>(platformFetch, `${baseUrl}/wells/${encodeURIComponent(wellId)}`, signal)
 }
 
-export function fetchRegions(
+export function fetchFields(
   platformFetch: PlatformFetch,
   baseUrl: string,
   signal?: AbortSignal
-): Promise<Region[]> {
-  return getJson<Region[]>(platformFetch, `${baseUrl}/regions`, signal)
+): Promise<Field[]> {
+  return getJson<Field[]>(platformFetch, `${baseUrl}/fields`, signal)
 }
 
 /** Hook form for components: the base URL comes from the typed runtime env. */

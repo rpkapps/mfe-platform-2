@@ -3,7 +3,7 @@ title: Widget with a dialog
 description: A dashboard widget that opens an ordinary Tecton dialog. No overlay configuration, several instances at once.
 ---
 
-```tsx title="src/widgets/asset-card.tsx"
+```tsx title="src/widgets/well-summary.tsx"
 import { createWidget, useMfeInstance, useNotifications } from "@platform/mfe-react"
 import { Button } from "@tecton/react/components/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@tecton/react/components/card"
@@ -19,19 +19,19 @@ import {
 import { z } from "zod"
 
 export const assetCard = createWidget({
-  id: "asset-card",
-  title: "Asset card",
-  propsSchema: z.object({ assetId: z.string() }),
-  component: AssetCardWidget,
+  id: "well-summary",
+  title: "Well summary",
+  propsSchema: z.object({ wellId: z.string() }),
+  component: WellSummaryWidget,
 })
 
-function AssetCardWidget({ assetId }: { assetId: string }) {
+function WellSummaryWidget({ wellId }: { wellId: string }) {
   const { instanceId } = useMfeInstance()
   const { notify } = useNotifications()
   return (
     <Card data-instance={instanceId}>
       <CardHeader>
-        <CardTitle>{assetId}</CardTitle>
+        <CardTitle>{wellId}</CardTitle>
       </CardHeader>
       <CardContent>
         <DialogTrigger>
@@ -39,7 +39,7 @@ function AssetCardWidget({ assetId }: { assetId: string }) {
           <Dialog>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Acknowledge alarm on {assetId}?</DialogTitle>
+                <DialogTitle>Acknowledge alarm on {wellId}?</DialogTitle>
                 <DialogDescription>The alarm stays in the history.</DialogDescription>
               </DialogHeader>
               <DialogFooter>
@@ -49,7 +49,7 @@ function AssetCardWidget({ assetId }: { assetId: string }) {
                 <Button
                   slot="close"
                   onPress={() =>
-                    notify({ title: `Alarm on ${assetId} acknowledged`, kind: "success" })
+                    notify({ title: `Alarm on ${wellId} acknowledged`, kind: "success" })
                   }
                 >
                   Acknowledge
@@ -69,8 +69,8 @@ export default createMfe({ routeTree, widgets: { assetCard } })
 ```
 
 ```tsx title="apps/shell/src/routes/dashboard.tsx"
-<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "pump-42" }} />
-<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "valve-7" }} />
+<WidgetSlot mfeId="well-planner" widgetId="well-summary" props={{ wellId: "w01" }} />
+<WidgetSlot mfeId="well-planner" widgetId="well-summary" props={{ wellId: "w03" }} />
 ```
 
 What happens:

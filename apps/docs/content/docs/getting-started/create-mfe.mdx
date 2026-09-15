@@ -53,11 +53,11 @@ my-mfe/
 │   │   ├── __root.tsx         # createRootRouteWithContext<MfeRouterContext>(), breadcrumb root, boundaries
 │   │   ├── index.tsx          # dashboard: slice subscription, command with shortcut, storage, telemetry, notifications
 │   │   ├── settings.tsx       # useRegisterSettingsGroup (boolean, select, number, async options)
-│   │   └── assets/
+│   │   └── wells/
 │   │       ├── index.tsx      # list route: loader reads the runtime env, typed Links
-│   │       └── $assetId.tsx   # beforeLoad guard, loader with a span, breadcrumb from loader data
+│   │       └── $wellId.tsx   # beforeLoad guard, loader with a span, breadcrumb from loader data
 │   ├── widgets/
-│   │   └── asset-card.tsx     # widget component (createWidget in mfe.tsx) with a dialog and a command
+│   │   └── well-summary.tsx     # widget component (createWidget in mfe.tsx) with a dialog and a command
 │   ├── lib/
 │   │   ├── api.ts             # data access: usePlatformFetch + useRuntimeEnv().API_BASE_URL
 │   │   └── storage.ts         # createPlatformStorage stores (local with migration, session)
@@ -84,15 +84,15 @@ import { z } from "zod"
 
 import "./styles.css"
 import { routeTree } from "./routeTree.gen"
-import { AssetCard } from "./widgets/asset-card"
+import { WellSummary } from "./widgets/well-summary"
 
 export default createMfe({
   routeTree,
   widgets: {
-    "asset-card": createWidget({
-      title: "Asset card",
-      component: AssetCard,
-      propsSchema: z.object({ assetId: z.string(), compact: z.boolean().optional() }),
+    "well-summary": createWidget({
+      title: "Well summary",
+      component: WellSummary,
+      propsSchema: z.object({ wellId: z.string(), compact: z.boolean().optional() }),
     }),
   },
   registrations: {
@@ -119,7 +119,7 @@ import type { routeTree } from "./routeTree.gen"
 declare module "@platform/mfe-react" {
   interface Register {
     env: { API_BASE_URL: string }
-    featureFlags: { "assets.bulk-edit": boolean }
+    featureFlags: { "wells.bulk-edit": boolean }
   }
 }
 

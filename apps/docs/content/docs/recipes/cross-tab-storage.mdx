@@ -9,7 +9,7 @@ import { z } from "zod"
 
 export const viewStore = createPlatformStorage({
   scope: "local",
-  key: "asset-view",
+  key: "well-view",
   schema: z.object({ mode: z.enum(["table", "map"]), showOffline: z.boolean() }),
   defaults: { mode: "table", showOffline: true },
   version: 1,
@@ -35,7 +35,7 @@ function AssetListPage() {
 
 How the sync works:
 
-1. `setKey` validates and writes `platform:asset-tracker:local:asset-view` through the shell's storage backend.
+1. `setKey` validates and writes `platform:well-planner:local:well-view` through the shell's storage backend.
 2. The backend notifies same-tab subscribers immediately.
 3. The browser fires a `storage` event in every other tab; the backend's single listener maps it to the namespaced key and the store re-reads and re-validates the value.
 4. Components subscribed with `use(selector)` rerender only when their slice changed.
@@ -49,11 +49,11 @@ Notes:
 Test it with the memory backend:
 
 ```ts
-const bridge = createTestBridge({ mfeId: "asset-tracker" })
+const bridge = createTestBridge({ mfeId: "well-planner" })
 const mounted = renderMfe(definition, { bridge })
 bridge.storage.emitExternal(
   "local",
-  "platform:asset-tracker:local:asset-view",
+  "platform:well-planner:local:well-view",
   JSON.stringify({ v: 1, data: { mode: "map", showOffline: false }, updatedAt: Date.now() })
 )
 expect(viewStore.bind({ bridge }).get().mode).toBe("map") // outside a mount, bind the store to the bridge

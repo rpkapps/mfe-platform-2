@@ -5,6 +5,8 @@ import {
   BoxesIcon,
   LayersIcon,
   RouteIcon,
+  BugIcon,
+  PanelsTopLeftIcon,
   ServerIcon,
   ShieldCheckIcon,
   TerminalIcon,
@@ -59,8 +61,24 @@ const packages = [
     name: "@platform/host",
     title: "Shell runtime",
     description:
-      "Manifest resolution, dependency negotiation, isolated mounting, command palette, settings host, breadcrumbs, overlay manager, runtime configuration, diagnostics and lazy devtools.",
+      "Manifest resolution, dependency negotiation, isolated mounting, the headless command, search and settings APIs, overlay manager, runtime configuration and diagnostics. No peer dependencies at all.",
     href: "/docs/reference/platform-host",
+  },
+  {
+    icon: PanelsTopLeftIcon,
+    name: "@platform/host-react",
+    title: "React bindings",
+    description:
+      "PlatformProvider and the host hooks, MfeOutlet and WidgetSlot with their mount lifecycle, SurfaceMount and the TanStack Router bridge. React and react-dom only; no design system.",
+    href: "/docs/reference/host-react",
+  },
+  {
+    icon: BugIcon,
+    name: "@platform/devtools",
+    title: "Developer tools",
+    description:
+      "The panel a shell loads on demand: loaded remotes, the dependency graph, routes, commands, settings, diagnostics, telemetry, overlays and fault injection.",
+    href: "/docs/reference/devtools",
   },
 ]
 
@@ -95,24 +113,24 @@ const principles = [
   },
 ]
 
-const example = `// src/routes/assets/$assetId.tsx
+const example = `// src/routes/wells/$wellId.tsx
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   beforeLoad: ({ context }) => {
-    if (!context.platform.permissions.hasGroup("assets:read")) {
+    if (!context.platform.permissions.hasGroup("wells:read")) {
       throw redirect({ to: "/" })
     }
   },
   loader: ({ context, params }) => {
-    const span = context.platform.telemetry.span("load-asset")
-    return fetchAsset(params.assetId).finally(() => span.end())
+    const span = context.platform.telemetry.span("load-well")
+    return fetchWell(params.wellId).finally(() => span.end())
   },
   staticData: {
     breadcrumb: { fromLoader: "name" },
-    permissionGroups: ["assets:read"],
+    permissionGroups: ["wells:read"],
   },
-  component: AssetPage,
+  component: WellPage,
 })`
 
 function Home() {
@@ -148,12 +166,12 @@ function Home() {
               <CopyButton value={siteConfig.createCommand} size="icon-xs" />
             </div>
           </div>
-          <CodeBlock code={example} lang="tsx" title="src/routes/assets/$assetId.tsx" />
+          <CodeBlock code={example} lang="tsx" title="src/routes/wells/$wellId.tsx" />
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-lg font-medium">Four packages</h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <h2 className="text-lg font-medium">Six packages</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {packages.map((pkg) => (
               <Card key={pkg.name} className="flex flex-col">
                 <CardHeader>
