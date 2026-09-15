@@ -29,8 +29,14 @@ export const REACT_BOUND_PACKAGES = new Set([
   "lucide-react",
 ])
 
-/** Packages the platform shares by default when the remote depends on them. */
-export const DEFAULT_SHARED_PACKAGES = ["react", "react-dom", "@tanstack/react-router", "@tanstack/history", "@platform/react", "@tecton/react", "zod", "react-aria-components", "sonner"] as const
+/**
+ * Packages the platform shares by default when the remote depends on them.
+ * UI-library stacks (`@tecton/react`, React Aria, sonner) are bundled per remote
+ * on purpose: React Aria's portal and collection contexts must come from one copy
+ * inside a remote, and Tecton is a source package compiled by each consumer.
+ * Configure `shared` in mfe.config.ts to opt a package in.
+ */
+export const DEFAULT_SHARED_PACKAGES = ["react", "react-dom", "@tanstack/react-router", "@tanstack/history", "@platform/react", "@tecton/react", "zod"] as const
 
 /** Source packages (TSX, compiled by the consumer) cannot be shared as built modules. */
 export const SOURCE_PACKAGES = new Set(["@tecton/react"])

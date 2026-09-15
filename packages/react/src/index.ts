@@ -55,6 +55,7 @@ export { useBreadcrumb, BreadcrumbPublisher, buildBreadcrumbTrail } from "./brea
 export {
   createPlatformStorage,
   usePlatformStorage,
+  useStorageStore,
   useStorageDiagnostics,
   type PlatformStorage,
   type PlatformStorageOptions,

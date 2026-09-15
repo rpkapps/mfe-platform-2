@@ -48,6 +48,12 @@ export interface PlatformStorage<TValue> {
   ): void
   reset(): void
   subscribe(listener: (value: TValue) => void): () => void
+  /**
+   * The store bound to the component's own mount. Use it for event handlers in
+   * components that can be mounted several times (widgets): `get`/`set` on the
+   * definition itself resolve the most recent live mount.
+   */
+  useStore(): StorageStore<TValue>
   /** Resolve the underlying store for a specific mount or bridge (advanced, tests). */
   bind(binding: StorageBinding): StorageStore<TValue>
 }
@@ -133,6 +139,7 @@ export function createPlatformStorage<TValue>(
       const store = current()
       return store.subscribe(() => listener(store.get()))
     },
+    useStore: () => useStorageStore(storage),
     bind: (binding) => resolveStorageStore(options, binding),
   } as PlatformStorage<TValue>
   return storage
@@ -156,6 +163,12 @@ export function usePlatformStorage<TValue, TSlice>(
 }
 
 /** Storage validation problems recorded for this mount (malformed data, failed migrations). */
+/** The store of `storage` bound to the calling component's mount (stable per mount). */
+export function useStorageStore<TValue>(storage: PlatformStorage<TValue>): StorageStore<TValue> {
+  const scope = useMountScope("useStorageStore")
+  return resolveStorageStore(storage.options, scope)
+}
+
 export function useStorageDiagnostics(): readonly StorageDiagnostic[] {
   const scope = useMountScope("useStorageDiagnostics")
   return useStoreSlice(
