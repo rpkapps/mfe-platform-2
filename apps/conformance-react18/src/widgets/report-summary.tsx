@@ -20,7 +20,7 @@ export function ReportSummary({ reportId }: { reportId: string }) {
         Open report
       </button>
       <p data-testid={TEST_IDS.widgets.hmrLabel} className="text-xs">
-        WIDGET_HMR_V1
+        WIDGET_HMR_V2
       </p>
     </div>
   )

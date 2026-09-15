@@ -32,7 +32,8 @@ export function rewriteRouterHmrGlue(code: string, mfeId: string): string {
 export function platformRouterHmrPlugin(context: PlatformContext): Plugin {
   return {
     name: "platform:router-hmr",
-    apply: "serve",
+    // Development server only; `vite --mode test` gets no dev plugins.
+    apply: (_config, env) => env.command === "serve" && env.mode !== "test",
     transform(code, id) {
       const config = context.config()
       const file = id.split("?")[0]!
