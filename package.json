@@ -27,6 +27,8 @@
     "@eslint/js": "catalog:",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
     "eslint": "catalog:",
     "globals": "catalog:",
     "prettier": "catalog:",
