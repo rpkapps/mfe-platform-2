@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { act, render, screen } from "@testing-library/react"
 import { parseRuntimeConfig } from "@platform-internal/core"
 import { createDiagnosticsBus, createSnapshot } from "@platform-internal/diagnostics"
 
@@ -54,8 +54,8 @@ function fakeHost() {
 }
 
 describe("DevtoolsPanel", () => {
-  it("renders the standard tabs and the overview", () => {
-    render(<DevtoolsPanel host={fakeHost()} />)
+  it("renders the standard tabs and the overview", async () => {
+    const view = render(<DevtoolsPanel host={fakeHost()} />)
     for (const title of [
       "Overview",
       "Dependencies",
@@ -76,17 +76,25 @@ describe("DevtoolsPanel", () => {
     expect(screen.getByText("Asset tracker")).toBeInTheDocument()
     expect(screen.getByText("HMR")).toBeInTheDocument()
     expect(screen.getByText("http://x/m.json")).toBeInTheDocument()
+    // The panel coalesces host and diagnostics events into a timer; unmount
+    // inside `act` so a pending refresh cannot land after the test.
+    await act(async () => {
+      view.unmount()
+    })
   })
 
-  it("shows registered custom panels", () => {
+  it("shows registered custom panels", async () => {
     const dispose = registerDevtoolsPanel({
       id: "acme",
       title: "Acme",
       render: () => <p>acme panel</p>,
     })
-    render(<DevtoolsPanel host={fakeHost()} defaultTab="acme" />)
+    const view = render(<DevtoolsPanel host={fakeHost()} defaultTab="acme" />)
     expect(screen.getByRole("tab", { name: "Acme" })).toBeInTheDocument()
     expect(screen.getByText("acme panel")).toBeInTheDocument()
+    await act(async () => {
+      view.unmount()
+    })
     dispose()
   })
 })

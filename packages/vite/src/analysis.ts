@@ -351,6 +351,13 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
   const capabilities = new Set<CapabilityId>()
   const storageScopes = new Set<"local" | "session">()
   let storageUsed = false
+  // `createMfe({ widgets })` analyses the `createWidget` calls it contains and
+  // takes each id from the record key, but those calls are also visited on
+  // their own. Claimed ones are skipped; the rest defer their "no literal id"
+  // warning until the whole file has been walked, because a widget can be
+  // declared above the `createMfe` call that names it.
+  const claimedWidgets = new Set<t.Node>()
+  const unnamedWidgets: t.Node[] = []
   for (const imported of locals.values()) {
     if (STORAGE_APIS.has(imported)) continue
     const capability = CAPABILITY_BY_API[imported]
@@ -466,8 +473,15 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
           handleDefinition("releaseNotes", first)
           break
         case "createWidget": {
-          const widget = extractWidget(first, undefined, file, analysis.warnings)
-          if (widget) analysis.widgets.push(widget)
+          if (first && claimedWidgets.has(first)) break
+          if (first && stringLiteral(propertyValue(objectProperties(first).get("id")))) {
+            const widget = extractWidget(first, undefined, file, analysis.warnings)
+            if (widget) analysis.widgets.push(widget)
+          } else if (first) unnamedWidgets.push(first)
+          else
+            analysis.warnings.push(
+              `${file}: a createWidget call without a literal \`id\` is not listed in the manifest.`
+            )
           break
         }
         case "createMfe": {
@@ -480,6 +494,7 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
                 value && t.isCallExpression(value) && sdkName(value.callee) === "createWidget"
                   ? resolveNode(path, value.arguments[0])
                   : undefined
+              if (call) claimedWidgets.add(call)
               const widget = extractWidget(call, id, file, analysis.warnings)
               if (widget) analysis.widgets.push({ ...widget, id })
             }
@@ -491,12 +506,9 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
                 t.isCallExpression(value) &&
                 sdkName(value.callee) === "createWidget"
               ) {
-                const widget = extractWidget(
-                  resolveNode(path, value.arguments[0]),
-                  undefined,
-                  file,
-                  analysis.warnings
-                )
+                const argument = resolveNode(path, value.arguments[0])
+                if (argument) claimedWidgets.add(argument)
+                const widget = extractWidget(argument, undefined, file, analysis.warnings)
                 if (widget) analysis.widgets.push(widget)
               } else
                 analysis.warnings.push(
@@ -559,6 +571,13 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
       handleDefinition(kind, resolveNode(path, attribute.value.expression))
     },
   })
+
+  for (const node of unnamedWidgets) {
+    if (claimedWidgets.has(node)) continue
+    analysis.warnings.push(
+      `${file}: a createWidget call without a literal \`id\` is not listed in the manifest.`
+    )
+  }
 
   if (storageUsed) {
     for (const scope of storageScopes)

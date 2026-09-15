@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { z } from "zod"
 import { useEffect } from "react"
 import { createMfe, createWidget } from "../src/mfe"
@@ -178,6 +178,9 @@ describe("mountWidget", () => {
   })
 
   it("keeps a widget that throws in an effect isolated from the host", async () => {
+    // React reports the error it caught through `console.error`. The throw is the
+    // point of the test, so keep the expected report out of the suite's output.
+    const reported = vi.spyOn(console, "error").mockImplementation(() => {})
     const Broken = () => {
       useEffect(() => {
         throw new Error("boom")
@@ -192,7 +195,9 @@ describe("mountWidget", () => {
     const { handle, container } = await mountWidget(broken, bridge, "broken", {})
     expect(container.querySelector("[data-platform-error-fallback]")).not.toBeNull()
     expect(bridge.diagnostics.events.some((event) => event.type === "error")).toBe(true)
+    expect(reported).toHaveBeenCalled()
     await disposeAsync(handle)
+    reported.mockRestore()
   })
 })
 

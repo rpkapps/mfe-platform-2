@@ -2,6 +2,7 @@ import type { Plugin } from "vite"
 
 import type { PlatformContext } from "./context"
 import { tectonOptimizeIncludes } from "./optimize"
+import { isSharedVersionSkewWarning } from "./warnings"
 
 export const MFE_ID_DEFINE = "__PLATFORM_MFE_ID__"
 export const ROUTE_PREFIX_DEFINE = "__PLATFORM_ROUTE_PREFIX__"
@@ -50,6 +51,12 @@ export function platformDefinePlugin(context: PlatformContext): Plugin {
           // fires on every build and says nothing actionable. Opt back in with
           // `build.rolldownOptions.checks.pluginTimings: true`.
           rolldownOptions: {
+            onwarn(warning, defaultHandler) {
+              if (isSharedVersionSkewWarning(warning)) return
+              const userHandler = userConfig.build?.rolldownOptions?.onwarn
+              if (userHandler) userHandler(warning, defaultHandler)
+              else defaultHandler(warning)
+            },
             checks: {
               pluginTimings: userConfig.build?.rolldownOptions?.checks?.pluginTimings ?? false,
             },

@@ -82,8 +82,14 @@ export function tectonOptimizeIncludes(root: string): string[] {
       }
     }
     for (const specifier of [...found].sort()) includes.push(`${TECTON_PACKAGE} > ${specifier}`)
-  } catch {
-    // Tecton is not installed: nothing to pre-bundle.
+  } catch (error) {
+    // Not finding Tecton is handled above; reaching here means the scan itself
+    // failed, which silently leaves the remote without its pre-bundled React
+    // Aria copy and breaks it in the browser, not in this process.
+    console.warn(
+      `[platform] could not scan ${TECTON_PACKAGE} for dependencies to pre-bundle; ` +
+        `development may fail to load it: ${error instanceof Error ? error.message : String(error)}`
+    )
   }
   cache.set(root, includes)
   return includes

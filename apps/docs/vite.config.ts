@@ -18,9 +18,25 @@ const config = defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  // Rolldown's plugin-timing hint reports the cost of the MDX, Start and
-  // Tailwind plugins on every build and says nothing actionable.
-  build: { rolldownOptions: { checks: { pluginTimings: false } } },
+  build: {
+    rolldownOptions: {
+      // Rolldown's plugin-timing hint reports the cost of the MDX, Start and
+      // Tailwind plugins on every build and says nothing actionable.
+      checks: { pluginTimings: false },
+      onwarn(warning, defaultHandler) {
+        // The docs route preloads MDX bodies on client-side navigation, so the
+        // async collection's runtime ships to the browser. Its "raw file"
+        // branch is server-only and reaches for `node:fs/promises` behind a
+        // dynamic import the browser never evaluates.
+        if (
+          warning.message?.includes("node:fs/promises") &&
+          warning.message.includes("fumadocs-mdx")
+        )
+          return
+        defaultHandler(warning)
+      },
+    },
+  },
   plugins: [
     // Must run before tanstackStart/react so .mdx and `fumadocs-mdx/macro` calls are transformed first.
     fumadocsMdx({ index: false }),

@@ -62,6 +62,23 @@ test.beforeAll(async () => {
   await waitFor("http://127.0.0.1:4110/", { timeoutMs: 120_000 })
 })
 
+// A remote that fails to mount does so in the browser; without this the CI log
+// shows only the assertion timeout and the dev servers stay silent.
+test.beforeEach(({ page }) => {
+  page.on("console", (message) => {
+    if (message.type() === "error" || message.type() === "warning")
+      process.stdout.write(`[browser:${message.type()}] ${message.text()}\n`)
+  })
+  page.on("pageerror", (error) =>
+    process.stdout.write(`[browser:pageerror] ${error.stack ?? error.message}\n`)
+  )
+  page.on("requestfailed", (request) =>
+    process.stdout.write(
+      `[browser:requestfailed] ${request.url()} ${request.failure()?.errorText ?? ""}\n`
+    )
+  )
+})
+
 test.afterAll(async () => {
   for (const [file, original] of edited) writeFileSync(file, original)
   for (const child of children) child.kill()
@@ -71,7 +88,9 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   page,
 }) => {
   await page.goto("/asset-tracker")
-  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({ timeout: 60_000 })
+  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({
+    timeout: process.env.CI ? 120_000 : 60_000,
+  })
   await expect(page.getByTestId(ids.assetTracker.hmrLabel)).toHaveText("HMR_LABEL_V1")
   await page.getByTestId(ids.shell.counter).click()
   await page.getByTestId(ids.assetTracker.counter).click()
@@ -87,7 +106,9 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   await expect(page.getByTestId(ids.assetTracker.counter)).toContainText("Counter 1")
 
   await page.goto("/dashboard")
-  await expect(page.getByTestId(ids.widgets.reportSummary)).toBeVisible({ timeout: 60_000 })
+  await expect(page.getByTestId(ids.widgets.reportSummary)).toBeVisible({
+    timeout: process.env.CI ? 120_000 : 60_000,
+  })
   await expect(page.getByTestId(ids.widgets.counterWidget)).toHaveCount(2)
   await page
     .getByTestId(ids.widgets.counterWidget)
@@ -116,7 +137,9 @@ test("restart-requiring changes produce a clear diagnostic instead of a stale re
   page,
 }) => {
   await page.goto("/asset-tracker")
-  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({ timeout: 60_000 })
+  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({
+    timeout: process.env.CI ? 120_000 : 60_000,
+  })
   edit(
     join(root, "apps/conformance-react19/mfe.config.ts"),
     'displayName: "Asset Tracker"',
@@ -125,7 +148,7 @@ test("restart-requiring changes produce a clear diagnostic instead of a stale re
   await page.goto("/asset-tracker")
   await expect(page.getByTestId(ids.shell.outlet)).toContainText(
     /DEV_RESTART_REQUIRED|restart/i,
-    { timeout: 60_000 }
+    { timeout: process.env.CI ? 120_000 : 60_000 }
   )
 })
 
