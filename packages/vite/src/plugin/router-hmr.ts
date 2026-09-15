@@ -29,6 +29,25 @@ export function rewriteRouterHmrGlue(code: string, mfeId: string): string {
   return code.split(GLOBAL_ROUTER).join(target)
 }
 
+/**
+ * Whether a Vite module id names a file in the remote's routes directory.
+ *
+ * Module ids always use forward slashes, while a path built with `resolve`
+ * follows the platform. Comparing the two directly matched nothing on Windows,
+ * so no route file was rewritten there: every remote's `__root__` then
+ * overwrote the shell's root route, and the shell rendered the remote's layout
+ * with its own React while the remote's hooks called into a second copy.
+ */
+export function isRouteFile(id: string, routesDirectory: string): boolean {
+  // Vite's own `normalizePath` only rewrites separators when it runs on
+  // Windows, so the conversion is explicit: a module id never contains a
+  // backslash, and this is the only comparison it is used for.
+  const posix = (path: string) => path.replace(/\\/g, "/")
+  const file = posix(id.split("?")[0]!)
+  const directory = posix(routesDirectory)
+  return file === directory || file.startsWith(`${directory}/`)
+}
+
 export function platformRouterHmrPlugin(context: PlatformContext): Plugin {
   return {
     name: "platform:router-hmr",
@@ -36,9 +55,7 @@ export function platformRouterHmrPlugin(context: PlatformContext): Plugin {
     apply: (_config, env) => env.command === "serve" && env.mode !== "test",
     transform(code, id) {
       const config = context.config()
-      const file = id.split("?")[0]!
-      const routesDirectory = resolve(config.root, config.routesDirectory)
-      if (!file.startsWith(routesDirectory)) return null
+      if (!isRouteFile(id, resolve(config.root, config.routesDirectory))) return null
       const rewritten = rewriteRouterHmrGlue(code, config.mfeId)
       return rewritten === code ? null : { code: rewritten, map: null }
     },
