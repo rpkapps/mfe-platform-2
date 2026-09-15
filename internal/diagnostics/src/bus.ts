@@ -1,9 +1,12 @@
 import {
+  ERROR_CODES,
   levelFor,
+  PlatformError,
   type DiagnosticEvent,
   type DiagnosticInput,
   type DiagnosticLevel,
   type DiagnosticSink,
+  type SerializedPlatformError,
   type Telemetry,
 } from "@platform-internal/core"
 
@@ -59,7 +62,26 @@ export function createDiagnosticsBus(options: DiagnosticsBusOptions = {}): Diagn
   const listeners = new Set<DiagnosticsListener>()
   let nextId = 1
 
-  const forward = (event: DiagnosticEvent) => {
+  /**
+   * Rebuild a reportable error from the serialised form, for events that crossed
+   * a boundary (a remote's diagnostics, a replayed snapshot) and so have no live
+   * instance. `hint` and `docsUrl` are derived from the code, so only an
+   * unrecognised code falls back to a bare `Error`.
+   */
+  const revive = (error: SerializedPlatformError): Error =>
+    error.code in ERROR_CODES
+      ? new PlatformError({
+          code: error.code,
+          message: error.message,
+          owner: error.owner,
+          source: error.source,
+          override: error.override,
+          details: error.details,
+          cause: error.cause,
+        })
+      : new Error(error.message)
+
+  const forward = (event: DiagnosticEvent, instance: unknown) => {
     const telemetry = options.telemetry
     if (!telemetry) return
     if (event.level !== "error" && event.level !== "warn") return
@@ -72,7 +94,10 @@ export function createDiagnosticsBus(options: DiagnosticsBusOptions = {}): Diagn
         widgetId: event.widgetId,
       }
       if ("error" in event && event.error && typeof event.error === "object") {
-        telemetry.error(new Error(event.error.message), {
+        // The live instance when the emitter had one: telemetry de-duplicates by
+        // identity, so the call site that owns this failure — and knows its
+        // boundary — reports it, and this forward stands in only when nothing did.
+        telemetry.error(instance instanceof Error ? instance : revive(event.error), {
           ...attributes,
           "error.code": event.error.code,
         })
@@ -90,7 +115,7 @@ export function createDiagnosticsBus(options: DiagnosticsBusOptions = {}): Diagn
     },
     emit(input) {
       try {
-        const { level, ...rest } = input
+        const { level, errorInstance, ...rest } = input
         const event = {
           ...rest,
           id: nextId++,
@@ -106,7 +131,7 @@ export function createDiagnosticsBus(options: DiagnosticsBusOptions = {}): Diagn
             // a failing subscriber never breaks the bus
           }
         }
-        forward(event)
+        forward(event, errorInstance)
         return event
       } catch {
         return undefined

@@ -114,6 +114,14 @@ const stringify = (a: TelemetryAttributes) =>
 
 Pass it to `createPlatformHost({ telemetry: faroAdapter })`. The console and memory adapters (`createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`) and `composeTelemetryAdapters` are exported by `@platform/host`, so a shell can fan out to Faro and to the in-memory stream the developer tools read; `host.telemetryEvents()` returns the events recorded by the host.
 
+## One failure, one event
+
+A failure travels several channels on its way out: the call site that catches it reports it with its `boundary`, it is emitted as a diagnostic (which the bus forwards to telemetry), and the span it failed inside reports it too. The adapter sees it once. De-duplication is by error identity over the whole telemetry tree — a remote's bridge telemetry is a child of the shell's — so the same instance reported from three places is one event, while two attempts that each throw their own error stay two events.
+
+The event that survives is the first one, and it carries the error that was thrown: its class, its `code`, its `hint` and docs link, its `cause` and the stack from the throw site. Diagnostics that carry a failure pass the live error alongside the serialised form (`errorInstance`), so the forward does not have to reconstruct one; only an event that crossed a boundary already serialised — a remote's diagnostics, a replayed snapshot — is rebuilt, and then the code, hint and docs link are still recovered from `ERROR_CODES`.
+
+Diagnostics are unaffected: every event is still recorded, so the developer tools and `host.diagnostics.list()` show each step of a failure even though telemetry reports it once.
+
 ## Failure isolation
 
 Telemetry is optional: without an adapter every call is a no-op. With an adapter, every call is wrapped; an adapter that throws never breaks an MFE. The error is reported once per operation as `TELEMETRY_FAILED` (a `telemetry.failed` diagnostic and a console warning), the event is dropped, and the MFE keeps running. An unavailable telemetry provider never prevents an MFE from starting.

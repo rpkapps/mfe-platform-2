@@ -185,8 +185,8 @@ export function createCommandRunner(host: PlatformHost): CommandRunner {
           error: platformError.message,
           ...owner,
         })
-        span.fail(platformError)
         telemetry.error(platformError, { boundary: "command" })
+        span.fail(platformError)
         return finish(done("failed", platformError))
       }
     },

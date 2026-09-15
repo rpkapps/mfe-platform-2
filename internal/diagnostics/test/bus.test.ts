@@ -65,6 +65,54 @@ describe("diagnostics bus", () => {
     })
   })
 
+  it("forwards the live error when it has one, and a faithful one when it does not", () => {
+    const adapter = createMemoryTelemetryAdapter()
+    const reported: unknown[] = []
+    const bus = createDiagnosticsBus({
+      telemetry: createTelemetry({
+        adapter: {
+          ...adapter,
+          error: (error, a) => (reported.push(error), adapter.error(error, a)),
+        },
+      }),
+    })
+    // With the instance: telemetry gets the error that was thrown, stack and all.
+    const live = new PlatformError({
+      code: "MOUNT_FAILED",
+      message: "nope",
+      owner: { mfeId: "a" },
+    })
+    bus.emit({ type: "mount.failed", error: live.toJSON(), errorInstance: live, mfeId: "a" })
+    expect(reported[0]).toBe(live)
+    // Without it (an event that crossed a boundary already serialised), the code,
+    // hint and docs link survive instead of collapsing to a bare Error.
+    bus.emit({ type: "widget.failed", error: live.toJSON(), mfeId: "a" })
+    expect(reported[1]).not.toBe(live)
+    expect(reported[1]).toBeInstanceOf(PlatformError)
+    expect(reported[1]).toMatchObject({
+      code: "MOUNT_FAILED",
+      hint: live.hint,
+      docsUrl: live.docsUrl,
+    })
+    // The live instance is never recorded: the ring buffer keeps the serialised form.
+    expect(bus.list({ type: "mount.failed" })[0]).not.toHaveProperty("errorInstance")
+  })
+
+  it("reports one failure once however many events carry it", () => {
+    const adapter = createMemoryTelemetryAdapter()
+    const telemetry = createTelemetry({ adapter })
+    const bus = createDiagnosticsBus({ telemetry })
+    const error = new PlatformError({ code: "DEV_RESTART_REQUIRED", message: "restart" })
+    // The shape the host produces: the owning call site reports it with its
+    // boundary, then the load and mount paths each emit a diagnostic for it.
+    telemetry.error(error, { boundary: "mount" })
+    bus.emit({ type: "error", code: error.code, error: error.toJSON(), errorInstance: error })
+    bus.emit({ type: "mount.failed", error: error.toJSON(), errorInstance: error })
+    expect(adapter.events.filter((e) => e.kind === "error")).toHaveLength(1)
+    expect(adapter.events[0]?.attributes).toMatchObject({ boundary: "mount" })
+    expect(bus.list({ minLevel: "error" })).toHaveLength(2)
+  })
+
   it("scoped sinks tag events with their owner", () => {
     const bus = createDiagnosticsBus()
     const sink = bus.scoped({ mfeId: "a", instanceId: "a#1", widgetId: "card" })

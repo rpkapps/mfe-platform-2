@@ -930,6 +930,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
           type: "error",
           code: platformError.code,
           error: platformError.toJSON(),
+          errorInstance: platformError,
           mfeId,
         })
     })
@@ -1133,8 +1134,12 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         throw platformError
       }
       updateInstance(instanceId, { state: stateForError(platformError), error: platformError })
-      sink.emit({ type: "mount.failed", error: platformError.toJSON() })
       telemetry.error(platformError, { mfeId, instanceId, boundary: "mount" })
+      sink.emit({
+        type: "mount.failed",
+        error: platformError.toJSON(),
+        errorInstance: platformError,
+      })
       throw platformError
     }
   }
@@ -1251,7 +1256,11 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
               owner: { mfeId, instanceId, widgetId },
               source: widgetId,
             })
-            sink.emit({ type: "widget.failed", error: platformError.toJSON() })
+            sink.emit({
+              type: "widget.failed",
+              error: platformError.toJSON(),
+              errorInstance: platformError,
+            })
             updateInstance(instanceId, { state: "failed", error: platformError })
           }
         },
@@ -1275,8 +1284,12 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         throw platformError
       }
       updateInstance(instanceId, { state: stateForError(platformError), error: platformError })
-      sink.emit({ type: "widget.failed", error: platformError.toJSON() })
       telemetry.error(platformError, { mfeId, instanceId, widgetId, boundary: "widget" })
+      sink.emit({
+        type: "widget.failed",
+        error: platformError.toJSON(),
+        errorInstance: platformError,
+      })
       throw platformError
     }
   }

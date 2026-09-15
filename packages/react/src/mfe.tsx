@@ -225,9 +225,14 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
     } catch (error) {
       isolated?.scope.disposer.dispose()
       const platformError = toPlatformError(error, { code: "MOUNT_FAILED", owner })
-      bridge.diagnostics.emit({ type: "mount.failed", error: platformError.toJSON(), ...owner })
-      span.fail(platformError)
       bridge.telemetry.error(platformError, { boundary: "mount" })
+      bridge.diagnostics.emit({
+        type: "mount.failed",
+        error: platformError.toJSON(),
+        errorInstance: platformError,
+        ...owner,
+      })
+      span.fail(platformError)
       throw platformError
     }
   }
@@ -302,13 +307,14 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
     } catch (error) {
       isolated?.scope.disposer.dispose()
       const platformError = toPlatformError(error, { code: "WIDGET_MOUNT_FAILED", owner })
+      bridge.telemetry.error(platformError, { boundary: "widget-mount", widgetId })
       bridge.diagnostics.emit({
         type: "widget.failed",
         error: platformError.toJSON(),
+        errorInstance: platformError,
         ...owner,
       })
       span.fail(platformError)
-      bridge.telemetry.error(platformError, { boundary: "widget-mount", widgetId })
       throw platformError
     }
   }

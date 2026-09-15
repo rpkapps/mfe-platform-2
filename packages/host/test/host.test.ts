@@ -426,6 +426,65 @@ describe("createPlatformHost — mounting", () => {
     expect(host.diagnostics.list({ type: "widget.unmounted" })).toHaveLength(1)
   })
 
+  it("reports a failure to telemetry once, with the error that was thrown", async () => {
+    const reported: { error: unknown; attributes: Record<string, unknown> }[] = []
+    const telemetry = {
+      track: () => {},
+      error: (error: unknown, attributes: Record<string, unknown>) =>
+        reported.push({ error, attributes }),
+    }
+    // A dev remote that needs a restart fails in `assertLoadable`, so one error
+    // instance travels three channels: the load path emits it, the mount path
+    // emits it again, and the mount call site reports it with its boundary.
+    const host = createTestHost({
+      telemetry,
+      fetch: fakeFetch({
+        [MANIFEST_URL]: manifest({
+          dev: { hmr: true, restartRequired: true, restartReason: "mfe.config.ts changed" },
+        }),
+      }),
+      loader: fakeLoader({}),
+    })
+    await expect(
+      host.remotes.mount("asset-tracker", { container: document.createElement("div") })
+    ).rejects.toMatchObject({ code: "DEV_RESTART_REQUIRED" })
+    expect(reported).toHaveLength(1)
+    expect(reported[0]!.error).toBeInstanceOf(PlatformError)
+    expect(reported[0]!.error).toMatchObject({ code: "DEV_RESTART_REQUIRED" })
+    // The stack is the one from the throw site, not from the forwarding helper.
+    expect((reported[0]!.error as Error).stack).toContain("assertLoadable")
+    // The diagnostics the devtools read are unchanged: both events are still there.
+    expect(host.diagnostics.list({ minLevel: "error" }).map((event) => event.type)).toEqual([
+      "error",
+      "mount.failed",
+    ])
+  })
+
+  it("reports an unknown widget once, from the boundary that owns it", async () => {
+    const reported: { error: unknown; attributes: Record<string, unknown> }[] = []
+    const host = createTestHost({
+      telemetry: {
+        track: () => {},
+        error: (error: unknown, attributes: Record<string, unknown>) =>
+          reported.push({ error, attributes }),
+      },
+      fetch: fakeFetch({ [MANIFEST_URL]: manifest() }),
+      loader: fakeLoader({ "asset-tracker": definition() }),
+    })
+    await expect(
+      host.remotes.mountWidget("asset-tracker", "does-not-exist", {
+        container: document.createElement("div"),
+      })
+    ).rejects.toMatchObject({ code: "WIDGET_UNKNOWN" })
+    expect(reported).toHaveLength(1)
+    expect(reported[0]!.error).toMatchObject({ code: "WIDGET_UNKNOWN" })
+    expect(reported[0]!.attributes).toMatchObject({
+      boundary: "widget",
+      mfeId: "asset-tracker",
+      widgetId: "does-not-exist",
+    })
+  })
+
   it("matches routes by longest prefix (hidden MFEs still own routes) and builds a snapshot", async () => {
     const host = createTestHost({
       registry: [

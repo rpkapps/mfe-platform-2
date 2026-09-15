@@ -122,6 +122,14 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
 
 export type DiagnosticInput = DistributiveOmit<DiagnosticEvent, "id" | "at" | "level"> & {
   level?: DiagnosticLevel
+  /**
+   * The live error behind a serialised `error`, when the emitter has it. Telemetry
+   * receives this instance — its class, its cause and the stack from where it was
+   * thrown — instead of a reconstruction, and reporting the same instance twice
+   * reports it once. It is never recorded: the ring buffer, snapshots and devtools
+   * read the serialised `error`, which stays the only persisted form.
+   */
+  errorInstance?: unknown
 }
 
 export interface DiagnosticSink {

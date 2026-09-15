@@ -74,78 +74,97 @@ function defaultAdapterError(error: unknown, operation: string) {
 
 export function createTelemetry(options: TelemetryOptions = {}): Telemetry {
   const adapter = options.adapter ?? null
-  const baseContext = options.context ?? {}
   const onError = options.onAdapterError ?? defaultAdapterError
-  const merge = (attributes?: TelemetryAttributes): TelemetryAttributes => ({
-    ...baseContext,
-    ...attributes,
-  })
 
-  const makeSpan = (
-    name: string,
-    attributes: TelemetryAttributes,
-    parent?: string
-  ): TelemetrySpan => {
-    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now()
-    const merged = merge({
+  /**
+   * One failure reaches the adapter once. A single `PlatformError` instance is
+   * reported through up to three channels — the owning call site reports it with
+   * its boundary, the diagnostics bus forwards the event it was emitted on, and a
+   * span fails with it — so without this the shell bills two or three events for
+   * one failure and only the first carries the original stack. The set is shared
+   * with every child (a remote's bridge telemetry is a child of the shell's), so
+   * the whole tree reports a given error once. Spans handed to an adapter that
+   * implements `spanStart` are exempt: `handle.fail` is a span outcome, not an
+   * error report.
+   */
+  const reported = new WeakSet<object>()
+  const claim = (error: unknown): boolean => {
+    if (typeof error !== "object" || error === null) return true
+    if (reported.has(error)) return false
+    reported.add(error)
+    return true
+  }
+
+  const make = (baseContext: TelemetryContext): Telemetry => {
+    const merge = (attributes?: TelemetryAttributes): TelemetryAttributes => ({
+      ...baseContext,
       ...attributes,
-      "span.name": name,
-      ...(parent ? { "span.parent": parent } : {}),
     })
-    let handle: ReturnType<NonNullable<TelemetryAdapter["spanStart"]>> | void
-    safe("spanStart", onError, () => {
-      handle = adapter?.spanStart?.(name, merged)
-    })
-    let ended = false
-    const duration = () =>
-      (typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt
-    const span: TelemetrySpan = {
-      end(extra) {
-        if (ended) return
-        ended = true
-        const attrs = { ...merged, ...extra, "span.duration_ms": Math.round(duration()) }
-        safe("spanEnd", onError, () => {
-          if (handle) handle.end(attrs)
-          else adapter?.track(`span:${name}`, attrs)
-        })
-      },
-      fail(error, extra) {
-        if (ended) return
-        ended = true
-        const attrs = {
-          ...merged,
-          ...extra,
-          "span.duration_ms": Math.round(duration()),
-          "span.failed": true,
-        }
-        safe("spanFail", onError, () => {
-          if (handle) handle.fail(error, attrs)
-          else adapter?.error(error, attrs)
-        })
-      },
-      child: (childName, childAttributes) =>
-        makeSpan(childName, { ...attributes, ...childAttributes }, name),
+
+    const makeSpan = (
+      name: string,
+      attributes: TelemetryAttributes,
+      parent?: string
+    ): TelemetrySpan => {
+      const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now()
+      const merged = merge({
+        ...attributes,
+        "span.name": name,
+        ...(parent ? { "span.parent": parent } : {}),
+      })
+      let handle: ReturnType<NonNullable<TelemetryAdapter["spanStart"]>> | void
+      safe("spanStart", onError, () => {
+        handle = adapter?.spanStart?.(name, merged)
+      })
+      let ended = false
+      const duration = () =>
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt
+      const span: TelemetrySpan = {
+        end(extra) {
+          if (ended) return
+          ended = true
+          const attrs = { ...merged, ...extra, "span.duration_ms": Math.round(duration()) }
+          safe("spanEnd", onError, () => {
+            if (handle) handle.end(attrs)
+            else adapter?.track(`span:${name}`, attrs)
+          })
+        },
+        fail(error, extra) {
+          if (ended) return
+          ended = true
+          const attrs = {
+            ...merged,
+            ...extra,
+            "span.duration_ms": Math.round(duration()),
+            "span.failed": true,
+          }
+          safe("spanFail", onError, () => {
+            if (handle) handle.fail(error, attrs)
+            else if (claim(error)) adapter?.error(error, attrs)
+          })
+        },
+        child: (childName, childAttributes) =>
+          makeSpan(childName, { ...attributes, ...childAttributes }, name),
+      }
+      return span
     }
-    return span
+
+    const telemetry: Telemetry = {
+      context: baseContext,
+      track(event, attributes) {
+        safe("track", onError, () => adapter?.track(event, merge(attributes)))
+      },
+      error(error, attributes) {
+        if (!claim(error)) return
+        safe("error", onError, () => adapter?.error(error, merge(attributes)))
+      },
+      span: (name, attributes) => makeSpan(name, attributes ?? {}),
+      child: (context) => make({ ...baseContext, ...context }),
+    }
+    return telemetry
   }
 
-  const telemetry: Telemetry = {
-    context: baseContext,
-    track(event, attributes) {
-      safe("track", onError, () => adapter?.track(event, merge(attributes)))
-    },
-    error(error, attributes) {
-      safe("error", onError, () => adapter?.error(error, merge(attributes)))
-    },
-    span: (name, attributes) => makeSpan(name, attributes ?? {}),
-    child: (context) =>
-      createTelemetry({
-        adapter,
-        context: { ...baseContext, ...context },
-        onAdapterError: onError,
-      }),
-  }
-  return telemetry
+  return make(options.context ?? {})
 }
 
 export const noopTelemetry: Telemetry = createTelemetry({ adapter: null })

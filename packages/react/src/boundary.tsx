@@ -65,7 +65,10 @@ export class MfeErrorBoundary extends Component<MfeErrorBoundaryProps, MfeErrorB
         owner,
         source: boundary,
       })
-      scope.bridge.telemetry.error(error, {
+      // The platform error, not the raw one: it carries the code, the hint and the
+      // docs link, keeps the original as its `cause`, and is the instance the
+      // diagnostic below reports — so the failure is one telemetry event, not two.
+      scope.bridge.telemetry.error(platformError, {
         boundary,
         componentStack: info.componentStack ?? undefined,
         code: platformError.code,
@@ -74,6 +77,7 @@ export class MfeErrorBoundary extends Component<MfeErrorBoundaryProps, MfeErrorB
         type: "error",
         code: platformError.code,
         error: platformError.toJSON(),
+        errorInstance: platformError,
         ...owner,
       })
     }
