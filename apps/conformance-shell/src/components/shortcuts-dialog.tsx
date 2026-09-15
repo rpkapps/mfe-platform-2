@@ -15,12 +15,22 @@ import { Separator } from "@tecton/react/components/separator"
 
 const ids = TEST_IDS.shell
 
+export interface ShortcutsDialogProps {
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
 /**
  * Every shortcut the host knows about, grouped by the command group that owns
  * it. The list is the command registry, so a remote's shortcuts appear the
  * moment it mounts and disappear when it unmounts.
+ *
+ * Tecton's `Dialog` is the whole overlay — `ModalOverlay` + `Modal` + `Dialog`
+ * — so it takes `isOpen` itself. Wrapping it in a `DialogTrigger` instead,
+ * which expects a pressable child *and* an overlay, makes react-aria warn
+ * about a `PressResponder` with nothing to press.
  */
-export function ShortcutsDialog() {
+export function ShortcutsDialog({ isOpen, onOpenChange }: ShortcutsDialogProps) {
   const host = usePlatformHost()
   useRegistryVersion(["commands"])
   // Select the registry's own entries — mapping to fresh objects here would
@@ -42,7 +52,12 @@ export function ShortcutsDialog() {
   )
   const groups = [...new Set(commands.map((command) => command.group))].sort()
   return (
-    <Dialog data-testid={ids.shortcutsDialog} className="max-w-lg">
+    <Dialog
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      data-testid={ids.shortcutsDialog}
+      className="max-w-lg"
+    >
       <DialogHeader>
         <DialogTitle>Keyboard shortcuts</DialogTitle>
         <DialogDescription>

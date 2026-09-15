@@ -41,6 +41,26 @@ test.describe("command palette", () => {
     ).toHaveCount(0)
   })
 
+  test("the shortcuts dialog lists the host's and the mounted remote's shortcuts", async ({
+    page,
+  }) => {
+    // The dialog had no coverage at all, which is how it shipped wrapped in a
+    // `DialogTrigger` with nothing to press — a react-aria warning on every
+    // shell mount that no assertion could see.
+    await gotoShell(page, "/well-planner")
+    await waitForWellPlanner(page)
+    await page
+      .getByRole("button", { name: /Keyboard shortcuts/ })
+      .first()
+      .click()
+    const dialog = page.getByTestId(ids.shell.shortcutsDialog)
+    await expect(dialog).toBeVisible()
+    await expect(dialog).toContainText("Add alternative to comparison")
+    await expect(dialog).toContainText("mod+shift+i")
+    await page.keyboard.press("Escape")
+    await expect(dialog).toBeHidden()
+  })
+
   test("shortcut conflicts are rejected deterministically and visible in devtools", async ({
     page,
   }) => {

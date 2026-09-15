@@ -21,7 +21,6 @@ import {
 } from "@/components"
 import { TEST_IDS, PROJECTS } from "@platform-internal/conformance"
 
-import { DialogTrigger } from "@tecton/react/components/dialog"
 import { AppShell, AppShellBody, AppShellMain } from "@tecton/react/tecton/app-shell"
 
 import { getRuntimeConfig } from "@/lib/runtime-config"
@@ -151,11 +150,7 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
         </AppShellMain>
       </AppShellBody>
       {host ? <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} /> : null}
-      {host ? (
-        <DialogTrigger isOpen={shortcutsOpen} onOpenChange={setShortcutsOpen}>
-          <ShortcutsDialog />
-        </DialogTrigger>
-      ) : null}
+      {host ? <ShortcutsDialog isOpen={shortcutsOpen} onOpenChange={setShortcutsOpen} /> : null}
       {host ? <NotificationHost /> : null}
       {host ? <PlatformDevtools controlRef={devtools} /> : null}
     </AppShell>
