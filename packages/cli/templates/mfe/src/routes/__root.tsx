@@ -13,11 +13,11 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
   staticData: { breadcrumb: "__DISPLAY_NAME__" },
   component: RootLayout,
   errorComponent: ({ error }) => (
-    <div role="alert" className="rounded-md border border-destructive p-4 text-sm">
+    <div role="alert" className="border-destructive rounded-md border p-4 text-sm">
       __DISPLAY_NAME__ failed: {error.message}
     </div>
   ),
-  notFoundComponent: () => <p className="p-4 text-sm text-muted-foreground">Nothing here.</p>,
+  notFoundComponent: () => <p className="text-muted-foreground p-4 text-sm">Nothing here.</p>,
 })
 
 const links = [
@@ -30,8 +30,11 @@ function RootLayout() {
   const instance = useMfeInstance()
   return (
     <MfeErrorBoundary>
-      <div className="flex min-h-64 flex-col gap-4 p-4 text-foreground">
-        <nav aria-label="__DISPLAY_NAME__" className="flex items-center gap-3 border-b border-border pb-2 text-sm">
+      <div className="text-foreground flex min-h-64 flex-col gap-4 p-4">
+        <nav
+          aria-label="__DISPLAY_NAME__"
+          className="border-border flex items-center gap-3 border-b pb-2 text-sm"
+        >
           {links.map((link) => (
             <Link
               key={link.to}
@@ -50,7 +53,9 @@ function RootLayout() {
             </Badge>
             {/* {{/tecton}} */}
             {/* {{^tecton}} */}
-            <span className="rounded border border-border px-2 py-0.5 text-xs">{instance.mfeId}</span>
+            <span className="border-border rounded border px-2 py-0.5 text-xs">
+              {instance.mfeId}
+            </span>
             {/* {{/tecton}} */}
           </span>
         </nav>

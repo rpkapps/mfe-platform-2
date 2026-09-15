@@ -9,11 +9,17 @@ import { z } from "zod"
 export const dashboardStorage = createPlatformStorage({
   scope: "local",
   key: "dashboard",
-  schema: z.object({ columns: z.array(z.string()), density: z.enum(["compact", "comfortable"]) }),
+  schema: z.object({
+    columns: z.array(z.string()),
+    density: z.enum(["compact", "comfortable"]),
+  }),
   defaults: { columns: ["name", "status"], density: "comfortable" },
   version: 2,
   // v1 stored a bare array of columns; invalid data without a migration resets to defaults.
-  migrate: (stored) => (Array.isArray(stored) ? { columns: stored as string[], density: "comfortable" as const } : undefined),
+  migrate: (stored) =>
+    Array.isArray(stored)
+      ? { columns: stored as string[], density: "comfortable" as const }
+      : undefined,
 })
 
 export const sessionNotes = createPlatformStorage({

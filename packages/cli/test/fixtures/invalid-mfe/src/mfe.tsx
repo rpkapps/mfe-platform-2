@@ -8,7 +8,10 @@ function Card() {
 }
 
 const id = "invalid-mfe"
-const definition = createMfe({ mfeId: "other-mfe", widgets: { AssetCard: createWidget({ component: Card }) } })
+const definition = createMfe({
+  mfeId: "other-mfe",
+  widgets: { AssetCard: createWidget({ component: Card }) },
+})
 createMfe({ mfeId: id })
 
 export function Notifier() {

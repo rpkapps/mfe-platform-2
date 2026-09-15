@@ -20,7 +20,11 @@ export default defineMfeConfig({
   // (PLATFORM_MFE_<ID>_ENV_<KEY>). Never declare secrets; names such as TOKEN or API_KEY
   // are refused. Read them with `useRuntimeEnv()`; typed through `Register` in src/platform.d.ts.
   env: {
-    API_BASE_URL: { required: false, default: "/api", description: "Base URL of the assets API" },
+    API_BASE_URL: {
+      required: false,
+      default: "/api",
+      description: "Base URL of the assets API",
+    },
   },
 
   // --- Other options (uncomment to override the inferred value) ---------------------------

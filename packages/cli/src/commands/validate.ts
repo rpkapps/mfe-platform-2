@@ -17,7 +17,15 @@ import {
 
 import { CLI_ERROR_CODES, type CliErrorCode } from "../errors"
 import { checkMfeConfig, readStaticMfeConfig } from "../mfe-config"
-import { allDependencies, readIdentity, readPackageJson, requireProjectRoot, resolveMfeId, resolveProjectModule, type PackageJson } from "../project"
+import {
+  allDependencies,
+  readIdentity,
+  readPackageJson,
+  requireProjectRoot,
+  resolveMfeId,
+  resolveProjectModule,
+  type PackageJson,
+} from "../project"
 import { readManifest } from "./manifest"
 
 export type FindingLevel = "error" | "warning" | "info"
@@ -63,8 +71,10 @@ const DOCS: Record<string, string> = {
 }
 
 function docsFor(code: PlatformErrorCode | CliErrorCode, check: string): string {
-  if (code in ERROR_CODES) return `${DOCS_BASE_URL}${ERROR_CODES[code as PlatformErrorCode].docs}`
-  if (code in CLI_ERROR_CODES) return `${DOCS_BASE_URL}${DOCS[check] ?? CLI_ERROR_CODES[code as CliErrorCode].docs}`
+  if (code in ERROR_CODES)
+    return `${DOCS_BASE_URL}${ERROR_CODES[code as PlatformErrorCode].docs}`
+  if (code in CLI_ERROR_CODES)
+    return `${DOCS_BASE_URL}${DOCS[check] ?? CLI_ERROR_CODES[code as CliErrorCode].docs}`
   return `${DOCS_BASE_URL}${DOCS[check] ?? "/cli#validate"}`
 }
 
@@ -75,7 +85,9 @@ function hintFor(code: PlatformErrorCode | CliErrorCode): string | undefined {
 }
 
 export function formatFinding(finding: Finding): string {
-  const lines = [`${finding.level === "error" ? "✖" : finding.level === "warning" ? "▲" : "ℹ"} [platform:${finding.code}] ${finding.message}`]
+  const lines = [
+    `${finding.level === "error" ? "✖" : finding.level === "warning" ? "▲" : "ℹ"} [platform:${finding.code}] ${finding.message}`,
+  ]
   if (finding.source) lines.push(`    source: ${finding.source}`)
   if (finding.override) lines.push(`    override: ${finding.override}`)
   if (finding.hint) lines.push(`    hint: ${finding.hint}`)
@@ -86,13 +98,21 @@ export function formatFinding(finding: Finding): string {
 class Findings {
   readonly items: Finding[] = []
   constructor(private readonly root: string) {}
-  add(level: FindingLevel, check: string, code: PlatformErrorCode | CliErrorCode, message: string, extra: { source?: string; override?: string } = {}): void {
+  add(
+    level: FindingLevel,
+    check: string,
+    code: PlatformErrorCode | CliErrorCode,
+    message: string,
+    extra: { source?: string; override?: string } = {}
+  ): void {
     this.items.push({
       level,
       code,
       check,
       message,
-      source: extra.source ? relative(this.root, extra.source).replace(/\\/g, "/") || extra.source : undefined,
+      source: extra.source
+        ? relative(this.root, extra.source).replace(/\\/g, "/") || extra.source
+        : undefined,
       override: extra.override,
       hint: hintFor(code),
       docsUrl: docsFor(code, check),
@@ -102,12 +122,24 @@ class Findings {
 
 /** True when the default export is `createMfe(...)`, a wrapper around it, or a binding initialised with it. */
 export function defaultExportsCreateMfe(text: string, fileName = "mfe.tsx"): boolean {
-  const source = ts.createSourceFile(fileName, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+  const source = ts.createSourceFile(
+    fileName,
+    text,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  )
   const initialisers = new Map<string, ts.Expression>()
   let exported: ts.Expression | null = null
   const unwrap = (node: ts.Expression): ts.Expression => {
     let current = node
-    while (ts.isParenthesizedExpression(current) || ts.isAsExpression(current) || ts.isSatisfiesExpression(current) || ts.isNonNullExpression(current)) current = current.expression
+    while (
+      ts.isParenthesizedExpression(current) ||
+      ts.isAsExpression(current) ||
+      ts.isSatisfiesExpression(current) ||
+      ts.isNonNullExpression(current)
+    )
+      current = current.expression
     return current
   }
   const isCreateMfeCall = (node: ts.Expression, depth = 0): boolean => {
@@ -117,8 +149,17 @@ export function defaultExportsCreateMfe(text: string, fileName = "mfe.tsx"): boo
       if (ts.isIdentifier(callee) && callee.text === "createMfe") return true
       if (ts.isPropertyAccessExpression(callee) && callee.name.text === "createMfe") return true
       // wrapper such as withTecton(createMfe(...)) or createMfe(...).use(...)
-      if (depth < 3 && expression.arguments.some((argument) => isCreateMfeCall(argument, depth + 1))) return true
-      if (depth < 3 && ts.isPropertyAccessExpression(callee) && isCreateMfeCall(callee.expression, depth + 1)) return true
+      if (
+        depth < 3 &&
+        expression.arguments.some((argument) => isCreateMfeCall(argument, depth + 1))
+      )
+        return true
+      if (
+        depth < 3 &&
+        ts.isPropertyAccessExpression(callee) &&
+        isCreateMfeCall(callee.expression, depth + 1)
+      )
+        return true
     }
     if (ts.isIdentifier(expression)) {
       const initialiser = initialisers.get(expression.text)
@@ -129,22 +170,28 @@ export function defaultExportsCreateMfe(text: string, fileName = "mfe.tsx"): boo
   for (const statement of source.statements) {
     if (ts.isVariableStatement(statement)) {
       for (const declaration of statement.declarationList.declarations) {
-        if (ts.isIdentifier(declaration.name) && declaration.initializer) initialisers.set(declaration.name.text, declaration.initializer)
+        if (ts.isIdentifier(declaration.name) && declaration.initializer)
+          initialisers.set(declaration.name.text, declaration.initializer)
       }
     }
-    if (ts.isExportAssignment(statement) && !statement.isExportEquals) exported = statement.expression
+    if (ts.isExportAssignment(statement) && !statement.isExportEquals)
+      exported = statement.expression
   }
   return exported !== null && isCreateMfeCall(exported)
 }
 
-const GENERATED_BANNER_RE = /prettier-ignore-start|@ts-nocheck|generated by|noformat|eslint-disable/i
+const GENERATED_BANNER_RE =
+  /prettier-ignore-start|@ts-nocheck|generated by|noformat|eslint-disable/i
 
 export function hasGeneratedBanner(text: string): boolean {
   return GENERATED_BANNER_RE.test(text.split(/\r?\n/).slice(0, 5).join("\n"))
 }
 
 function normaliseGenerated(text: string): string {
-  return text.replace(/\r\n/g, "\n").replace(/[ \t]+$/gm, "").trim()
+  return text
+    .replace(/\r\n/g, "\n")
+    .replace(/[ \t]+$/gm, "")
+    .trim()
 }
 
 interface RouterGeneratorModule {
@@ -165,7 +212,16 @@ export async function regenerateRouteTree(root: string): Promise<string | null> 
     const routesDirectory = join(work, "src", "routes")
     cpSync(routes, routesDirectory, { recursive: true })
     const generatedRouteTree = join(work, "src", "routeTree.gen.ts")
-    const config = mod.getConfig({ target: "react", autoCodeSplitting: true, routesDirectory, generatedRouteTree, disableLogging: true }, work)
+    const config = mod.getConfig(
+      {
+        target: "react",
+        autoCodeSplitting: true,
+        routesDirectory,
+        generatedRouteTree,
+        disableLogging: true,
+      },
+      work
+    )
     await new mod.Generator({ config, root: work }).run()
     return existsSync(generatedRouteTree) ? readFileSync(generatedRouteTree, "utf8") : null
   } finally {
@@ -179,19 +235,60 @@ function checkPackageJson(root: string, findings: Findings): PackageJson | null 
   try {
     pkg = readPackageJson(root)
   } catch (error) {
-    findings.add("error", "package.json", "VALIDATION_FAILED", `package.json could not be parsed: ${error instanceof Error ? error.message : String(error)}`, { source: file })
+    findings.add(
+      "error",
+      "package.json",
+      "VALIDATION_FAILED",
+      `package.json could not be parsed: ${error instanceof Error ? error.message : String(error)}`,
+      { source: file }
+    )
     return null
   }
-  if (!pkg.name) findings.add("error", "package.json", "VALIDATION_FAILED", "package.json has no `name`; the mfeId is inferred from it.", { source: file, override: "package.json → name" })
-  if (pkg.type !== "module") findings.add("error", "package.json", "VALIDATION_FAILED", 'package.json must declare `"type": "module"` (the generated entry and the Vite config are ES modules).', { source: file, override: 'package.json → "type": "module"' })
+  if (!pkg.name)
+    findings.add(
+      "error",
+      "package.json",
+      "VALIDATION_FAILED",
+      "package.json has no `name`; the mfeId is inferred from it.",
+      { source: file, override: "package.json → name" }
+    )
+  if (pkg.type !== "module")
+    findings.add(
+      "error",
+      "package.json",
+      "VALIDATION_FAILED",
+      'package.json must declare `"type": "module"` (the generated entry and the Vite config are ES modules).',
+      { source: file, override: 'package.json → "type": "module"' }
+    )
   const deps = allDependencies(pkg)
   for (const required of ["@platform/react", "@tanstack/react-router"]) {
-    if (!deps[required]) findings.add("error", "package.json", "DEPENDENCY_MISSING", `package.json does not depend on ${required}.`, { source: file, override: `pnpm add ${required}` })
+    if (!deps[required])
+      findings.add(
+        "error",
+        "package.json",
+        "DEPENDENCY_MISSING",
+        `package.json does not depend on ${required}.`,
+        { source: file, override: `pnpm add ${required}` }
+      )
   }
   for (const dev of ["@platform/vite", "@platform/cli"]) {
-    if (!deps[dev]) findings.add("warning", "package.json", "DEPENDENCY_MISSING", `package.json does not list ${dev}; \`platform dev/build/lint\` need it.`, { source: file, override: `pnpm add -D ${dev}` })
+    if (!deps[dev])
+      findings.add(
+        "warning",
+        "package.json",
+        "DEPENDENCY_MISSING",
+        `package.json does not list ${dev}; \`platform dev/build/lint\` need it.`,
+        { source: file, override: `pnpm add -D ${dev}` }
+      )
   }
-  if (!pkg.scripts?.lint) findings.add("warning", "lint", "LINT_FAILED", 'No `lint` script; add `"lint": "platform lint"` so CI and developers run the same configuration.', { source: file })
+  if (!pkg.scripts?.lint)
+    findings.add(
+      "warning",
+      "lint",
+      "LINT_FAILED",
+      'No `lint` script; add `"lint": "platform lint"` so CI and developers run the same configuration.',
+      { source: file }
+    )
   return pkg
 }
 
@@ -205,25 +302,60 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
   checkPackageJson(root, findings)
 
   checks.push("bootstrap")
-  const mfeFile = ["src/mfe.tsx", "src/mfe.ts"].map((name) => join(root, name)).find((file) => existsSync(file))
+  const mfeFile = ["src/mfe.tsx", "src/mfe.ts"]
+    .map((name) => join(root, name))
+    .find((file) => existsSync(file))
   if (!mfeFile) {
-    findings.add("error", "bootstrap", "VALIDATION_FAILED", "src/mfe.tsx is missing; it must default-export `createMfe({...})`.", { source: join(root, "src", "mfe.tsx") })
+    findings.add(
+      "error",
+      "bootstrap",
+      "VALIDATION_FAILED",
+      "src/mfe.tsx is missing; it must default-export `createMfe({...})`.",
+      { source: join(root, "src", "mfe.tsx") }
+    )
   } else if (!defaultExportsCreateMfe(readFileSync(mfeFile, "utf8"), mfeFile)) {
-    findings.add("error", "bootstrap", "VALIDATION_FAILED", "src/mfe.tsx must default-export the `createMfe({...})` call (the generated entry imports it).", { source: mfeFile })
+    findings.add(
+      "error",
+      "bootstrap",
+      "VALIDATION_FAILED",
+      "src/mfe.tsx must default-export the `createMfe({...})` call (the generated entry imports it).",
+      { source: mfeFile }
+    )
   }
 
   checks.push("routes")
   if (!existsSync(join(root, "src", "routes", "__root.tsx"))) {
-    findings.add("error", "routes", "VALIDATION_FAILED", "src/routes/__root.tsx is missing; folder routing needs a root route.", { source: join(root, "src", "routes") })
+    findings.add(
+      "error",
+      "routes",
+      "VALIDATION_FAILED",
+      "src/routes/__root.tsx is missing; folder routing needs a root route.",
+      { source: join(root, "src", "routes") }
+    )
   }
 
   checks.push("identity")
   const identityFile = join(root, ".platform", "identity.json")
   const identity = readIdentity(root)
   if (!existsSync(identityFile)) {
-    findings.add("warning", "identity", "MFE_ID_INVALID", ".platform/identity.json does not exist yet; it is created on the first `platform dev`/`build` and must be committed.", { source: identityFile })
+    findings.add(
+      "warning",
+      "identity",
+      "MFE_ID_INVALID",
+      ".platform/identity.json does not exist yet; it is created on the first `platform dev`/`build` and must be committed.",
+      { source: identityFile }
+    )
   } else if (!identity || !isValidMfeId(identity.mfeId)) {
-    findings.add("error", "identity", "MFE_ID_INVALID", `.platform/identity.json must contain a valid \`mfeId\`${identity ? ` ("${identity.mfeId}" is not kebab-case)` : ""}.`, { source: identityFile, override: "mfe.config.ts → mfeId (then update the identity file)" })
+    findings.add(
+      "error",
+      "identity",
+      "MFE_ID_INVALID",
+      `.platform/identity.json must contain a valid \`mfeId\`${identity ? ` ("${identity.mfeId}" is not kebab-case)` : ""}.`,
+      {
+        source: identityFile,
+        override: "mfe.config.ts → mfeId (then update the identity file)",
+      }
+    )
   }
 
   checks.push("config")
@@ -232,21 +364,71 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
   let configPrefix: string | undefined
   if (config) {
     if (config.notFound) {
-      findings.add("error", "config", "VALIDATION_FAILED", `${relative(root, config.file)} has no \`defineMfeConfig({...})\` call (or object default export).`, { source: config.file, override: 'export default defineMfeConfig({ ... }) from "@platform/vite/config"' })
+      findings.add(
+        "error",
+        "config",
+        "VALIDATION_FAILED",
+        `${relative(root, config.file)} has no \`defineMfeConfig({...})\` call (or object default export).`,
+        {
+          source: config.file,
+          override: 'export default defineMfeConfig({ ... }) from "@platform/vite/config"',
+        }
+      )
     } else {
       for (const issue of checkMfeConfig(config.config)) {
-        const code: PlatformErrorCode | CliErrorCode = issue.path === "routePrefix" ? "ROUTE_PREFIX_INVALID" : issue.path === "mfeId" ? "MFE_ID_INVALID" : issue.path.startsWith("env") ? "RUNTIME_CONFIG_INVALID" : "VALIDATION_FAILED"
-        findings.add("error", issue.path.startsWith("env") ? "env" : issue.path === "routePrefix" ? "prefix" : "config", code, `mfe.config: ${issue.path}: ${issue.message}`, { source: config.file, override: `mfe.config.ts → ${issue.path}` })
+        const code: PlatformErrorCode | CliErrorCode =
+          issue.path === "routePrefix"
+            ? "ROUTE_PREFIX_INVALID"
+            : issue.path === "mfeId"
+              ? "MFE_ID_INVALID"
+              : issue.path.startsWith("env")
+                ? "RUNTIME_CONFIG_INVALID"
+                : "VALIDATION_FAILED"
+        findings.add(
+          "error",
+          issue.path.startsWith("env")
+            ? "env"
+            : issue.path === "routePrefix"
+              ? "prefix"
+              : "config",
+          code,
+          `mfe.config: ${issue.path}: ${issue.message}`,
+          { source: config.file, override: `mfe.config.ts → ${issue.path}` }
+        )
       }
       const env = config.config.env as Record<string, unknown> | undefined
       for (const key of Object.keys(env ?? {})) {
-        if (isSensitiveKey(key)) findings.add("error", "env", "RUNTIME_CONFIG_INVALID", `runtime env key "${key}" looks sensitive; runtime env values are public and the entrypoint refuses such names.`, { source: config.file, override: `mfe.config.ts → env.${key}` })
+        if (isSensitiveKey(key))
+          findings.add(
+            "error",
+            "env",
+            "RUNTIME_CONFIG_INVALID",
+            `runtime env key "${key}" looks sensitive; runtime env values are public and the entrypoint refuses such names.`,
+            { source: config.file, override: `mfe.config.ts → env.${key}` }
+          )
       }
-      if (config.dynamic.length) findings.add("info", "config", "VALIDATION_FAILED", `mfe.config values not readable statically (skipped): ${config.dynamic.join(", ")}.`, { source: config.file })
+      if (config.dynamic.length)
+        findings.add(
+          "info",
+          "config",
+          "VALIDATION_FAILED",
+          `mfe.config values not readable statically (skipped): ${config.dynamic.join(", ")}.`,
+          { source: config.file }
+        )
       if (typeof config.config.mfeId === "string") configMfeId = config.config.mfeId
-      if (typeof config.config.routePrefix === "string") configPrefix = config.config.routePrefix
+      if (typeof config.config.routePrefix === "string")
+        configPrefix = config.config.routePrefix
       if (identity && configMfeId && identity.mfeId !== configMfeId) {
-        findings.add("error", "identity", "MFE_ID_INVALID", `mfe.config.ts declares mfeId "${configMfeId}" but .platform/identity.json persists "${identity.mfeId}"; identity is persisted on purpose.`, { source: identityFile, override: "update both mfe.config.ts and .platform/identity.json deliberately" })
+        findings.add(
+          "error",
+          "identity",
+          "MFE_ID_INVALID",
+          `mfe.config.ts declares mfeId "${configMfeId}" but .platform/identity.json persists "${identity.mfeId}"; identity is persisted on purpose.`,
+          {
+            source: identityFile,
+            override: "update both mfe.config.ts and .platform/identity.json deliberately",
+          }
+        )
       }
     }
   }
@@ -254,52 +436,137 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
 
   checks.push("prefix")
   const prefix = configPrefix ?? inferRoutePrefix(mfeId)
-  if (!isValidRoutePrefix(prefix)) findings.add("error", "prefix", "ROUTE_PREFIX_INVALID", `Route prefix "${prefix}" is invalid.`, { override: "mfe.config.ts → routePrefix" })
+  if (!isValidRoutePrefix(prefix))
+    findings.add(
+      "error",
+      "prefix",
+      "ROUTE_PREFIX_INVALID",
+      `Route prefix "${prefix}" is invalid.`,
+      { override: "mfe.config.ts → routePrefix" }
+    )
 
   checks.push("routeTree")
   const routeTreeFile = join(root, "src", "routeTree.gen.ts")
   if (!existsSync(routeTreeFile)) {
-    findings.add("error", "routeTree", "VALIDATION_FAILED", "src/routeTree.gen.ts is missing; run `platform dev` or `platform build` once to generate it.", { source: routeTreeFile })
+    findings.add(
+      "error",
+      "routeTree",
+      "VALIDATION_FAILED",
+      "src/routeTree.gen.ts is missing; run `platform dev` or `platform build` once to generate it.",
+      { source: routeTreeFile }
+    )
   } else {
     const current = readFileSync(routeTreeFile, "utf8")
     if (!hasGeneratedBanner(current)) {
-      findings.add("error", "routeTree", "VALIDATION_FAILED", "src/routeTree.gen.ts lacks the generator banner; it looks hand-written. Delete it and let the Vite plugin regenerate it.", { source: routeTreeFile })
+      findings.add(
+        "error",
+        "routeTree",
+        "VALIDATION_FAILED",
+        "src/routeTree.gen.ts lacks the generator banner; it looks hand-written. Delete it and let the Vite plugin regenerate it.",
+        { source: routeTreeFile }
+      )
     }
     try {
       const regenerated = await regenerateRouteTree(root)
-      if (regenerated !== null && normaliseGenerated(regenerated) !== normaliseGenerated(current)) {
-        findings.add("error", "routeTree", "VALIDATION_FAILED", "src/routeTree.gen.ts differs from what the router generator produces for src/routes; it is stale or was edited by hand. Regenerate it (`platform dev`/`build`).", { source: routeTreeFile })
+      if (
+        regenerated !== null &&
+        normaliseGenerated(regenerated) !== normaliseGenerated(current)
+      ) {
+        findings.add(
+          "error",
+          "routeTree",
+          "VALIDATION_FAILED",
+          "src/routeTree.gen.ts differs from what the router generator produces for src/routes; it is stale or was edited by hand. Regenerate it (`platform dev`/`build`).",
+          { source: routeTreeFile }
+        )
       }
     } catch (error) {
-      findings.add("warning", "routeTree", "VALIDATION_FAILED", `Could not regenerate the route tree for comparison: ${error instanceof Error ? error.message : String(error)}`, { source: routeTreeFile })
+      findings.add(
+        "warning",
+        "routeTree",
+        "VALIDATION_FAILED",
+        `Could not regenerate the route tree for comparison: ${error instanceof Error ? error.message : String(error)}`,
+        { source: routeTreeFile }
+      )
     }
   }
 
   if (options.manifest !== false) {
     checks.push("manifest")
-    if (resolveProjectModule(root, "@platform/vite") || existsSync(join(root, "dist")) || existsSync(join(root, ".platform", "manifest.json"))) {
+    if (
+      resolveProjectModule(root, "@platform/vite") ||
+      existsSync(join(root, "dist")) ||
+      existsSync(join(root, ".platform", "manifest.json"))
+    ) {
       try {
         const { manifest, source } = await readManifest(root, "build")
         const validation = validateManifest(manifest)
         if (!validation.ok) {
-          for (const issue of validation.issues) findings.add("error", "manifest", "MANIFEST_INVALID", `manifest ${issue.path || "<root>"}: ${issue.message}`, { source, override: "mfe.config.ts" })
+          for (const issue of validation.issues)
+            findings.add(
+              "error",
+              "manifest",
+              "MANIFEST_INVALID",
+              `manifest ${issue.path || "<root>"}: ${issue.message}`,
+              { source, override: "mfe.config.ts" }
+            )
         } else {
-          if (validation.manifest.mfeId !== mfeId) findings.add("error", "manifest", "MANIFEST_INVALID", `Generated manifest has mfeId "${validation.manifest.mfeId}" but the project resolves to "${mfeId}".`, { source })
+          if (validation.manifest.mfeId !== mfeId)
+            findings.add(
+              "error",
+              "manifest",
+              "MANIFEST_INVALID",
+              `Generated manifest has mfeId "${validation.manifest.mfeId}" but the project resolves to "${mfeId}".`,
+              { source }
+            )
           for (const key of Object.keys(validation.manifest.env.keys)) {
-            if (isSensitiveKey(key)) findings.add("error", "env", "RUNTIME_CONFIG_INVALID", `manifest env key "${key}" looks sensitive.`, { source })
+            if (isSensitiveKey(key))
+              findings.add(
+                "error",
+                "env",
+                "RUNTIME_CONFIG_INVALID",
+                `manifest env key "${key}" looks sensitive.`,
+                { source }
+              )
           }
         }
       } catch (error) {
-        findings.add("warning", "manifest", "MANIFEST_INVALID", `Manifest could not be generated: ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`, { override: "pnpm add -D @platform/vite" })
+        findings.add(
+          "warning",
+          "manifest",
+          "MANIFEST_INVALID",
+          `Manifest could not be generated: ${error instanceof Error ? error.message.split("\n")[0] : String(error)}`,
+          { override: "pnpm add -D @platform/vite" }
+        )
       }
     } else {
-      findings.add("info", "manifest", "MANIFEST_INVALID", "Manifest check skipped: @platform/vite is not installed and nothing has been built yet.")
+      findings.add(
+        "info",
+        "manifest",
+        "MANIFEST_INVALID",
+        "Manifest check skipped: @platform/vite is not installed and nothing has been built yet."
+      )
     }
   }
 
   checks.push("lint")
-  if (!["eslint.config.ts", "eslint.config.js", "eslint.config.mjs", "eslint.config.cjs", "eslint.config.mts", "eslint.config.cts"].some((name) => existsSync(join(root, name)))) {
-    findings.add("warning", "lint", "LINT_FAILED", 'No eslint.config.* found; scaffold one with `export default platformConfig()` from "@platform/cli/eslint".', { source: root })
+  if (
+    ![
+      "eslint.config.ts",
+      "eslint.config.js",
+      "eslint.config.mjs",
+      "eslint.config.cjs",
+      "eslint.config.mts",
+      "eslint.config.cts",
+    ].some((name) => existsSync(join(root, name)))
+  ) {
+    findings.add(
+      "warning",
+      "lint",
+      "LINT_FAILED",
+      'No eslint.config.* found; scaffold one with `export default platformConfig()` from "@platform/cli/eslint".',
+      { source: root }
+    )
   }
 
   const ok = !findings.items.some((finding) => finding.level === "error")
@@ -308,7 +575,11 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
     for (const finding of findings.items) log(formatFinding(finding))
     const errors = findings.items.filter((finding) => finding.level === "error").length
     const warnings = findings.items.filter((finding) => finding.level === "warning").length
-    log(ok ? `✔ ${mfeId}: ${checks.length} checks passed${warnings ? ` (${warnings} warning${warnings === 1 ? "" : "s"})` : ""}.` : `✖ ${mfeId}: ${errors} error${errors === 1 ? "" : "s"}, ${warnings} warning${warnings === 1 ? "" : "s"}.`)
+    log(
+      ok
+        ? `✔ ${mfeId}: ${checks.length} checks passed${warnings ? ` (${warnings} warning${warnings === 1 ? "" : "s"})` : ""}.`
+        : `✖ ${mfeId}: ${errors} error${errors === 1 ? "" : "s"}, ${warnings} warning${warnings === 1 ? "" : "s"}.`
+    )
   }
   return { ok, root, mfeId, findings: findings.items, checks }
 }

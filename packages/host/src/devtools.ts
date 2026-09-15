@@ -24,7 +24,8 @@ export function readDevtoolsFlag(win: Window | undefined = typeof window !== "un
   return false
 }
 
-export function decideDevtools(host: Pick<PlatformHost, "devtools" | "environment">, win: Window | undefined = typeof window !== "undefined" ? window : undefined): DevtoolsDecision {
+/** `win: null` means "no browser window" (SSR); `undefined` uses the global. */
+export function decideDevtools(host: Pick<PlatformHost, "devtools" | "environment">, win: Window | null | undefined = typeof window !== "undefined" ? window : null): DevtoolsDecision {
   if (!win) return { allowed: false, reason: "no-window" }
   if (host.devtools.policy === "never") return { allowed: false, reason: "policy-never" }
   if (host.devtools.policy === "always") return { allowed: true, reason: "policy-always" }
@@ -33,7 +34,7 @@ export function decideDevtools(host: Pick<PlatformHost, "devtools" | "environmen
 }
 
 /** True when the developer tools may load: browser only, policy allows, environment supported, flag set. */
-export function shouldLoadDevtools(host: PlatformHost, win?: Window): boolean {
+export function shouldLoadDevtools(host: PlatformHost, win?: Window | null): boolean {
   const decision = decideDevtools(host, win)
   host.diagnostics.emit({ type: "devtools", action: decision.allowed ? "requested" : "denied", reason: decision.reason })
   return decision.allowed

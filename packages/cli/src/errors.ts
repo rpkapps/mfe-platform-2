@@ -23,11 +23,17 @@ export const CLI_ERROR_CODES = {
     docs: "/cli#validate",
     hint: "Fix the findings above; every finding links to the page that explains it.",
   },
-  LINT_FAILED: { docs: "/linting", hint: "Fix the reported problems or run `platform lint --fix`." },
+  LINT_FAILED: {
+    docs: "/linting",
+    hint: "Fix the reported problems or run `platform lint --fix`.",
+  },
   TESTS_FAILED: { docs: "/cli#test", hint: "See the test output above." },
   BUILD_FAILED: { docs: "/cli#build", hint: "See the Vite output above." },
   COMMAND_FAILED: { docs: "/cli", hint: "See the output above." },
-  INVALID_OPTION: { docs: "/cli", hint: "Run `platform <command> --help` for the accepted options." },
+  INVALID_OPTION: {
+    docs: "/cli",
+    hint: "Run `platform <command> --help` for the accepted options.",
+  },
 } as const
 
 export type CliErrorCode = keyof typeof CLI_ERROR_CODES
@@ -72,7 +78,11 @@ export class CliError extends Error {
     if (this.override) lines.push(`  override: ${this.override}`)
     lines.push(`  hint: ${this.hint}`)
     lines.push(`  docs: ${this.docsUrl}`)
-    if (this.cause instanceof Error && this.cause.message && this.cause.message !== this.message) {
+    if (
+      this.cause instanceof Error &&
+      this.cause.message &&
+      this.cause.message !== this.message
+    ) {
       lines.push(`  cause: ${this.cause.message}`)
     }
     return lines.join("\n")
@@ -80,13 +90,20 @@ export class CliError extends Error {
 }
 
 export function isCliError(value: unknown): value is CliError {
-  return value instanceof CliError || (typeof value === "object" && value !== null && (value as { name?: unknown }).name === "CliError")
+  return (
+    value instanceof CliError ||
+    (typeof value === "object" &&
+      value !== null &&
+      (value as { name?: unknown }).name === "CliError")
+  )
 }
 
 /** Actionable text for anything thrown by a command. */
 export function formatError(error: unknown): string {
-  if (isCliError(error) || isPlatformError(error)) return (error as CliError | PlatformError).format()
-  if (error instanceof Error) return `${error.name}: ${error.message}${error.stack ? `\n${error.stack.split("\n").slice(1, 4).join("\n")}` : ""}`
+  if (isCliError(error) || isPlatformError(error))
+    return (error as CliError | PlatformError).format()
+  if (error instanceof Error)
+    return `${error.name}: ${error.message}${error.stack ? `\n${error.stack.split("\n").slice(1, 4).join("\n")}` : ""}`
   return String(error)
 }
 

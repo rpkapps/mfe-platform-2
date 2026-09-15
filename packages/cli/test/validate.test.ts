@@ -4,13 +4,21 @@ import { join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
 import { create } from "../src/commands/create"
-import { defaultExportsCreateMfe, hasGeneratedBanner, validate, type Finding } from "../src/commands/validate"
+import {
+  defaultExportsCreateMfe,
+  hasGeneratedBanner,
+  validate,
+  type Finding,
+} from "../src/commands/validate"
 import { makeTempDir } from "./helpers"
 
 const temp = makeTempDir()
 afterAll(() => temp.cleanup())
 
-const codes = (findings: Finding[], level: Finding["level"] = "error") => findings.filter((finding) => finding.level === level).map((finding) => `${finding.check}:${finding.code}`)
+const codes = (findings: Finding[], level: Finding["level"] = "error") =>
+  findings
+    .filter((finding) => finding.level === level)
+    .map((finding) => `${finding.check}:${finding.code}`)
 
 describe("platform validate", () => {
   let dir: string
@@ -23,17 +31,40 @@ describe("platform validate", () => {
     expect(codes(result.findings)).toEqual([])
     expect(result.ok).toBe(true)
     expect(result.mfeId).toBe("validated")
-    expect(result.checks).toEqual(expect.arrayContaining(["package.json", "bootstrap", "routes", "identity", "config", "prefix", "routeTree", "lint"]))
+    expect(result.checks).toEqual(
+      expect.arrayContaining([
+        "package.json",
+        "bootstrap",
+        "routes",
+        "identity",
+        "config",
+        "prefix",
+        "routeTree",
+        "lint",
+      ])
+    )
   })
 
   it("reports every broken check with a code, source and docs link", async () => {
     const broken = join(temp.dir, "broken")
     mkdirSync(join(broken, "src", "routes"), { recursive: true })
     mkdirSync(join(broken, ".platform"), { recursive: true })
-    writeFileSync(join(broken, "package.json"), JSON.stringify({ name: "broken", dependencies: { react: "^19.0.0" } }))
-    writeFileSync(join(broken, ".platform", "identity.json"), JSON.stringify({ mfeId: "Not Valid" }))
-    writeFileSync(join(broken, "mfe.config.ts"), 'export default defineMfeConfig({ routePrefix: "/Bad/", env: { API_TOKEN: { required: true } }, unknownKey: 1 })')
-    writeFileSync(join(broken, "src", "mfe.tsx"), 'export const mfe = 1\nexport default { mfe }')
+    writeFileSync(
+      join(broken, "package.json"),
+      JSON.stringify({ name: "broken", dependencies: { react: "^19.0.0" } })
+    )
+    writeFileSync(
+      join(broken, ".platform", "identity.json"),
+      JSON.stringify({ mfeId: "Not Valid" })
+    )
+    writeFileSync(
+      join(broken, "mfe.config.ts"),
+      'export default defineMfeConfig({ routePrefix: "/Bad/", env: { API_TOKEN: { required: true } }, unknownKey: 1 })'
+    )
+    writeFileSync(
+      join(broken, "src", "mfe.tsx"),
+      "export const mfe = 1\nexport default { mfe }"
+    )
     writeFileSync(join(broken, "src", "routeTree.gen.ts"), "export const routeTree = {}\n")
     const result = await validate({ cwd: broken, manifest: false })
     expect(result.ok).toBe(false)
@@ -57,18 +88,28 @@ describe("platform validate", () => {
   })
 
   it("detects a stale route tree by regenerating it", async () => {
-    const stale = (await create({ name: "stale-tree", dir: temp.dir, install: false, git: false })).dir
+    const stale = (
+      await create({ name: "stale-tree", dir: temp.dir, install: false, git: false })
+    ).dir
     rmSync(join(stale, "src", "routes", "settings.tsx"))
     const result = await validate({ cwd: stale, manifest: false })
-    expect(result.findings.map((finding) => finding.message)).toEqual(expect.arrayContaining([expect.stringMatching(/differs from what the router generator produces/)]))
+    expect(result.findings.map((finding) => finding.message)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/differs from what the router generator produces/),
+      ])
+    )
   })
 
   it("recognises the bootstrap default export shapes", () => {
-    expect(defaultExportsCreateMfe('import { createMfe } from "@platform/react"\nexport default createMfe({})')).toBe(true)
-    expect(defaultExportsCreateMfe('const mfe = createMfe({})\nexport default mfe')).toBe(true)
-    expect(defaultExportsCreateMfe('export default withTecton(createMfe({}))')).toBe(true)
+    expect(
+      defaultExportsCreateMfe(
+        'import { createMfe } from "@platform/react"\nexport default createMfe({})'
+      )
+    ).toBe(true)
+    expect(defaultExportsCreateMfe("const mfe = createMfe({})\nexport default mfe")).toBe(true)
+    expect(defaultExportsCreateMfe("export default withTecton(createMfe({}))")).toBe(true)
     expect(defaultExportsCreateMfe('export default { kind: "platform-remote" }')).toBe(false)
-    expect(defaultExportsCreateMfe('export const x = createMfe({})')).toBe(false)
+    expect(defaultExportsCreateMfe("export const x = createMfe({})")).toBe(false)
     expect(hasGeneratedBanner("/* eslint-disable */\n\n// @ts-nocheck\n")).toBe(true)
     expect(hasGeneratedBanner("export const routeTree = {}\n")).toBe(false)
   })

@@ -4,7 +4,12 @@ import { join } from "node:path"
 import { CliError } from "../errors"
 import { createRequire } from "node:module"
 
-import { loadProjectModule, readProjectModuleVersion, requireProjectRoot, resolveProjectModule } from "../project"
+import {
+  loadProjectModule,
+  readProjectModuleVersion,
+  requireProjectRoot,
+  resolveProjectModule,
+} from "../project"
 
 export interface LintOptions {
   cwd?: string
@@ -25,7 +30,9 @@ export interface LintResult {
 
 interface ESLintLike {
   lintFiles(patterns: string[]): Promise<LintFileResult[]>
-  loadFormatter(name: string): Promise<{ format(results: LintFileResult[]): string | Promise<string> }>
+  loadFormatter(
+    name: string
+  ): Promise<{ format(results: LintFileResult[]): string | Promise<string> }>
 }
 
 interface LintFileResult {
@@ -38,10 +45,19 @@ interface LintFileResult {
 }
 
 interface ESLintModule {
-  ESLint: (new (options: Record<string, unknown>) => ESLintLike) & { outputFixes(results: LintFileResult[]): Promise<void> }
+  ESLint: (new (options: Record<string, unknown>) => ESLintLike) & {
+    outputFixes(results: LintFileResult[]): Promise<void>
+  }
 }
 
-const CONFIG_FILES = ["eslint.config.ts", "eslint.config.mts", "eslint.config.cts", "eslint.config.js", "eslint.config.mjs", "eslint.config.cjs"]
+const CONFIG_FILES = [
+  "eslint.config.ts",
+  "eslint.config.mts",
+  "eslint.config.cts",
+  "eslint.config.js",
+  "eslint.config.mjs",
+  "eslint.config.cjs",
+]
 
 export function findEslintConfig(root: string): string | undefined {
   return CONFIG_FILES.map((name) => join(root, name)).find((file) => existsSync(file))
@@ -62,7 +78,9 @@ function jitiAvailable(root: string): boolean {
 }
 
 function parseVersion(version: string | null): [number, number] {
-  const [major = 0, minor = 0] = (version ?? "0.0.0").split(".").map((part) => Number.parseInt(part, 10))
+  const [major = 0, minor = 0] = (version ?? "0.0.0")
+    .split(".")
+    .map((part) => Number.parseInt(part, 10))
   return [major, minor]
 }
 
@@ -76,24 +94,42 @@ export async function lint(options: LintOptions = {}): Promise<LintResult> {
       code: "LINT_FAILED",
       message: `No eslint.config.* found in ${root}.`,
       source: root,
-      override: 'create eslint.config.ts: import { platformConfig } from "@platform/cli/eslint"; export default platformConfig()',
+      override:
+        'create eslint.config.ts: import { platformConfig } from "@platform/cli/eslint"; export default platformConfig()',
     })
   }
   const version = readProjectModuleVersion(root, "eslint")
   const [major, minor] = parseVersion(version)
   if (major < 9) {
-    throw new CliError({ code: "DEPENDENCY_MISSING", message: version ? `ESLint ${version} is installed; the platform config needs ESLint 9 (flat config).` : "ESLint is not installed in the project; the platform config needs ESLint 9 (flat config).", source: join(root, "package.json"), override: "pnpm add -D eslint@^9" })
+    throw new CliError({
+      code: "DEPENDENCY_MISSING",
+      message: version
+        ? `ESLint ${version} is installed; the platform config needs ESLint 9 (flat config).`
+        : "ESLint is not installed in the project; the platform config needs ESLint 9 (flat config).",
+      source: join(root, "package.json"),
+      override: "pnpm add -D eslint@^9",
+    })
   }
   const flags: string[] = []
   if (/\.[mc]?ts$/.test(configFile)) {
     if (!jitiAvailable(root)) {
-      throw new CliError({ code: "DEPENDENCY_MISSING", message: `${configFile} is TypeScript; ESLint loads it with "jiti", which is not installed in the project.`, source: join(root, "package.json"), override: "pnpm add -D jiti" })
+      throw new CliError({
+        code: "DEPENDENCY_MISSING",
+        message: `${configFile} is TypeScript; ESLint loads it with "jiti", which is not installed in the project.`,
+        source: join(root, "package.json"),
+        override: "pnpm add -D jiti",
+      })
     }
     // Native TS config support shipped unflagged in ESLint 9.18.
     if (minor < 18) flags.push("unstable_ts_config")
   }
   const { ESLint } = await loadProjectModule<ESLintModule>(root, "eslint", "lint the project")
-  const eslint = new ESLint({ cwd: root, fix: Boolean(options.fix), overrideConfigFile: configFile, ...(flags.length ? { flags } : {}) })
+  const eslint = new ESLint({
+    cwd: root,
+    fix: Boolean(options.fix),
+    overrideConfigFile: configFile,
+    ...(flags.length ? { flags } : {}),
+  })
   const patterns = options.files && options.files.length > 0 ? options.files : ["."]
   const results = await eslint.lintFiles(patterns)
   if (options.fix) await ESLint.outputFixes(results)
@@ -109,6 +145,9 @@ export async function lint(options: LintOptions = {}): Promise<LintResult> {
     }),
     { errorCount: 0, warningCount: 0, fixableErrorCount: 0, fixableWarningCount: 0 }
   )
-  if (summary.errorCount === 0) log(`✔ lint passed (${results.length} file${results.length === 1 ? "" : "s"}${summary.warningCount ? `, ${summary.warningCount} warning${summary.warningCount === 1 ? "" : "s"}` : ""}) using ${configFile}`)
+  if (summary.errorCount === 0)
+    log(
+      `✔ lint passed (${results.length} file${results.length === 1 ? "" : "s"}${summary.warningCount ? `, ${summary.warningCount} warning${summary.warningCount === 1 ? "" : "s"}` : ""}) using ${configFile}`
+    )
   return { ...summary, results, configFile, output }
 }

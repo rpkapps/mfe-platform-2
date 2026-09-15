@@ -15,7 +15,12 @@ export interface DevOptions {
 
 export interface DevResult {
   /** The Vite dev server (`import("vite").ViteDevServer`). */
-  server: { close(): Promise<void>; printUrls(): void; resolvedUrls: { local: string[]; network: string[] } | null; config: { server: { port?: number } } }
+  server: {
+    close(): Promise<void>
+    printUrls(): void
+    resolvedUrls: { local: string[]; network: string[] } | null
+    config: { server: { port?: number } }
+  }
   origin: string
   harnessUrl: string
   manifestUrl: string
@@ -49,7 +54,9 @@ export async function dev(options: DevOptions = {}): Promise<DevResult> {
     },
   })
   await server.listen()
-  const origin = server.resolvedUrls?.local[0]?.replace(/\/$/, "") ?? `http://localhost:${server.config.server.port ?? 5173}`
+  const origin =
+    server.resolvedUrls?.local[0]?.replace(/\/$/, "") ??
+    `http://localhost:${server.config.server.port ?? 5173}`
   const harnessUrl = `${origin}/__platform/harness/`
   const manifestUrl = `${origin}/platform-manifest.json`
   server.printUrls()

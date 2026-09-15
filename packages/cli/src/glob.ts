@@ -47,7 +47,10 @@ export function normalizePath(filePath: string): string {
 export function matchesAny(filePath: string, globs: readonly string[]): boolean {
   const normalised = normalizePath(filePath)
   return globs.some((glob) => {
-    const pattern = glob.startsWith("/") || /^[A-Za-z]:\//.test(glob) || glob.startsWith("**") ? glob : `**/${glob}`
+    const pattern =
+      glob.startsWith("/") || /^[A-Za-z]:\//.test(glob) || glob.startsWith("**")
+        ? glob
+        : `**/${glob}`
     return globToRegExp(pattern).test(normalised)
   })
 }

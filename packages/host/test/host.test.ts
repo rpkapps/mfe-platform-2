@@ -36,7 +36,9 @@ describe("createPlatformHost — loading", () => {
       }
     }
     expect(await codes({ fetch: fakeFetch({}), loader: fakeLoader({}) })).toBe("MANIFEST_FETCH_FAILED")
-    expect(await codes({ fetch: fakeFetch({}), loader: fakeLoader({}), registry: [{ mfeId: "asset-tracker", manifestUrl: "https://evil.example.com/m.json" }], config: { allowedOrigins: [] } })).toBe("MANIFEST_ORIGIN_DENIED")
+    expect(await codes({ fetch: fakeFetch({}), loader: fakeLoader({}), config: { mfes: { "asset-tracker": { manifestUrl: "https://evil.example.com/m.json" } }, allowedOrigins: ["https://cdn.example.com"] } })).toBe("MANIFEST_ORIGIN_DENIED")
+    // A registry entry's own origin is trusted.
+    expect(await codes({ fetch: fakeFetch({ "https://reg.example.com/m.json": manifest() }), loader: fakeLoader({ "asset-tracker": definition() }), registry: [{ mfeId: "asset-tracker", manifestUrl: "https://reg.example.com/m.json" }] })).toBe("ok")
     expect(await codes({ fetch: fakeFetch({ [MANIFEST_URL]: { mfeId: "asset-tracker" } }), loader: fakeLoader({}) })).toBe("MANIFEST_INVALID")
     expect(await codes({ fetch: fakeFetch({ [MANIFEST_URL]: manifest({ protocolVersion: "2.0" }) }), loader: fakeLoader({}) })).toBe("PROTOCOL_INCOMPATIBLE")
     expect(await codes({ fetch: fakeFetch({ [MANIFEST_URL]: manifest() }), loader: fakeLoader({}), config: { mfes: { "asset-tracker": { enabled: false } } } })).toBe("REMOTE_DISABLED")

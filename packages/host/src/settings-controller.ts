@@ -76,9 +76,9 @@ interface OptionsCacheEntry {
 
 const optionsCache = new WeakMap<SettingsFieldDefinition, OptionsCacheEntry>()
 
-function stateKeyOf(values: Record<string, unknown>): string {
+function stateKeyOf(values: Record<string, unknown>, exclude?: string): string {
   try {
-    return JSON.stringify(values)
+    return JSON.stringify(exclude === undefined ? values : Object.fromEntries(Object.entries(values).filter(([key]) => key !== exclude)))
   } catch {
     return String(Date.now())
   }
@@ -179,7 +179,7 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     if (typeof field.options !== "function") return
     const provider = field.options
     const groupValues = store.getState().groupValues
-    const stateKey = stateKeyOf(groupValues)
+    const stateKey = stateKeyOf(groupValues, fieldKey)
     const cacheMs = field.optionsCacheMs ?? 60_000
     const cached = optionsCache.get(field)
     if (!loadOptions.force && cached && cached.stateKey === stateKey && Date.now() - cached.at < cacheMs) {
@@ -209,11 +209,11 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
   const unsubscribers = registered.fields.map((entry) =>
     port.subscribe(entry.qualifiedKey, () => {
       if (disposed) return
-      const previousKey = stateKeyOf(store.getState().groupValues)
+      const previousKey = stateKeyOf(store.getState().groupValues, fieldKey)
       const next = resolve()
       const options = store.getState().options
       store.patch({ ...next, stale: options ? !includesValue(options, next.value) : false })
-      if (typeof field.options === "function" && stateKeyOf(next.groupValues ?? {}) !== previousKey && store.getState().optionsStatus !== "idle") void loadOptions()
+      if (typeof field.options === "function" && stateKeyOf(next.groupValues ?? {}, fieldKey) !== previousKey && store.getState().optionsStatus !== "idle") void loadOptions()
     })
   )
 

@@ -10,12 +10,42 @@ ruleTester.run("no-generated-file-edits", rule, {
     { code: "export const a = 1", filename: "/project/src/generated-by-hand.ts" },
   ],
   invalid: [
-    { code: `${banner}export const routeTree = {}`, filename: "/project/src/routeTree.gen.ts", errors: [{ messageId: "generatedFile", data: { file: "routeTree.gen.ts" } }] },
-    { code: "export const routeTree = {}", filename: "/project/src/routeTree.gen.ts", errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }] },
-    { code: "export const x = 1", filename: "/project/src/schema.gen.ts", errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }] },
-    { code: `${banner}export const manifest = 1`, filename: "/project/dist/platform-manifest.json.ts", options: [{ patterns: ["**/platform-manifest.json.ts"] }], errors: [{ messageId: "generatedFile" }] },
-    { code: "export const extra = 1", filename: "/project/src/extra.generated.ts", options: [{ patterns: ["**/*.generated.ts"] }], errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }] },
-    { code: 'import { entry } from "../.platform/entry"', filename: "/project/src/mfe.tsx", errors: [{ messageId: "internalImport", data: { source: "../.platform/entry" } }] },
-    { code: 'const manifest = await import("./.platform/manifest.json")', filename: "/project/src/mfe.tsx", errors: [{ messageId: "internalImport" }] },
+    {
+      code: `${banner}export const routeTree = {}`,
+      filename: "/project/src/routeTree.gen.ts",
+      errors: [{ messageId: "generatedFile", data: { file: "routeTree.gen.ts" } }],
+    },
+    {
+      code: "export const routeTree = {}",
+      filename: "/project/src/routeTree.gen.ts",
+      errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }],
+    },
+    {
+      code: "export const x = 1",
+      filename: "/project/src/schema.gen.ts",
+      errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }],
+    },
+    {
+      code: `${banner}export const manifest = 1`,
+      filename: "/project/dist/platform-manifest.json.ts",
+      options: [{ patterns: ["**/platform-manifest.json.ts"] }],
+      errors: [{ messageId: "generatedFile" }],
+    },
+    {
+      code: "export const extra = 1",
+      filename: "/project/src/extra.generated.ts",
+      options: [{ patterns: ["**/*.generated.ts"] }],
+      errors: [{ messageId: "generatedFile" }, { messageId: "missingBanner" }],
+    },
+    {
+      code: 'import { entry } from "../.platform/entry"',
+      filename: "/project/src/mfe.tsx",
+      errors: [{ messageId: "internalImport", data: { source: "../.platform/entry" } }],
+    },
+    {
+      code: 'const manifest = await import("./.platform/manifest.json")',
+      filename: "/project/src/mfe.tsx",
+      errors: [{ messageId: "internalImport" }],
+    },
   ],
 })

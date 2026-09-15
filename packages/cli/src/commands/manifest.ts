@@ -23,20 +23,37 @@ export interface ManifestResult {
 }
 
 interface PlatformViteModule {
-  generateManifest?: (options: { root: string; mode: "build" | "dev" }) => Promise<unknown> | unknown
+  generateManifest?: (options: {
+    root: string
+    mode: "build" | "dev"
+  }) => Promise<unknown> | unknown
 }
 
 /** Generate the manifest through `@platform/vite`, falling back to the last generated file. */
-export async function readManifest(root: string, mode: "build" | "dev" = "build"): Promise<{ manifest: unknown; source: string }> {
+export async function readManifest(
+  root: string,
+  mode: "build" | "dev" = "build"
+): Promise<{ manifest: unknown; source: string }> {
   if (resolveProjectModule(root, "@platform/vite")) {
-    const mod = await loadProjectModule<PlatformViteModule>(root, "@platform/vite", "generate the manifest")
+    const mod = await loadProjectModule<PlatformViteModule>(
+      root,
+      "@platform/vite",
+      "generate the manifest"
+    )
     if (typeof mod.generateManifest === "function") {
-      return { manifest: await mod.generateManifest({ root, mode }), source: "@platform/vite generateManifest" }
+      return {
+        manifest: await mod.generateManifest({ root, mode }),
+        source: "@platform/vite generateManifest",
+      }
     }
   }
-  const candidates = [join(root, ".platform", "manifest.json"), join(root, "dist", manifestFileName(root))]
+  const candidates = [
+    join(root, ".platform", "manifest.json"),
+    join(root, "dist", manifestFileName(root)),
+  ]
   for (const file of candidates) {
-    if (existsSync(file)) return { manifest: JSON.parse(readFileSync(file, "utf8")), source: file }
+    if (existsSync(file))
+      return { manifest: JSON.parse(readFileSync(file, "utf8")), source: file }
   }
   throw new CliError({
     code: "DEPENDENCY_MISSING",

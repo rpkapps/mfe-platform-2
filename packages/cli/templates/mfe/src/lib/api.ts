@@ -30,7 +30,11 @@ export const SAMPLE_REGIONS: Region[] = [
   { id: "apac", name: "Asia Pacific" },
 ]
 
-async function getJson<T>(url: string, signal: AbortSignal | undefined, fallback: T): Promise<T> {
+async function getJson<T>(
+  url: string,
+  signal: AbortSignal | undefined,
+  fallback: T
+): Promise<T> {
   try {
     const response = await fetch(url, { signal, headers: { accept: "application/json" } })
     if (!response.ok) return fallback
@@ -45,9 +49,17 @@ export function fetchAssets(baseUrl: string, signal?: AbortSignal): Promise<Asse
   return getJson(`${baseUrl}/assets`, signal, SAMPLE_ASSETS)
 }
 
-export async function fetchAsset(baseUrl: string, assetId: string, signal?: AbortSignal): Promise<Asset> {
+export async function fetchAsset(
+  baseUrl: string,
+  assetId: string,
+  signal?: AbortSignal
+): Promise<Asset> {
   const fallback = SAMPLE_ASSETS.find((asset) => asset.id === assetId)
-  const asset = await getJson<Asset | null>(`${baseUrl}/assets/${encodeURIComponent(assetId)}`, signal, fallback ?? null)
+  const asset = await getJson<Asset | null>(
+    `${baseUrl}/assets/${encodeURIComponent(assetId)}`,
+    signal,
+    fallback ?? null
+  )
   if (!asset) throw new Error(`Asset "${assetId}" was not found.`)
   return asset
 }

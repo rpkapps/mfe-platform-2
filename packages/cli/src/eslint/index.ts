@@ -65,27 +65,39 @@ export type PlatformRuleName = keyof typeof rules
 export type Severity = "off" | "warn" | "error" | 0 | 1 | 2
 
 /** Recommended severities: errors for boundary violations and invalid definitions, warnings for context hygiene. */
-export const RECOMMENDED_RULES: Record<`${typeof PLUGIN_NAME}/${PlatformRuleName}`, Severity> = {
-  "@platform/no-raw-browser-storage": "error",
-  "@platform/no-direct-module-federation": "error",
-  "@platform/no-generated-file-edits": "error",
-  "@platform/registration-cleanup": "warn",
-  "@platform/stable-mfe-id": "error",
-  "@platform/valid-settings-definition": "error",
-  "@platform/valid-command-definition": "error",
-  "@platform/valid-capability-usage": "error",
-  "@platform/valid-manifest-config": "error",
-  "@platform/no-cross-root-component-passing": "error",
-  "@platform/require-telemetry-context": "warn",
-  "@platform/valid-route-prefix": "error",
-  "@platform/valid-mfe-identity": "error",
-  "@platform/no-unsupported-dependency-sharing": "error",
-  "@platform/no-unsafe-runtime-env-access": "error",
-  "@platform/no-direct-mfe-import": "error",
-}
+export const RECOMMENDED_RULES: Record<`${typeof PLUGIN_NAME}/${PlatformRuleName}`, Severity> =
+  {
+    "@platform/no-raw-browser-storage": "error",
+    "@platform/no-direct-module-federation": "error",
+    "@platform/no-generated-file-edits": "error",
+    "@platform/registration-cleanup": "warn",
+    "@platform/stable-mfe-id": "error",
+    "@platform/valid-settings-definition": "error",
+    "@platform/valid-command-definition": "error",
+    "@platform/valid-capability-usage": "error",
+    "@platform/valid-manifest-config": "error",
+    "@platform/no-cross-root-component-passing": "error",
+    "@platform/require-telemetry-context": "warn",
+    "@platform/valid-route-prefix": "error",
+    "@platform/valid-mfe-identity": "error",
+    "@platform/no-unsupported-dependency-sharing": "error",
+    "@platform/no-unsafe-runtime-env-access": "error",
+    "@platform/no-direct-mfe-import": "error",
+  }
 
 /** Files the platform tooling generates; they are never linted. */
-export const GENERATED_IGNORES = ["**/routeTree.gen.ts", "**/*.gen.ts", "**/*.gen.tsx", "**/.platform/**", "**/dist/**", "**/node_modules/**", "**/platform-manifest.json", "**/coverage/**", "**/playwright-report/**", "**/test-results/**"]
+export const GENERATED_IGNORES = [
+  "**/routeTree.gen.ts",
+  "**/*.gen.ts",
+  "**/*.gen.tsx",
+  "**/.platform/**",
+  "**/dist/**",
+  "**/node_modules/**",
+  "**/platform-manifest.json",
+  "**/coverage/**",
+  "**/playwright-report/**",
+  "**/test-results/**",
+]
 
 export interface PlatformPlugin extends TSESLint.FlatConfig.Plugin {
   meta: { name: string; version: string }
@@ -136,12 +148,16 @@ function asConfigArray(value: unknown): FlatConfig[] {
  * typescript-eslint recommended (or type-checked), react-hooks, jsx-a11y,
  * TanStack Router, browser + node globals and the platform rules.
  */
-export function platformConfig(options: PlatformConfigOptions = {}): TSESLint.FlatConfig.ConfigArray {
+export function platformConfig(
+  options: PlatformConfigOptions = {}
+): TSESLint.FlatConfig.ConfigArray {
   const { typed = false, react = true, tanstackRouter = true, a11y = true } = options
   const config: FlatConfig[] = [
     { name: "@platform/ignores", ignores: [...GENERATED_IGNORES, ...(options.ignores ?? [])] },
     { ...js.configs.recommended, name: "@eslint/js/recommended" },
-    ...(typed ? asConfigArray(tseslint.configs.recommendedTypeChecked) : asConfigArray(tseslint.configs.recommended)),
+    ...(typed
+      ? asConfigArray(tseslint.configs.recommendedTypeChecked)
+      : asConfigArray(tseslint.configs.recommended)),
     {
       name: "@platform/language",
       languageOptions: {
@@ -150,7 +166,12 @@ export function platformConfig(options: PlatformConfigOptions = {}): TSESLint.Fl
         globals: { ...globals.browser, ...globals.node, ...globals.es2021 },
         parserOptions: {
           ecmaFeatures: { jsx: true },
-          ...(typed ? { projectService: true, tsconfigRootDir: options.tsconfigRootDir ?? process.cwd() } : {}),
+          ...(typed
+            ? {
+                projectService: true,
+                tsconfigRootDir: options.tsconfigRootDir ?? process.cwd(),
+              }
+            : {}),
         },
       },
       linterOptions: { reportUnusedDisableDirectives: "warn" },
@@ -166,25 +187,49 @@ export function platformConfig(options: PlatformConfigOptions = {}): TSESLint.Fl
       : []),
   ]
   if (react) {
-    const reactConfig = (reactHooks as unknown as { configs: { flat?: { recommended: FlatConfig }; recommended: FlatConfig } }).configs
+    const reactConfig = (
+      reactHooks as unknown as {
+        configs: { flat?: { recommended: FlatConfig }; recommended: FlatConfig }
+      }
+    ).configs
     const flat = reactConfig.flat?.recommended ?? reactConfig.recommended
-    config.push({ ...flat, name: "react-hooks/recommended", files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"] })
+    config.push({
+      ...flat,
+      name: "react-hooks/recommended",
+      files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
+    })
   }
   if (a11y) {
-    const flat = (jsxA11y as unknown as { flatConfigs: { recommended: FlatConfig } }).flatConfigs.recommended
+    const flat = (jsxA11y as unknown as { flatConfigs: { recommended: FlatConfig } })
+      .flatConfigs.recommended
     config.push({ ...flat, name: "jsx-a11y/recommended", files: ["**/*.{jsx,tsx}"] })
   }
   if (tanstackRouter) {
-    const flat = (tanstackRouterPlugin as unknown as { configs: { "flat/recommended": FlatConfig | FlatConfig[] } }).configs["flat/recommended"]
-    config.push(...asConfigArray(flat).map((entry, index) => ({ ...entry, name: entry.name ?? `@tanstack/router/recommended${index ? `-${index}` : ""}` })))
+    const flat = (
+      tanstackRouterPlugin as unknown as {
+        configs: { "flat/recommended": FlatConfig | FlatConfig[] }
+      }
+    ).configs["flat/recommended"]
+    config.push(
+      ...asConfigArray(flat).map((entry, index) => ({
+        ...entry,
+        name: entry.name ?? `@tanstack/router/recommended${index ? `-${index}` : ""}`,
+      }))
+    )
   }
   config.push(recommended)
   config.push({
     name: "@platform/typescript-conventions",
     files: ["**/*.{ts,tsx,mts,cts}"],
     rules: {
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
-      "@typescript-eslint/consistent-type-imports": ["error", { prefer: "type-imports", fixStyle: "inline-type-imports" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
       "no-empty": ["error", { allowEmptyCatch: true }],
       "prefer-const": "error",
     },
@@ -199,7 +244,11 @@ export function platformConfig(options: PlatformConfigOptions = {}): TSESLint.Fl
     },
   })
   if (options.extends) config.push(...asConfigArray(options.extends))
-  if (options.rules) config.push({ name: "@platform/overrides", rules: options.rules as TSESLint.FlatConfig.Rules })
+  if (options.rules)
+    config.push({
+      name: "@platform/overrides",
+      rules: options.rules as TSESLint.FlatConfig.Rules,
+    })
   return config
 }
 

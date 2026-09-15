@@ -50,7 +50,8 @@ export interface CreateResult {
 }
 
 export const PLATFORM_VERSION_RANGE = "^0.1.0"
-export const TECTON_GIT_SPEC = "github:rpkapps/tecton-ui-1#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react"
+export const TECTON_GIT_SPEC =
+  "github:rpkapps/tecton-ui-1#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react"
 
 export function titleCase(id: string): string {
   return id
@@ -85,7 +86,13 @@ export interface DependencySpecs {
 
 export function dependencySpecs(linkPlatform: string | undefined): DependencySpecs {
   if (!linkPlatform) {
-    return { platformReact: PLATFORM_VERSION_RANGE, platformVite: PLATFORM_VERSION_RANGE, platformCli: PLATFORM_VERSION_RANGE, platformHost: PLATFORM_VERSION_RANGE, tecton: TECTON_GIT_SPEC }
+    return {
+      platformReact: PLATFORM_VERSION_RANGE,
+      platformVite: PLATFORM_VERSION_RANGE,
+      platformCli: PLATFORM_VERSION_RANGE,
+      platformHost: PLATFORM_VERSION_RANGE,
+      tecton: TECTON_GIT_SPEC,
+    }
   }
   const root = resolve(linkPlatform)
   const link = (...segments: string[]) => `link:${toPosix(join(root, ...segments))}`
@@ -98,10 +105,25 @@ export function dependencySpecs(linkPlatform: string | undefined): DependencySpe
   }
 }
 
-export function templateContext(options: { mfeId: string; packageName: string; displayName: string; routePrefix: string; react: 18 | 19; tecton: boolean; specs: DependencySpecs; linked: boolean }): TemplateContext {
+export function templateContext(options: {
+  mfeId: string
+  packageName: string
+  displayName: string
+  routePrefix: string
+  react: 18 | 19
+  tecton: boolean
+  specs: DependencySpecs
+  linked: boolean
+}): TemplateContext {
   const { react, tecton, specs } = options
   return {
-    flags: { tecton, plain: !tecton, react18: react === 18, react19: react === 19, linked: options.linked },
+    flags: {
+      tecton,
+      plain: !tecton,
+      react18: react === 18,
+      react19: react === 19,
+      linked: options.linked,
+    },
     tokens: {
       MFE_ID: options.mfeId,
       PACKAGE_NAME: options.packageName,
@@ -135,32 +157,67 @@ export async function create(options: CreateOptions): Promise<CreateResult> {
   const template = options.template ?? "mfe"
   const templateRoot = join(options.templatesDir ?? templatesDir(), template)
   if (!existsSync(templateRoot)) {
-    throw new CliError({ code: "TEMPLATE_UNKNOWN", message: `Unknown template "${template}".`, source: templateRoot, override: "--template mfe" })
+    throw new CliError({
+      code: "TEMPLATE_UNKNOWN",
+      message: `Unknown template "${template}".`,
+      source: templateRoot,
+      override: "--template mfe",
+    })
   }
   const react = options.react ?? 19
   if (react !== 18 && react !== 19) {
-    throw new CliError({ code: "INVALID_OPTION", message: `--react must be 18 or 19 (got ${String(react)}).` })
+    throw new CliError({
+      code: "INVALID_OPTION",
+      message: `--react must be 18 or 19 (got ${String(react)}).`,
+    })
   }
   const packageName = options.name.trim()
   if (!packageName || /[\s]/.test(packageName)) {
-    throw new CliError({ code: "INVALID_OPTION", message: `"${options.name}" is not a valid package name.` })
+    throw new CliError({
+      code: "INVALID_OPTION",
+      message: `"${options.name}" is not a valid package name.`,
+    })
   }
   const mfeId = options.mfeId ?? inferMfeId(packageName)
   if (!isValidMfeId(mfeId)) {
-    throw new CliError({ code: "INVALID_OPTION", message: `"${mfeId}" is not a valid mfeId (kebab-case, starting with a letter).`, override: "--mfe-id <id>" })
+    throw new CliError({
+      code: "INVALID_OPTION",
+      message: `"${mfeId}" is not a valid mfeId (kebab-case, starting with a letter).`,
+      override: "--mfe-id <id>",
+    })
   }
-  const folderName = packageName.includes("/") ? packageName.slice(packageName.lastIndexOf("/") + 1) : packageName
+  const folderName = packageName.includes("/")
+    ? packageName.slice(packageName.lastIndexOf("/") + 1)
+    : packageName
   const cwd = options.cwd ?? process.cwd()
-  const parent = options.dir ? (isAbsolute(options.dir) ? options.dir : resolve(cwd, options.dir)) : cwd
+  const parent = options.dir
+    ? isAbsolute(options.dir)
+      ? options.dir
+      : resolve(cwd, options.dir)
+    : cwd
   const dir = resolve(parent, folderName)
   if (!isEmptyDir(dir) && !options.force) {
-    throw new CliError({ code: "TARGET_NOT_EMPTY", message: `Target directory ${dir} is not empty.`, source: dir, override: "--force" })
+    throw new CliError({
+      code: "TARGET_NOT_EMPTY",
+      message: `Target directory ${dir} is not empty.`,
+      source: dir,
+      override: "--force",
+    })
   }
   const tecton = options.tecton ?? true
   const displayName = options.displayName ?? titleCase(mfeId)
   const routePrefix = inferRoutePrefix(mfeId)
   const specs = dependencySpecs(options.linkPlatform)
-  const context = templateContext({ mfeId, packageName, displayName, routePrefix, react, tecton, specs, linked: Boolean(options.linkPlatform) })
+  const context = templateContext({
+    mfeId,
+    packageName,
+    displayName,
+    routePrefix,
+    react,
+    tecton,
+    specs,
+    linked: Boolean(options.linkPlatform),
+  })
 
   mkdirSync(dir, { recursive: true })
   const rendered = renderTemplateDir(templateRoot, context)
@@ -176,7 +233,8 @@ export async function create(options: CreateOptions): Promise<CreateResult> {
   let gitInitialised = false
   if (options.git) {
     gitInitialised = runCommand("git", ["init", "-q"], dir)
-    if (!gitInitialised) log("git init failed (is git installed?); continuing without a repository.")
+    if (!gitInitialised)
+      log("git init failed (is git installed?); continuing without a repository.")
   }
 
   const packageManager = options.packageManager ?? "pnpm"
@@ -188,10 +246,26 @@ export async function create(options: CreateOptions): Promise<CreateResult> {
   }
 
   const run = packageManager === "npm" ? "npm run" : packageManager
-  const nextSteps = [`cd ${toPosix(basename(parent) === basename(cwd) && parent === cwd ? folderName : dir)}`]
+  const nextSteps = [
+    `cd ${toPosix(basename(parent) === basename(cwd) && parent === cwd ? folderName : dir)}`,
+  ]
   if (!installed) nextSteps.push(`${packageManager} install`)
-  nextSteps.push(`${run} dev        # Vite + local shell harness at http://localhost:5173/__platform/harness/`)
+  nextSteps.push(
+    `${run} dev        # Vite + local shell harness at http://localhost:5173/__platform/harness/`
+  )
   nextSteps.push(`${run} lint       # platform ESLint rules (@platform/cli/eslint)`)
   nextSteps.push(`${run} validate   # manifest, identity, config and generated files`)
-  return { dir, packageName, mfeId, displayName, routePrefix, react, tecton, files, installed, gitInitialised, nextSteps }
+  return {
+    dir,
+    packageName,
+    mfeId,
+    displayName,
+    routePrefix,
+    react,
+    tecton,
+    files,
+    installed,
+    gitInitialised,
+    nextSteps,
+  }
 }

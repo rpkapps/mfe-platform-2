@@ -1,6 +1,19 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils"
 
-import { asObject, calleeName, collectPlatformImports, createRule, findProperty, jsxAttribute, jsxElementName, memberChain, objectProperties, platformCalleeName, propertyKeyName, unwrapExpression } from "../utils"
+import {
+  asObject,
+  calleeName,
+  collectPlatformImports,
+  createRule,
+  findProperty,
+  jsxAttribute,
+  jsxElementName,
+  memberChain,
+  objectProperties,
+  platformCalleeName,
+  propertyKeyName,
+  unwrapExpression,
+} from "../utils"
 
 type MessageIds = "componentValue"
 
@@ -9,19 +22,36 @@ const COMMAND_FUNCTION_KEYS = new Set(["handler", "availability"])
 
 function describeValue(node: TSESTree.Node): string | null {
   const value = unwrapExpression(node)
-  if (value.type === AST_NODE_TYPES.JSXElement || value.type === AST_NODE_TYPES.JSXFragment) return "a JSX element"
+  if (value.type === AST_NODE_TYPES.JSXElement || value.type === AST_NODE_TYPES.JSXFragment)
+    return "a JSX element"
   if (value.type === AST_NODE_TYPES.CallExpression) {
     const chain = memberChain(value.callee)
     const name = chain ? chain[chain.length - 1] : null
-    if (name === "createElement" || name === "cloneElement") return `a \`${chain!.join(".")}()\` element`
+    if (name === "createElement" || name === "cloneElement")
+      return `a \`${chain!.join(".")}()\` element`
     return null
   }
-  if (value.type === AST_NODE_TYPES.Identifier && /^[A-Z]/.test(value.name) && value.name !== value.name.toUpperCase()) return `the component \`${value.name}\``
-  if (value.type === AST_NODE_TYPES.ArrowFunctionExpression || value.type === AST_NODE_TYPES.FunctionExpression) {
+  if (
+    value.type === AST_NODE_TYPES.Identifier &&
+    /^[A-Z]/.test(value.name) &&
+    value.name !== value.name.toUpperCase()
+  )
+    return `the component \`${value.name}\``
+  if (
+    value.type === AST_NODE_TYPES.ArrowFunctionExpression ||
+    value.type === AST_NODE_TYPES.FunctionExpression
+  ) {
     const body = value.body
-    if (body.type === AST_NODE_TYPES.JSXElement || body.type === AST_NODE_TYPES.JSXFragment) return "a function returning JSX"
+    if (body.type === AST_NODE_TYPES.JSXElement || body.type === AST_NODE_TYPES.JSXFragment)
+      return "a function returning JSX"
     if (body.type === AST_NODE_TYPES.BlockStatement) {
-      const returnsJsx = body.body.some((statement) => statement.type === AST_NODE_TYPES.ReturnStatement && statement.argument && (statement.argument.type === AST_NODE_TYPES.JSXElement || statement.argument.type === AST_NODE_TYPES.JSXFragment))
+      const returnsJsx = body.body.some(
+        (statement) =>
+          statement.type === AST_NODE_TYPES.ReturnStatement &&
+          statement.argument &&
+          (statement.argument.type === AST_NODE_TYPES.JSXElement ||
+            statement.argument.type === AST_NODE_TYPES.JSXFragment)
+      )
       if (returnsJsx) return "a function returning JSX"
     }
   }
@@ -32,9 +62,13 @@ export default createRule<[], MessageIds>({
   name: "no-cross-root-component-passing",
   meta: {
     type: "problem",
-    docs: { description: "React elements and components never cross React roots: notifications, telemetry, storage defaults, command metadata and widget props carry plain data only." },
+    docs: {
+      description:
+        "React elements and components never cross React roots: notifications, telemetry, storage defaults, command metadata and widget props carry plain data only.",
+    },
     messages: {
-      componentValue: "`{{path}}` receives {{what}}. Every MFE and widget renders in its own React root; React elements, components, hooks and contexts cannot cross that boundary. Pass plain data (strings, numbers, ids) and let the receiving side render it.",
+      componentValue:
+        "`{{path}}` receives {{what}}. Every MFE and widget renders in its own React root; React elements, components, hooks and contexts cannot cross that boundary. Pass plain data (strings, numbers, ids) and let the receiving side render it.",
     },
     schema: [],
   },
@@ -51,14 +85,20 @@ export default createRule<[], MessageIds>({
       }
       const value = unwrapExpression(node)
       if (value.type === AST_NODE_TYPES.ObjectExpression) {
-        for (const property of objectProperties(value)) checkValue(property.value, `${path}.${propertyKeyName(property) ?? "?"}`, seen)
+        for (const property of objectProperties(value))
+          checkValue(property.value, `${path}.${propertyKeyName(property) ?? "?"}`, seen)
       } else if (value.type === AST_NODE_TYPES.ArrayExpression) {
         value.elements.forEach((element, index) => {
-          if (element && element.type !== AST_NODE_TYPES.SpreadElement) checkValue(element, `${path}[${index}]`, seen)
+          if (element && element.type !== AST_NODE_TYPES.SpreadElement)
+            checkValue(element, `${path}[${index}]`, seen)
         })
       }
     }
-    const checkObject = (node: TSESTree.Node | undefined, path: string, skipKeys: Set<string> = new Set()) => {
+    const checkObject = (
+      node: TSESTree.Node | undefined,
+      path: string,
+      skipKeys: Set<string> = new Set()
+    ) => {
       const object = asObject(node)
       if (!object) return
       for (const property of objectProperties(object)) {
@@ -92,12 +132,17 @@ export default createRule<[], MessageIds>({
           checkObject(node.arguments[0], "setProps")
           return
         }
-        if (name && TELEMETRY_METHODS.has(name) && node.callee.type === AST_NODE_TYPES.MemberExpression) {
+        if (
+          name &&
+          TELEMETRY_METHODS.has(name) &&
+          node.callee.type === AST_NODE_TYPES.MemberExpression
+        ) {
           const chain = memberChain(node.callee)
           const receiver = chain ? chain.slice(0, -1).join(".") : ""
           if (/telemetry/i.test(receiver) || receiver.endsWith("useTelemetry()")) {
             node.arguments.forEach((argument, index) => {
-              if (argument.type !== AST_NODE_TYPES.SpreadElement) checkValue(argument, `${receiver}.${name}(arg ${index})`)
+              if (argument.type !== AST_NODE_TYPES.SpreadElement)
+                checkValue(argument, `${receiver}.${name}(arg ${index})`)
             })
           }
         }

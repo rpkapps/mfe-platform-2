@@ -20,7 +20,8 @@ export interface TemplateContext {
   tokens: Record<string, string>
 }
 
-const BLOCK_LINE_RE = /^[ \t]*(?:\/\/|\/\*|\{\/\*|<!--|#)?[ \t]*\{\{([#^/])([\w-]+)\}\}[ \t]*(?:\*\/\}|\*\/|-->)?[ \t]*$/
+const BLOCK_LINE_RE =
+  /^[ \t]*(?:\/\/|\/\*|\{\/\*|<!--|#)?[ \t]*\{\{([#^/])([\w-]+)\}\}[ \t]*(?:\*\/\}|\*\/|-->)?[ \t]*$/
 const INLINE_BLOCK_RE = /\{\{([#^])([\w-]+)\}\}([\s\S]*?)\{\{\/\2\}\}/g
 
 export function renderTemplate(source: string, context: TemplateContext): string {
@@ -34,7 +35,10 @@ export function renderTemplate(source: string, context: TemplateContext): string
       const [, kind, name] = block as unknown as [string, string, string]
       if (kind === "/") {
         const frame = stack.pop()
-        if (!frame || frame.name !== name) throw new Error(`Template block mismatch: closing {{/${name}}} without a matching opening tag.`)
+        if (!frame || frame.name !== name)
+          throw new Error(
+            `Template block mismatch: closing {{/${name}}} without a matching opening tag.`
+          )
       } else {
         const value = Boolean(context.flags[name])
         stack.push({ name, active: kind === "#" ? value : !value })
@@ -44,20 +48,26 @@ export function renderTemplate(source: string, context: TemplateContext): string
     if (!active()) continue
     output.push(renderInline(line, context))
   }
-  if (stack.length > 0) throw new Error(`Template block "${stack[stack.length - 1]!.name}" is never closed.`)
+  if (stack.length > 0)
+    throw new Error(`Template block "${stack[stack.length - 1]!.name}" is never closed.`)
   return output.join("\n")
 }
 
 function renderInline(line: string, context: TemplateContext): string {
-  const withBlocks = line.replace(INLINE_BLOCK_RE, (_match, kind: string, name: string, body: string) => {
-    const value = Boolean(context.flags[name])
-    return (kind === "#" ? value : !value) ? body : ""
-  })
+  const withBlocks = line.replace(
+    INLINE_BLOCK_RE,
+    (_match, kind: string, name: string, body: string) => {
+      const value = Boolean(context.flags[name])
+      return (kind === "#" ? value : !value) ? body : ""
+    }
+  )
   return replaceTokens(withBlocks, context.tokens)
 }
 
 export function replaceTokens(text: string, tokens: Record<string, string>): string {
-  return text.replace(/__([A-Z][A-Z0-9_]*?)__/g, (match, name: string) => (name in tokens ? tokens[name]! : match))
+  return text.replace(/__([A-Z][A-Z0-9_]*?)__/g, (match, name: string) =>
+    name in tokens ? tokens[name]! : match
+  )
 }
 
 const DOTFILE_RENAMES: Record<string, string> = {
@@ -85,7 +95,11 @@ export interface RenderedFile {
 }
 
 /** Render every file of a template directory (recursively) without writing anything. */
-export function renderTemplateDir(templateDir: string, context: TemplateContext, options: { exclude?: (relativePath: string) => boolean } = {}): RenderedFile[] {
+export function renderTemplateDir(
+  templateDir: string,
+  context: TemplateContext,
+  options: { exclude?: (relativePath: string) => boolean } = {}
+): RenderedFile[] {
   const files: RenderedFile[] = []
   const walk = (dir: string, target: string): void => {
     for (const entry of readdirSync(dir).sort()) {
@@ -100,7 +114,10 @@ export function renderTemplateDir(templateDir: string, context: TemplateContext,
       if (BINARY_RE.test(entry)) {
         files.push({ path: targetPath, content: readFileSync(source) })
       } else {
-        files.push({ path: targetPath, content: renderTemplate(readFileSync(source, "utf8"), context) })
+        files.push({
+          path: targetPath,
+          content: renderTemplate(readFileSync(source, "utf8"), context),
+        })
       }
     }
   }

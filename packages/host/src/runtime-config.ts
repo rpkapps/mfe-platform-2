@@ -103,17 +103,15 @@ export function diffRuntimeConfig(previous: RuntimeConfig, next: RuntimeConfig):
   if (JSON.stringify(previous.devtools) !== JSON.stringify(next.devtools)) changes.push("devtools")
   const ids = new Set([...Object.keys(previous.mfes), ...Object.keys(next.mfes)])
   for (const id of ids) {
-    const a = previous.mfes[id]
-    const b = next.mfes[id]
-    if (!a || !b) {
-      changes.push(`mfes.${id}`)
-      continue
-    }
+    const a = previous.mfes[id] ?? { env: {} }
+    const b = next.mfes[id] ?? { env: {} }
+    const before = changes.length
     if (a.enabled !== b.enabled) changes.push(`mfes.${id}.enabled`)
     if (a.manifestUrl !== b.manifestUrl) changes.push(`mfes.${id}.manifestUrl`)
     if (a.preload !== b.preload) changes.push(`mfes.${id}.preload`)
     if (JSON.stringify(a.env) !== JSON.stringify(b.env)) changes.push(`mfes.${id}.env`)
     if (JSON.stringify(a.allowedOrigins) !== JSON.stringify(b.allowedOrigins)) changes.push(`mfes.${id}.allowedOrigins`)
+    if (changes.length === before && !previous.mfes[id] !== !next.mfes[id]) changes.push(`mfes.${id}`)
   }
   return changes
 }

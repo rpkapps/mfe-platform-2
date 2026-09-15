@@ -1,15 +1,28 @@
 import * as React from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { useNotifications, usePlatform, useRegisterCommand, useTelemetry } from "@platform/react"
+import {
+  useNotifications,
+  usePlatform,
+  useRegisterCommand,
+  useTelemetry,
+} from "@platform/react"
 // {{#tecton}}
 import { Button } from "@tecton/react/components/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@tecton/react/components/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@tecton/react/components/card"
 // {{/tecton}}
 
 import { dashboardStorage } from "@/lib/storage"
 
 export const Route = createFileRoute("/")({
-  staticData: { navigation: { title: "Dashboard", description: "__DISPLAY_NAME__ overview", order: 0 } },
+  staticData: {
+    navigation: { title: "Dashboard", description: "__DISPLAY_NAME__ overview", order: 0 },
+  },
   component: Dashboard,
 })
 
@@ -43,21 +56,27 @@ function Dashboard() {
   })
 
   const addColumn = () => {
-    dashboardStorage.setKey("columns", (current) => [...current, `column-${current.length + 1}`])
+    dashboardStorage.setKey("columns", (current) => [
+      ...current,
+      `column-${current.length + 1}`,
+    ])
     telemetry.track("dashboard.column.added", { count: columns.length + 1 })
   }
 
   return (
     <div className="flex flex-col gap-4">
       <Greeting />
-      <p className="text-sm text-muted-foreground">
-        Greeted {greetings} time{greetings === 1 ? "" : "s"} · bulk edit {bulkEdit ? "on" : "off"}
+      <p className="text-muted-foreground text-sm">
+        Greeted {greetings} time{greetings === 1 ? "" : "s"} · bulk edit{" "}
+        {bulkEdit ? "on" : "off"}
       </p>
       {/* {{#tecton}} */}
       <Card>
         <CardHeader>
           <CardTitle>Dashboard columns</CardTitle>
-          <CardDescription>Schema-backed local storage, namespaced by the platform.</CardDescription>
+          <CardDescription>
+            Schema-backed local storage, namespaced by the platform.
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs">{columns.join(", ")}</span>
@@ -71,15 +90,25 @@ function Dashboard() {
       </Card>
       {/* {{/tecton}} */}
       {/* {{^tecton}} */}
-      <section className="rounded-md border border-border p-4">
+      <section className="border-border rounded-md border p-4">
         <h3 className="font-medium">Dashboard columns</h3>
-        <p className="text-sm text-muted-foreground">Schema-backed local storage, namespaced by the platform.</p>
+        <p className="text-muted-foreground text-sm">
+          Schema-backed local storage, namespaced by the platform.
+        </p>
         <div className="mt-2 flex flex-wrap items-center gap-2">
           <span className="font-mono text-xs">{columns.join(", ")}</span>
-          <button type="button" className="rounded border border-border px-2 py-1 text-sm" onClick={addColumn}>
+          <button
+            type="button"
+            className="border-border rounded border px-2 py-1 text-sm"
+            onClick={addColumn}
+          >
             Add column
           </button>
-          <button type="button" className="rounded px-2 py-1 text-sm" onClick={() => dashboardStorage.reset()}>
+          <button
+            type="button"
+            className="rounded px-2 py-1 text-sm"
+            onClick={() => dashboardStorage.reset()}
+          >
             Reset
           </button>
         </div>

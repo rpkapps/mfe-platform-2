@@ -5,7 +5,10 @@ import { z } from "zod"
 import { fetchRegions } from "@/lib/api"
 
 export const Route = createFileRoute("/settings")({
-  staticData: { breadcrumb: "Settings", navigation: { title: "Settings", keywords: ["preferences", "display"], order: 2 } },
+  staticData: {
+    breadcrumb: "Settings",
+    navigation: { title: "Settings", keywords: ["preferences", "display"], order: 2 },
+  },
   component: SettingsPage,
 })
 
@@ -34,7 +37,13 @@ function SettingsPage() {
         ],
       },
       showOffline: { defaultValue: true, description: "Include offline assets in lists" },
-      pageSize: { defaultValue: 25, schema: z.number().int().min(5).max(200), min: 5, max: 200, step: 5 },
+      pageSize: {
+        defaultValue: 25,
+        schema: z.number().int().min(5).max(200),
+        min: 5,
+        max: 200,
+        step: 5,
+      },
       region: {
         defaultValue: "eu",
         label: "Default region",
@@ -49,12 +58,12 @@ function SettingsPage() {
   return (
     <div className="flex flex-col gap-2 text-sm">
       <p>
-        The <strong>Display</strong> settings group is registered by this route and rendered by the
-        shell settings host (search: density, page size, region).
+        The <strong>Display</strong> settings group is registered by this route and rendered by
+        the shell settings host (search: density, page size, region).
       </p>
       <p className="text-muted-foreground">
-        For a fully custom settings page register a group with <code>managedBy: "mfe"</code> and a{" "}
-        <code>route</code>.
+        For a fully custom settings page register a group with <code>managedBy: "mfe"</code> and
+        a <code>route</code>.
       </p>
     </div>
   )

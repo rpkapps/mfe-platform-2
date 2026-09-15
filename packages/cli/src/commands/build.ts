@@ -58,11 +58,25 @@ export async function build(options: BuildOptions = {}): Promise<BuildResult> {
   const root = requireProjectRoot(options.cwd ?? process.cwd())
   const log = options.log ?? ((message: string) => console.log(message))
   const vite = await loadProjectModule<ViteModule>(root, "vite", "build the remote")
-  const outDir = options.outDir ? (isAbsolute(options.outDir) ? options.outDir : resolve(root, options.outDir)) : join(root, "dist")
+  const outDir = options.outDir
+    ? isAbsolute(options.outDir)
+      ? options.outDir
+      : resolve(root, options.outDir)
+    : join(root, "dist")
   try {
-    await vite.build({ root, configFile: findViteConfig(root) ?? false, mode: "production", ...(options.outDir ? { build: { outDir } } : {}) })
+    await vite.build({
+      root,
+      configFile: findViteConfig(root) ?? false,
+      mode: "production",
+      ...(options.outDir ? { build: { outDir } } : {}),
+    })
   } catch (error) {
-    throw new CliError({ code: "BUILD_FAILED", message: `Vite build failed: ${error instanceof Error ? error.message : String(error)}`, source: root, cause: error })
+    throw new CliError({
+      code: "BUILD_FAILED",
+      message: `Vite build failed: ${error instanceof Error ? error.message : String(error)}`,
+      source: root,
+      cause: error,
+    })
   }
   const manifestFile = join(outDir, manifestFileName(root))
   if (!existsSync(manifestFile)) {

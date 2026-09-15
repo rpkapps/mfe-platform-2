@@ -17,7 +17,11 @@ export const Route = createFileRoute("/assets/$assetId")({
   loader: async ({ context, params, abortController }) => {
     const span = context.platform.telemetry.span("asset.load", { assetId: params.assetId })
     try {
-      const asset = await fetchAsset(context.platform.runtime.env.API_BASE_URL, params.assetId, abortController.signal)
+      const asset = await fetchAsset(
+        context.platform.runtime.env.API_BASE_URL,
+        params.assetId,
+        abortController.signal
+      )
       span.end()
       return { asset, breadcrumb: asset.name }
     } catch (error) {
@@ -25,9 +29,9 @@ export const Route = createFileRoute("/assets/$assetId")({
       throw error
     }
   },
-  pendingComponent: () => <p className="text-sm text-muted-foreground">Loading asset…</p>,
+  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading asset…</p>,
   errorComponent: ({ error }) => (
-    <p role="alert" className="text-sm text-destructive">
+    <p role="alert" className="text-destructive text-sm">
       {error.message}
     </p>
   ),
@@ -39,7 +43,7 @@ function AssetDetail() {
   return (
     <div className="flex flex-col gap-2">
       <h2 className="text-lg font-medium">{asset.name}</h2>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         {asset.site} · {asset.status}
       </p>
     </div>

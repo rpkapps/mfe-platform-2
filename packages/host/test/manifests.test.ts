@@ -16,10 +16,12 @@ describe("manifest URL precedence", () => {
     noQuery.setLocal("asset-tracker", "http://localhost:5173/platform-manifest.json")
     expect(JSON.parse(storage.get("local", MANIFEST_OVERRIDES_KEY)!)).toEqual({ "asset-tracker": "http://localhost:5173/platform-manifest.json" })
     expect(resolveManifestUrl({ ...base, overrides: noQuery })).toEqual({ url: "http://localhost:5173/platform-manifest.json", source: "override" })
-    const withQuery = createOverrideStore({ storage, search: "?platform.override.asset-tracker=http%3A%2F%2Flocalhost%3A4444%2Fm.json&other=1" })
+    const sessionStorage = createMemoryStorageBackend()
+    const withQuery = createOverrideStore({ storage: sessionStorage, search: "?platform.override.asset-tracker=http%3A%2F%2Flocalhost%3A4444%2Fm.json&other=1" })
     expect(resolveManifestUrl({ ...base, overrides: withQuery })).toEqual({ url: "http://localhost:4444/m.json", source: "query" })
-    // The query override is persisted to session storage so it survives in-app navigation.
-    expect(JSON.parse(storage.get("session", MANIFEST_OVERRIDES_KEY)!)).toEqual({ "asset-tracker": "http://localhost:4444/m.json" })
+    // The query override is persisted to session storage so it survives in-app navigation (a later store on the same storage still sees it).
+    expect(JSON.parse(sessionStorage.get("session", MANIFEST_OVERRIDES_KEY)!)).toEqual({ "asset-tracker": "http://localhost:4444/m.json" })
+    expect(resolveManifestUrl({ ...base, overrides: createOverrideStore({ storage: sessionStorage, search: "" }) }).source).toBe("query")
     noQuery.setLocal("asset-tracker", null)
     expect(storage.get("local", MANIFEST_OVERRIDES_KEY)).toBeNull()
     expect(resolveManifestUrl({ ...base, overrides: noQuery, runtimeConfig: parseRuntimeConfig({}) })).toEqual({ url: "/registry/m.json", source: "registry" })
@@ -39,7 +41,7 @@ describe("origin validation", () => {
   })
   it("denies everything else with MANIFEST_ORIGIN_DENIED", () => {
     expect(() => assertOriginAllowed({ ...base, url: "https://evil.example.com/m.json", runtimeConfig: parseRuntimeConfig({ allowedOrigins: ["https://cdn.example.com"] }) })).toThrowError(expect.objectContaining({ code: "MANIFEST_ORIGIN_DENIED" }))
-    expect(() => assertOriginAllowed({ ...base, url: "not a url ::", runtimeConfig: parseRuntimeConfig({}) })).toThrowError(expect.objectContaining({ code: "MANIFEST_ORIGIN_DENIED" }))
+    expect(() => assertOriginAllowed({ ...base, url: "http://", runtimeConfig: parseRuntimeConfig({}) })).toThrowError(expect.objectContaining({ code: "MANIFEST_ORIGIN_DENIED" }))
   })
 })
 

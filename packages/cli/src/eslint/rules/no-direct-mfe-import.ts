@@ -15,16 +15,28 @@ export default createRule<Options, MessageIds>({
   name: "no-direct-mfe-import",
   meta: {
     type: "problem",
-    docs: { description: "MFEs never import other MFEs (packages named @scope/mfe-*, federation aliases, or sources outside the project); they compose through widgets, commands and navigation." },
+    docs: {
+      description:
+        "MFEs never import other MFEs (packages named @scope/mfe-*, federation aliases, or sources outside the project); they compose through widgets, commands and navigation.",
+    },
     messages: {
-      mfePackage: "Importing `{{source}}` couples this MFE to another one's source. Direct MFE-to-MFE imports are not supported: expose a widget (`createWidget`) or navigate to its routes (`useNavigation()`).",
-      federationAlias: "`{{source}}` is a federation alias; remotes are loaded by the host, not imported. Use widgets and navigation to compose MFEs.",
-      outsideProject: "`{{source}}` resolves outside this project ({{resolved}}). An MFE is built and deployed on its own; share code through a published package.",
+      mfePackage:
+        "Importing `{{source}}` couples this MFE to another one's source. Direct MFE-to-MFE imports are not supported: expose a widget (`createWidget`) or navigate to its routes (`useNavigation()`).",
+      federationAlias:
+        "`{{source}}` is a federation alias; remotes are loaded by the host, not imported. Use widgets and navigation to compose MFEs.",
+      outsideProject:
+        "`{{source}}` resolves outside this project ({{resolved}}). An MFE is built and deployed on its own; share code through a published package.",
     },
     schema: [
       {
         type: "object",
-        properties: { allow: { type: "array", items: { type: "string" }, description: "Import specifiers (globs) that are allowed." } },
+        properties: {
+          allow: {
+            type: "array",
+            items: { type: "string" },
+            description: "Import specifiers (globs) that are allowed.",
+          },
+        },
         additionalProperties: false,
       },
     ],
@@ -67,7 +79,8 @@ export default createRule<Options, MessageIds>({
         if (node.source) check(node, String(node.source.value))
       },
       CallExpression(node) {
-        if (node.callee.type === AST_NODE_TYPES.Identifier && node.callee.name === "require") check(node, stringValue(node.arguments[0]))
+        if (node.callee.type === AST_NODE_TYPES.Identifier && node.callee.name === "require")
+          check(node, stringValue(node.arguments[0]))
       },
     }
   },

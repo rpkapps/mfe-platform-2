@@ -16,7 +16,12 @@ const json = (dir: string, file: string) => JSON.parse(read(dir, file)) as Recor
 describe("platform create", () => {
   let tecton19: Awaited<ReturnType<typeof create>>
   beforeAll(async () => {
-    tecton19 = await create({ name: "@acme/asset-tracker", dir: temp.dir, install: false, git: false })
+    tecton19 = await create({
+      name: "@acme/asset-tracker",
+      dir: temp.dir,
+      install: false,
+      git: false,
+    })
   })
 
   it("scaffolds the canonical file map", () => {
@@ -67,8 +72,23 @@ describe("platform create", () => {
   it("writes the identity file and replaces every token", () => {
     const dir = tecton19.dir
     expect(json(dir, ".platform/identity.json")).toEqual({ mfeId: "asset-tracker" })
-    const all = ["package.json", "mfe.config.ts", "src/mfe.tsx", "src/routes/__root.tsx", "README.md", "AGENTS.md", "llm.txt", "llms.txt", "src/__tests__/mfe.test.tsx", "src/lib/storage.ts"].map((file) => read(dir, file)).join("\n")
-    expect(all).not.toMatch(/__(MFE_ID|PACKAGE_NAME|DISPLAY_NAME|ROUTE_PREFIX|REACT_MAJOR|REACT_RANGE|TYPES_REACT_RANGE|YEAR|PLATFORM_[A-Z]+_SPEC|TECTON_SPEC)__/)
+    const all = [
+      "package.json",
+      "mfe.config.ts",
+      "src/mfe.tsx",
+      "src/routes/__root.tsx",
+      "README.md",
+      "AGENTS.md",
+      "llm.txt",
+      "llms.txt",
+      "src/__tests__/mfe.test.tsx",
+      "src/lib/storage.ts",
+    ]
+      .map((file) => read(dir, file))
+      .join("\n")
+    expect(all).not.toMatch(
+      /__(MFE_ID|PACKAGE_NAME|DISPLAY_NAME|ROUTE_PREFIX|REACT_MAJOR|REACT_RANGE|TYPES_REACT_RANGE|YEAR|PLATFORM_[A-Z]+_SPEC|TECTON_SPEC)__/
+    )
     expect(all).not.toMatch(/\{\{[#^/]/)
     expect(read(dir, "src/routes/__root.tsx")).toContain('breadcrumb: "Asset Tracker"')
     expect(read(dir, "src/__tests__/mfe.test.tsx")).toContain('mfeId: "asset-tracker"')
@@ -78,7 +98,16 @@ describe("platform create", () => {
     const pkg = json(tecton19.dir, "package.json")
     expect(pkg.name).toBe("@acme/asset-tracker")
     expect(pkg.type).toBe("module")
-    expect(pkg.scripts).toMatchObject({ dev: "platform dev", build: "platform build", lint: "platform lint", test: "platform test", validate: "platform validate", manifest: "platform manifest", "test:e2e": "playwright test", typecheck: "tsc --noEmit" })
+    expect(pkg.scripts).toMatchObject({
+      dev: "platform dev",
+      build: "platform build",
+      lint: "platform lint",
+      test: "platform test",
+      validate: "platform validate",
+      manifest: "platform manifest",
+      "test:e2e": "playwright test",
+      typecheck: "tsc --noEmit",
+    })
     expect(pkg.dependencies.react).toBe("^19.0.0")
     expect(pkg.dependencies["@platform/react"]).toBe("^0.1.0")
     expect(pkg.dependencies["@tecton/react"]).toMatch(/^github:rpkapps\/tecton-ui-1#/)
@@ -89,15 +118,26 @@ describe("platform create", () => {
     expect(pkg.devDependencies.jiti).toBeDefined()
     expect(pkg.devDependencies.eslint).toMatch(/\^9/)
     expect(pkg.devDependencies["@types/react"]).toBe("^19.0.0")
-    expect(read(tecton19.dir, "src/styles.css")).toContain('@import "@tecton/react/globals.css"')
-    expect(read(tecton19.dir, "src/routes/__root.tsx")).toContain("@tecton/react/components/badge")
+    expect(read(tecton19.dir, "src/styles.css")).toContain(
+      '@import "@tecton/react/globals.css"'
+    )
+    expect(read(tecton19.dir, "src/routes/__root.tsx")).toContain(
+      "@tecton/react/components/badge"
+    )
     expect(read(tecton19.dir, "src/widgets/asset-card.tsx")).toContain("DialogTrigger")
     expect(read(tecton19.dir, "src/widgets/asset-card.tsx")).not.toContain("React.useState")
     expect(read(tecton19.dir, "eslint.config.ts")).toContain("export default platformConfig()")
   })
 
   it("scaffolds React 18 without Tecton", async () => {
-    const result = await create({ name: "legacy-reports", dir: temp.dir, react: 18, tecton: false, install: false, git: false })
+    const result = await create({
+      name: "legacy-reports",
+      dir: temp.dir,
+      react: 18,
+      tecton: false,
+      install: false,
+      git: false,
+    })
     const pkg = json(result.dir, "package.json")
     expect(pkg.dependencies.react).toBe("^18.3.1")
     expect(pkg.devDependencies["@types/react"]).toBe("^18.3.0")
@@ -111,7 +151,13 @@ describe("platform create", () => {
   })
 
   it("links the platform packages with --link-platform", async () => {
-    const result = await create({ name: "linked-mfe", dir: temp.dir, linkPlatform: MONOREPO_ROOT, install: false, git: false })
+    const result = await create({
+      name: "linked-mfe",
+      dir: temp.dir,
+      linkPlatform: MONOREPO_ROOT,
+      install: false,
+      git: false,
+    })
     const pkg = json(result.dir, "package.json")
     const specs = dependencySpecs(MONOREPO_ROOT)
     expect(pkg.dependencies["@platform/react"]).toBe(specs.platformReact)
@@ -124,17 +170,34 @@ describe("platform create", () => {
   })
 
   it("refuses a non-empty directory unless --force", async () => {
-    await expect(create({ name: "asset-tracker", dir: temp.dir, install: false, git: false })).rejects.toMatchObject({ code: "TARGET_NOT_EMPTY" })
-    const forced = await create({ name: "asset-tracker", dir: temp.dir, install: false, git: false, force: true, displayName: "Forced" })
+    await expect(
+      create({ name: "asset-tracker", dir: temp.dir, install: false, git: false })
+    ).rejects.toMatchObject({ code: "TARGET_NOT_EMPTY" })
+    const forced = await create({
+      name: "asset-tracker",
+      dir: temp.dir,
+      install: false,
+      git: false,
+      force: true,
+      displayName: "Forced",
+    })
     expect(read(forced.dir, "src/routes/__root.tsx")).toContain('breadcrumb: "Forced"')
   })
 
   it("rejects invalid names, templates and react majors with actionable errors", async () => {
     await expect(create({ name: "bad name", dir: temp.dir })).rejects.toBeInstanceOf(CliError)
-    await expect(create({ name: "x", dir: temp.dir, template: "nope" })).rejects.toMatchObject({ code: "TEMPLATE_UNKNOWN" })
-    await expect(create({ name: "x", dir: temp.dir, react: 17 as 18 })).rejects.toMatchObject({ code: "INVALID_OPTION" })
-    const error = await create({ name: "x", dir: temp.dir, template: "nope" }).catch((thrown: CliError) => thrown)
-    expect((error as CliError).format()).toMatch(/\[platform:cli:TEMPLATE_UNKNOWN\][\s\S]*hint:[\s\S]*docs: https:\/\/platform\.docs\.local\/docs\/cli/)
+    await expect(create({ name: "x", dir: temp.dir, template: "nope" })).rejects.toMatchObject({
+      code: "TEMPLATE_UNKNOWN",
+    })
+    await expect(create({ name: "x", dir: temp.dir, react: 17 as 18 })).rejects.toMatchObject({
+      code: "INVALID_OPTION",
+    })
+    const error = await create({ name: "x", dir: temp.dir, template: "nope" }).catch(
+      (thrown: CliError) => thrown
+    )
+    expect((error as CliError).format()).toMatch(
+      /\[platform:cli:TEMPLATE_UNKNOWN\][\s\S]*hint:[\s\S]*docs: https:\/\/platform\.docs\.local\/docs\/cli/
+    )
   })
 
   it("derives display names", () => {

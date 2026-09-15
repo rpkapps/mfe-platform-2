@@ -33,7 +33,12 @@ export function findProjectRoot(start: string): string | null {
 export function requireProjectRoot(cwd: string): string {
   const root = findProjectRoot(cwd)
   if (!root) {
-    throw new CliError({ code: "PROJECT_NOT_FOUND", message: `No package.json found in ${cwd} or its parents.`, source: cwd, override: "--cwd <dir>" })
+    throw new CliError({
+      code: "PROJECT_NOT_FOUND",
+      message: `No package.json found in ${cwd} or its parents.`,
+      source: cwd,
+      override: "--cwd <dir>",
+    })
   }
   return root
 }
@@ -64,14 +69,21 @@ export function resolveProjectModule(root: string, specifier: string): string | 
 }
 
 /** Dynamic import of a module from the project's node_modules, with a clear error when absent. */
-export async function loadProjectModule<T = Record<string, unknown>>(root: string, specifier: string, purpose: string): Promise<T> {
+export async function loadProjectModule<T = Record<string, unknown>>(
+  root: string,
+  specifier: string,
+  purpose: string
+): Promise<T> {
   const resolved = resolveProjectModule(root, specifier)
   if (!resolved) {
     throw new CliError({
       code: "DEPENDENCY_MISSING",
       message: `Cannot find "${specifier}" from ${root}; it is required to ${purpose}.`,
       source: join(root, "package.json"),
-      override: `pnpm add -D ${specifier.split("/").slice(0, specifier.startsWith("@") ? 2 : 1).join("/")}`,
+      override: `pnpm add -D ${specifier
+        .split("/")
+        .slice(0, specifier.startsWith("@") ? 2 : 1)
+        .join("/")}`,
     })
   }
   return (await import(pathToFileURL(resolved).href)) as T

@@ -241,7 +241,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       const record = records.getState()[mfeId]
       if (!record) continue
       const patch: Partial<RemoteRecord> = { enabled: isEnabled(record.registry, record.manifest, mfeId) }
-      if (match[2] === "manifestUrl" || match[2] === undefined) {
+      if (match[2] === "manifestUrl") {
         // The manifest location changed: drop the cached manifest and definition so the next load fetches again.
         loader.invalidate?.(mfeId)
         definitions.delete(mfeId)
@@ -408,7 +408,20 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
 
   const load: RemotesApi["load"] = async (mfeId, loadOptions = {}) => {
     const cached = definitions.get(mfeId)
-    if (cached) return cached
+    if (cached) {
+      // Enablement and preflight are re-evaluated on every load, even for cached definitions.
+      const manifest = records.getState()[mfeId]?.manifest
+      if (manifest) {
+        try {
+          assertLoadable(mfeId, manifest)
+        } catch (error) {
+          const platformError = toPlatformError(error, { code: "REMOTE_LOAD_FAILED", owner: { mfeId } })
+          updateRecord(mfeId, { state: stateForError(platformError), error: platformError })
+          throw platformError
+        }
+      }
+      return cached
+    }
     const pending = loading.get(mfeId)
     if (pending) return pending
     const task = (async () => {

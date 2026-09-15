@@ -12,7 +12,11 @@ const packageRoot = join(here, "..")
 const monorepoRoot = join(packageRoot, "..", "..")
 
 function resolveGenerator() {
-  const candidates = [join(packageRoot, "package.json"), join(monorepoRoot, "packages", "vite", "package.json"), join(monorepoRoot, "package.json")]
+  const candidates = [
+    join(packageRoot, "package.json"),
+    join(monorepoRoot, "packages", "vite", "package.json"),
+    join(monorepoRoot, "package.json"),
+  ]
   for (const from of candidates) {
     try {
       const require = createRequire(from)
@@ -28,7 +32,9 @@ function resolveGenerator() {
       // try the next location
     }
   }
-  throw new Error("Cannot resolve @tanstack/router-generator; run pnpm install in the monorepo first.")
+  throw new Error(
+    "Cannot resolve @tanstack/router-generator; run pnpm install in the monorepo first."
+  )
 }
 
 const generatorPath = resolveGenerator()
@@ -37,9 +43,20 @@ const { Generator, getConfig } = await import(pathToFileURL(generatorPath).href)
 const work = mkdtempSync(join(tmpdir(), "platform-template-routes-"))
 try {
   const routesDirectory = join(work, "src", "routes")
-  cpSync(join(packageRoot, "templates", "mfe", "src", "routes"), routesDirectory, { recursive: true })
+  cpSync(join(packageRoot, "templates", "mfe", "src", "routes"), routesDirectory, {
+    recursive: true,
+  })
   const generatedRouteTree = join(work, "src", "routeTree.gen.ts")
-  const config = getConfig({ target: "react", autoCodeSplitting: true, routesDirectory, generatedRouteTree, disableLogging: true }, work)
+  const config = getConfig(
+    {
+      target: "react",
+      autoCodeSplitting: true,
+      routesDirectory,
+      generatedRouteTree,
+      disableLogging: true,
+    },
+    work
+  )
   await new Generator({ config, root: work }).run()
   const output = readFileSync(generatedRouteTree, "utf8")
   const target = join(packageRoot, "templates", "mfe", "src", "routeTree.gen.ts")

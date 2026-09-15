@@ -28,7 +28,9 @@ export function cliPackageRoot(): string {
 }
 
 export function cliVersion(): string {
-  const pkg = JSON.parse(readFileSync(join(cliPackageRoot(), "package.json"), "utf8")) as { version?: string }
+  const pkg = JSON.parse(readFileSync(join(cliPackageRoot(), "package.json"), "utf8")) as {
+    version?: string
+  }
   return pkg.version ?? "0.0.0"
 }
 

@@ -18,7 +18,9 @@ describe("__MFE_ID__", () => {
     })
     const mounted = renderMfe(definition, { bridge, path: "__ROUTE_PREFIX__" })
     await within(mounted.container).findByText("Hello Ada")
-    expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain("say-hello")
+    expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain(
+      "say-hello"
+    )
     mounted.dispose()
     expect(bridge.registries.commands.list()).toEqual([])
   })

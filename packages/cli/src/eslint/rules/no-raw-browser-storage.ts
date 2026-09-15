@@ -14,16 +14,25 @@ export default createRule<Options, MessageIds>({
   meta: {
     type: "problem",
     docs: {
-      description: "Disallow raw localStorage/sessionStorage/document.cookie access; use createPlatformStorage (namespaced, schema-backed, cross-tab aware).",
+      description:
+        "Disallow raw localStorage/sessionStorage/document.cookie access; use createPlatformStorage (namespaced, schema-backed, cross-tab aware).",
     },
     messages: {
-      rawStorage: "Raw `{{name}}` access is outside the platform storage contract: keys are not namespaced by mfeId, not validated and not synchronised. Use `createPlatformStorage({ scope, key, schema, defaults })` from @platform/react.",
-      cookieWrite: "Writing `document.cookie` from MFE code is not supported; platform-managed state goes through `createPlatformStorage` or the settings API.",
+      rawStorage:
+        "Raw `{{name}}` access is outside the platform storage contract: keys are not namespaced by mfeId, not validated and not synchronised. Use `createPlatformStorage({ scope, key, schema, defaults })` from @platform/react.",
+      cookieWrite:
+        "Writing `document.cookie` from MFE code is not supported; platform-managed state goes through `createPlatformStorage` or the settings API.",
     },
     schema: [
       {
         type: "object",
-        properties: { allow: { type: "array", items: { type: "string" }, description: "File globs where raw storage access is allowed (tests, adapters)." } },
+        properties: {
+          allow: {
+            type: "array",
+            items: { type: "string" },
+            description: "File globs where raw storage access is allowed (tests, adapters).",
+          },
+        },
         additionalProperties: false,
       },
     ],
@@ -31,7 +40,8 @@ export default createRule<Options, MessageIds>({
   defaultOptions: [{ allow: [] }],
   create(context, [options]) {
     const filename = filenameOf(context)
-    if (options.allow && options.allow.length > 0 && matchesAny(filename, options.allow)) return {}
+    if (options.allow && options.allow.length > 0 && matchesAny(filename, options.allow))
+      return {}
     const reported = new WeakSet<TSESTree.Node>()
     const report = (node: TSESTree.Node, name: string) => {
       if (reported.has(node)) return
@@ -40,7 +50,8 @@ export default createRule<Options, MessageIds>({
     }
     return {
       Program(program) {
-        for (const identifier of globalIdentifierReferences(context, program, STORAGE_NAMES)) report(identifier, identifier.name)
+        for (const identifier of globalIdentifierReferences(context, program, STORAGE_NAMES))
+          report(identifier, identifier.name)
       },
       MemberExpression(node) {
         if (node.computed || node.property.type !== AST_NODE_TYPES.Identifier) return
@@ -52,10 +63,20 @@ export default createRule<Options, MessageIds>({
       },
       AssignmentExpression(node) {
         const left = node.left
-        if (left.type !== AST_NODE_TYPES.MemberExpression || left.computed || left.property.type !== AST_NODE_TYPES.Identifier) return
+        if (
+          left.type !== AST_NODE_TYPES.MemberExpression ||
+          left.computed ||
+          left.property.type !== AST_NODE_TYPES.Identifier
+        )
+          return
         if (left.property.name !== "cookie") return
         const object = left.object
-        const isDocument = (object.type === AST_NODE_TYPES.Identifier && object.name === "document") || (object.type === AST_NODE_TYPES.MemberExpression && !object.computed && object.property.type === AST_NODE_TYPES.Identifier && object.property.name === "document")
+        const isDocument =
+          (object.type === AST_NODE_TYPES.Identifier && object.name === "document") ||
+          (object.type === AST_NODE_TYPES.MemberExpression &&
+            !object.computed &&
+            object.property.type === AST_NODE_TYPES.Identifier &&
+            object.property.name === "document")
         if (isDocument) context.report({ node, messageId: "cookieWrite" })
       },
     }

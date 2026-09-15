@@ -16,6 +16,15 @@ vi.stubGlobal("ResizeObserver", NoopObserver)
 vi.stubGlobal("IntersectionObserver", NoopObserver)
 if (typeof window.matchMedia !== "function") {
   window.matchMedia = (query: string) =>
-    ({ matches: false, media: query, onchange: null, addListener: () => {}, removeListener: () => {}, addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => false }) as MediaQueryList
+    ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }) as MediaQueryList
 }
 Element.prototype.scrollIntoView = () => {}

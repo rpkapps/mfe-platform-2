@@ -16,13 +16,39 @@ ruleTester.run("require-telemetry-context", rule, {
     "analytics.track(eventName)",
   ],
   invalid: [
-    { code: `${imports}const telemetry = useTelemetry(); telemetry.track(eventName)`, errors: [{ messageId: "nonLiteralEvent", data: { receiver: "telemetry" } }] },
-    { code: `${imports}telemetry.track(\`dashboard.\${name}\`)`, errors: [{ messageId: "nonLiteralEvent" }] },
-    { code: `${imports}telemetry.track("Dashboard Clicked")`, errors: [{ messageId: "invalidEventName", data: { name: "Dashboard Clicked" } }] },
-    { code: `${imports}telemetry.track("dashboard..clicked")`, errors: [{ messageId: "invalidEventName" }] },
-    { code: `${imports}context.platform.telemetry.track("1st")`, errors: [{ messageId: "invalidEventName" }] },
-    { code: `${imports}try { run() } catch (error) { telemetry.error(error) }`, errors: [{ messageId: "missingBoundary", data: { receiver: "telemetry" } }] },
-    { code: `${imports}try { run() } catch (error) { context.platform.telemetry.error(error) }`, errors: [{ messageId: "missingBoundary", data: { receiver: "context.platform.telemetry" } }] },
-    { code: 'import { createTelemetry } from "@platform-internal/core"\nconst telemetry = createTelemetry({})', errors: [{ messageId: "directTelemetry" }] },
+    {
+      code: `${imports}const telemetry = useTelemetry(); telemetry.track(eventName)`,
+      errors: [{ messageId: "nonLiteralEvent", data: { receiver: "telemetry" } }],
+    },
+    {
+      code: `${imports}telemetry.track(\`dashboard.\${name}\`)`,
+      errors: [{ messageId: "nonLiteralEvent" }],
+    },
+    {
+      code: `${imports}telemetry.track("Dashboard Clicked")`,
+      errors: [{ messageId: "invalidEventName", data: { name: "Dashboard Clicked" } }],
+    },
+    {
+      code: `${imports}telemetry.track("dashboard..clicked")`,
+      errors: [{ messageId: "invalidEventName" }],
+    },
+    {
+      code: `${imports}context.platform.telemetry.track("1st")`,
+      errors: [{ messageId: "invalidEventName" }],
+    },
+    {
+      code: `${imports}try { run() } catch (error) { telemetry.error(error) }`,
+      errors: [{ messageId: "missingBoundary", data: { receiver: "telemetry" } }],
+    },
+    {
+      code: `${imports}try { run() } catch (error) { context.platform.telemetry.error(error) }`,
+      errors: [
+        { messageId: "missingBoundary", data: { receiver: "context.platform.telemetry" } },
+      ],
+    },
+    {
+      code: 'import { createTelemetry } from "@platform-internal/core"\nconst telemetry = createTelemetry({})',
+      errors: [{ messageId: "directTelemetry" }],
+    },
   ],
 })

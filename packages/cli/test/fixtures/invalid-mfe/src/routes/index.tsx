@@ -15,12 +15,22 @@ function Dashboard() {
   useRegisterSettingsGroup({
     key: "Display",
     managedBy: "mfe",
-    fields: { density: { value: "compact", schema: { type: "string" }, options: [{ value: "compact" }] } },
+    fields: {
+      density: {
+        value: "compact",
+        schema: { type: "string" },
+        options: [{ value: "compact" }],
+      },
+    },
   })
   try {
     telemetry.track(`dashboard.${name}`)
   } catch (error) {
     telemetry.error(error)
   }
-  return <p>{String(config)} {helper()}</p>
+  return (
+    <p>
+      {String(config)} {helper()}
+    </p>
+  )
 }
