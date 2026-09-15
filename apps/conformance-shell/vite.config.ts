@@ -7,7 +7,12 @@ import tailwindcss from "@tailwindcss/vite"
 // The conformance shell: a server-rendered TanStack Start application that
 // hosts the platform. Only the shell is SSR; remotes mount on the client.
 export default defineConfig({
-  server: { port: 4110, strictPort: true },
+  // The conformance runtime configuration addresses every remote as
+  // 127.0.0.1 (see scripts/conformance-env.mjs) and the E2E suites wait on the
+  // same host. Vite defaults `server.host` to `localhost` and leaves DNS order
+  // verbatim, so on a dual-stack machine it can bind ::1 only and every
+  // 127.0.0.1 request is refused.
+  server: { host: "127.0.0.1", port: 4110, strictPort: true },
   preview: { host: "127.0.0.1" },
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   // `@platform/host` is a workspace link here (source, not pre-bundled), so its

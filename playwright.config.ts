@@ -39,8 +39,10 @@ export default defineConfig({
       testMatch: /hmr\.spec\.ts/,
       // Spawns development servers once per file; runs serially.
       fullyParallel: false,
-      workers: 1,
-      timeout: 120_000,
+      // Longer than the 120 s each `waitFor` in the hook allows, so a server
+      // that never answers reports the URL it was waiting on and the last
+      // connection error instead of a bare "beforeAll hook timeout".
+      timeout: 180_000,
       use: { baseURL: "http://127.0.0.1:4110" },
     },
   ],
