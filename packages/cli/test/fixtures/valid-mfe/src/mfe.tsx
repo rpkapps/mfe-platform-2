@@ -1,4 +1,4 @@
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget } from "@platform/mfe-react"
 
 import { routeTree } from "./routeTree.gen"
 

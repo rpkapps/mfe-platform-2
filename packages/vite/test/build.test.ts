@@ -161,19 +161,6 @@ describe("vite dev server with the platform plugin", () => {
     expect(refresh.status).toBe(200)
   })
 
-  it("serves the harness fallback page with the manifest URL injected", async () => {
-    const response = await fetch(`${origin}/__platform/harness/`)
-    expect(response.status).toBe(200)
-    expect(response.headers.get("content-type")).toContain("text/html")
-    const html = await response.text()
-    expect(html).toContain(
-      'window.__PLATFORM_HARNESS__ = {"manifestUrl":"/platform-manifest.json","mfeId":"sample-mfe"}'
-    )
-    expect(html).toContain("@platform/host")
-    const redirect = await fetch(`${origin}/__platform/harness`, { redirect: "manual" })
-    expect(redirect.status).toBe(302)
-  })
-
   it("flags restart-requiring changes in the manifest and over HMR", async () => {
     const sent = vi.spyOn(server.ws, "send")
     const packageJson = join(root, "package.json")

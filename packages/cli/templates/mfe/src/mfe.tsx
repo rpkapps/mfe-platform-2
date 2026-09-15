@@ -1,4 +1,4 @@
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget } from "@platform/mfe-react"
 import { z } from "zod"
 
 import "./styles.css"
@@ -17,7 +17,13 @@ export default createMfe({
       title: "Asset card",
       description: "Summary of one asset with a details dialog.",
       component: AssetCard,
-      propsSchema: z.object({ assetId: z.string(), compact: z.boolean().optional() }),
+      propsSchema: z.object({
+        assetId: z.string(),
+        name: z.string().optional(),
+        status: z.string().optional(),
+        site: z.string().optional(),
+        compact: z.boolean().optional(),
+      }),
     }),
   },
   // Static registrations are available to the shell before the MFE mounts (App Finder,

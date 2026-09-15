@@ -5,7 +5,7 @@ import {
   usePlatform,
   useRegisterCommand,
   useTelemetry,
-} from "@platform/react"
+} from "@platform/mfe-react"
 // {{#tecton}}
 import { Button } from "@tecton/react/components/button"
 import {

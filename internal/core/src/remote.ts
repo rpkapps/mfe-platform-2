@@ -1,5 +1,6 @@
 import type { CapabilityId } from "./capabilities"
 import type { InstanceContextState } from "./context"
+import type { CredentialPort } from "./credentials"
 import type { MfeManifest } from "./manifest"
 import type { ShellNavigation } from "./navigation"
 import type { CommandRegistry } from "./registrations/commands"
@@ -40,11 +41,17 @@ export interface HostBridge {
   overlays: OverlayManager
   diagnostics: DiagnosticSink
   notifications?: NotificationPort
+  /**
+   * Access tokens for authenticated backend calls. Present only when the host
+   * approved the `auth` capability; when it did not, or when the shell supplied
+   * no adapter, a denying port is passed instead, so a remote never has to
+   * branch on `undefined` to find out it cannot authenticate.
+   */
+  credentials: CredentialPort
   /** Settings values persisted by the framework for `managedBy: "framework"` groups. */
   settingsValues: SettingsValuePort
   /** Host environment flags. */
   host: {
-    kind: "shell" | "harness"
     dev: boolean
     environment: string
     /** Headless mounts (e.g. a settings owner mounted by the shell settings page) render but do not publish breadcrumbs or become the active route MFE. */

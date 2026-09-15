@@ -7,7 +7,7 @@ import {
   usePlatform,
   useRegisterCommand,
   type MfeRouterContext,
-} from "@platform/react"
+} from "@platform/mfe-react"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { Badge } from "@tecton/react/components/badge"

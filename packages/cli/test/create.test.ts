@@ -53,7 +53,6 @@ describe("platform create", () => {
       ".prettierignore",
       ".gitignore",
       ".npmrc",
-      "playwright.config.ts",
       "vitest.config.ts",
       "README.md",
       "AGENTS.md",
@@ -74,7 +73,6 @@ describe("platform create", () => {
       "src/lib/api.ts",
       "src/__tests__/mfe.test.tsx",
       "src/__tests__/setup.ts",
-      "e2e/harness.spec.ts",
     ]) {
       expect(existsSync(join(dir, file)), file).toBe(true)
     }
@@ -118,16 +116,15 @@ describe("platform create", () => {
       test: "platform test",
       validate: "platform validate",
       manifest: "platform manifest",
-      "test:e2e": "playwright test",
       typecheck: "tsc --noEmit",
     })
     expect(pkg.dependencies.react).toBe("^19.0.0")
-    expect(pkg.dependencies["@platform/react"]).toBe("^0.1.0")
+    expect(pkg.dependencies["@platform/mfe-react"]).toBe("^0.1.0")
     expect(pkg.dependencies["@tecton/react"]).toMatch(/^github:rpkapps\/tecton-ui-1#/)
     expect(pkg.dependencies["react-aria-components"]).toBeDefined()
     expect(pkg.devDependencies["@platform/cli"]).toBe("^0.1.0")
     expect(pkg.devDependencies["@platform/vite"]).toBe("^0.1.0")
-    expect(pkg.devDependencies["@platform/host"]).toBe("^0.1.0")
+    expect(pkg.devDependencies["@platform/host"]).toBeUndefined()
     expect(pkg.devDependencies.jiti).toBeDefined()
     expect(pkg.devDependencies.eslint).toMatch(/\^9/)
     expect(pkg.devDependencies["@types/react"]).toBe("^19.0.0")
@@ -172,7 +169,7 @@ describe("platform create", () => {
       git: false,
     })
     const pkg = json(result.dir, "package.json")
-    expect(pkg.dependencies["@platform/react"]).toMatch(
+    expect(pkg.dependencies["@platform/mfe-react"]).toMatch(
       /^file:.*platform-react.*\.tgz$|^file:.*\/packages\/react$/
     )
     expect(pkg.devDependencies["@platform/vite"]).toMatch(
@@ -180,9 +177,6 @@ describe("platform create", () => {
     )
     expect(pkg.devDependencies["@platform/cli"]).toMatch(
       /^file:.*platform-cli.*\.tgz$|^file:.*\/packages\/cli$/
-    )
-    expect(pkg.devDependencies["@platform/host"]).toMatch(
-      /^file:.*platform-host.*\.tgz$|^file:.*\/packages\/host$/
     )
     expect(pkg.dependencies["@tecton/react"]).toMatch(
       /^file:.*tecton-react.*\.tgz$|^file:.*\/@tecton\/react$/

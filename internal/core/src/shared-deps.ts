@@ -12,7 +12,7 @@ import type { SharedRequest } from "./manifest"
  * Dependency sharing by version group.
  *
  * Packages bound to a React instance (react, react-dom, @tanstack/react-router,
- * @platform/react, react-aria-components…) share inside the scope of their
+ * @platform/mfe-react, react-aria-components…) share inside the scope of their
  * React major (`react18`, `react19`): one React 19 for the shell and every
  * React 19 remote, one React 18 for the React 18 remotes. React 19 can never
  * satisfy a React 18 request because the scopes are distinct. Framework-neutral
@@ -27,7 +27,7 @@ export const REACT_BOUND_PACKAGES = new Set([
   "react-dom/client",
   "@tanstack/react-router",
   "@tanstack/react-store",
-  "@platform/react",
+  "@platform/mfe-react",
   "@tecton/react",
   "react-aria-components",
   "react-aria",
@@ -48,7 +48,7 @@ export const DEFAULT_SHARED_PACKAGES = [
   "react-dom",
   "@tanstack/react-router",
   "@tanstack/history",
-  "@platform/react",
+  "@platform/mfe-react",
   "@tecton/react",
   "zod",
 ] as const
@@ -59,13 +59,13 @@ export const SOURCE_PACKAGES = new Set(["@tecton/react"])
 /**
  * Packages every remote bundles for itself even though they are inferred: the SDK
  * binds React contexts and the UI-library stack (React Aria portal context via
- * `@platform/react/tecton`) of the remote it is built into, so one copy per remote
+ * `@platform/mfe-react/tecton`) of the remote it is built into, so one copy per remote
  * is the only safe resolution. Isolation, not sharing, is the SDK's job.
  */
-export const PER_REMOTE_PACKAGES = new Set(["@platform/react"])
+export const PER_REMOTE_PACKAGES = new Set(["@platform/mfe-react"])
 
 /** Subpath entries of the SDK shared together with the main entry. */
-export const SDK_SUBPATHS = ["@platform/react/tecton"] as const
+export const SDK_SUBPATHS = ["@platform/mfe-react/tecton"] as const
 
 export const PAIRED_PACKAGES: Record<string, string[]> = {
   react: ["react-dom"],
@@ -180,7 +180,7 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
           ? `^${installed[name] ?? "0.0.0"}`
           : range
     if (PER_REMOTE_PACKAGES.has(name) && override === undefined) {
-      // Bundled unless the remote opts in (`shared: { "@platform/react": true }`).
+      // Bundled unless the remote opts in (`shared: { "@platform/mfe-react": true }`).
       requests.push({
         name,
         requiredVersion,
@@ -214,9 +214,11 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       pairedWith: PAIRED_PACKAGES[name],
     })
   }
-  // A remote may opt the SDK into sharing explicitly (`shared: { "@platform/react": true }`);
+  // A remote may opt the SDK into sharing explicitly (`shared: { "@platform/mfe-react": true }`);
   // its subpath entries then share with it so both resolve from one copy.
-  const sdk = requests.find((request) => request.name === "@platform/react" && request.shared)
+  const sdk = requests.find(
+    (request) => request.name === "@platform/mfe-react" && request.shared
+  )
   if (sdk) {
     for (const subpath of SDK_SUBPATHS) {
       if (!requests.some((request) => request.name === subpath))

@@ -5,7 +5,7 @@ const routeFile = validFile("src", "routes", "index.tsx")
 
 ruleTester.run("no-direct-mfe-import", rule, {
   valid: [
-    'import { createMfe } from "@platform/react"',
+    'import { createMfe } from "@platform/mfe-react"',
     'import { format } from "date-fns"',
     'import { helper } from "@acme/ui-kit"',
     'import { helper } from "remote-utils"',

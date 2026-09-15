@@ -1,4 +1,4 @@
-import * as platform from "@platform/react"
+import * as platform from "@platform/mfe-react"
 
 export function Namespaced() {
   platform.usePermissions()

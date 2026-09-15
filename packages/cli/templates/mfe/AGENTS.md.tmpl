@@ -25,7 +25,10 @@ This is a platform MFE. `docs` = https://platform.docs.local/docs. Read `llm.txt
 
 ## Workflow
 
-1. `pnpm dev` → open `/__platform/harness/`; the harness shows context, palette, settings, widgets and failure toggles.
+1. `pnpm dev`, then load this remote into a shell by pointing a manifest override at
+   `http://localhost:5173/platform-manifest.json` (`?platform.override.__MFE_ID__=<url>`, the
+   shell's developer tools, or runtime configuration). The dev manifest carries `dev.hmr = true`,
+   so edits hot-reload in place.
 2. Add a route file, the route tree regenerates. Restart-requiring changes (mfe.config.ts, dependencies) show a restart diagnostic.
 3. `pnpm lint && pnpm typecheck && pnpm test && pnpm validate` before committing. `pnpm build` prints the manifest summary.
 

@@ -57,13 +57,6 @@ export interface RuntimeOverrides {
   platformReact?: string
 }
 
-export interface HarnessOptions {
-  /** Serve the local shell harness at `/__platform/harness/` (default `true`). */
-  enabled?: boolean
-  /** Directory with a built harness (defaults to `@platform/host/dist/harness`). */
-  dir?: string
-}
-
 export type SharedOptions = Record<string, SharedOverride>
 
 /**
@@ -116,8 +109,6 @@ export interface MfeConfig {
   federation?: (config: ModuleFederationOptions) => ModuleFederationOptions
   /** Overrides for the compatibility metadata written to the manifest. */
   runtime?: RuntimeOverrides
-  /** Local shell harness served by the dev server. */
-  harness?: HarnessOptions
 }
 
 /** Options of the `platform()` Vite plugin: everything from `mfe.config.ts` plus build tooling switches. */

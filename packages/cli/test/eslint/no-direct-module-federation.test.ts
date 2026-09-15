@@ -3,7 +3,7 @@ import { ruleTester } from "./rule-tester"
 
 ruleTester.run("no-direct-module-federation", rule, {
   valid: [
-    'import { createMfe } from "@platform/react"',
+    'import { createMfe } from "@platform/mfe-react"',
     'import { platform } from "@platform/vite"',
     "const federation = { init() {} }\nfederation.init()",
     'const mod = await import("./local")',

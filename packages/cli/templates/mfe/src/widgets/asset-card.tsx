@@ -1,7 +1,7 @@
 // {{^tecton}}
 import * as React from "react"
 // {{/tecton}}
-import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/react"
+import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/mfe-react"
 // {{#tecton}}
 import { Button } from "@tecton/react/components/button"
 import {
@@ -21,10 +21,12 @@ import {
 } from "@tecton/react/components/dialog"
 // {{/tecton}}
 
-import { SAMPLE_ASSETS } from "@/lib/api"
-
 export interface AssetCardProps {
   assetId: string
+  /** Plain data from the host; widgets never fetch on the shell's behalf. */
+  name?: string
+  status?: string
+  site?: string
   compact?: boolean
 }
 
@@ -33,12 +35,12 @@ export interface AssetCardProps {
  * `createWidget` in src/mfe.tsx). Props are validated against `propsSchema`. Commands
  * registered here are instance-scoped and removed when the widget is disposed.
  */
-export function AssetCard({ assetId, compact }: AssetCardProps) {
-  const asset = SAMPLE_ASSETS.find((candidate) => candidate.id === assetId)
+export function AssetCard({ assetId, name, status, site, compact }: AssetCardProps) {
   const navigation = useNavigation()
   const { routePrefix } = useMfeInstance()
   const detailHref = `${routePrefix ?? ""}/assets/${assetId}`
-  const title = asset?.name ?? assetId
+  const title = name ?? assetId
+  const subtitle = [status, site].filter(Boolean).join(" · ")
 
   useRegisterCommand({
     id: "open-asset",
@@ -52,9 +54,7 @@ export function AssetCard({ assetId, compact }: AssetCardProps) {
     <Card data-asset={assetId} className={compact ? "py-2" : undefined}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        <CardDescription>
-          {asset ? `${asset.status} · ${asset.site}` : "Unknown asset"}
-        </CardDescription>
+        <CardDescription>{subtitle || "Open for details"}</CardDescription>
       </CardHeader>
       <CardContent className="flex gap-2">
         {/* Ordinary Tecton overlay: it renders into the shell overlay root for this instance. */}
@@ -87,9 +87,7 @@ export function AssetCard({ assetId, compact }: AssetCardProps) {
       }
     >
       <h3 className="font-medium">{title}</h3>
-      <p className="text-muted-foreground text-sm">
-        {asset ? `${asset.status} · ${asset.site}` : "Unknown asset"}
-      </p>
+      <p className="text-muted-foreground text-sm">{subtitle || "Open for details"}</p>
       <div className="mt-2 flex gap-2">
         <button
           type="button"

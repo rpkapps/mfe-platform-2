@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useRegisterSettingsGroup, useRuntimeEnv } from "@platform/react"
+import { usePlatformFetch, useRegisterSettingsGroup, useRuntimeEnv } from "@platform/mfe-react"
 import { z } from "zod"
 
 import { fetchRegions } from "@/lib/api"
@@ -22,6 +22,7 @@ const densitySchema = z.enum(["compact", "comfortable"])
  */
 function SettingsPage() {
   const env = useRuntimeEnv()
+  const platformFetch = usePlatformFetch()
   useRegisterSettingsGroup({
     key: "display",
     title: "Display",
@@ -49,7 +50,7 @@ function SettingsPage() {
         label: "Default region",
         // Abortable async options: the shell shows loading, error and retry states.
         options: async ({ signal }) => {
-          const regions = await fetchRegions(env.API_BASE_URL, signal)
+          const regions = await fetchRegions(platformFetch, env.API_BASE_URL, signal)
           return regions.map((region) => ({ value: region.id, label: region.name }))
         },
       },

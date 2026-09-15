@@ -1,0 +1,125 @@
+---
+title: "@platform/host-react"
+description: React bindings for a shell — PlatformProvider, the host hooks, MfeOutlet, WidgetSlot, SurfaceMount and the TanStack shell bridge. No design system.
+---
+
+Everything React a shell needs from the platform, and nothing it does not. The package has
+`react`, `react-dom` and `@platform/host` as peer dependencies, `@tanstack/react-router` as an
+optional one, and **no design system**: the shell's look is the shell's business.
+
+Entry points: `@platform/host-react`, `@platform/host-react/tanstack` and
+`@platform/host-react/styles.css`.
+
+## Provider and hooks
+
+```tsx
+import {
+  PlatformProvider,
+  usePlatformHost,
+  useHostSelector,
+  useHostDiagnostics,
+  useSubscription,
+  useShellLocation,
+  useRegistryVersion,
+} from "@platform/host-react"
+
+;<PlatformProvider host={host} renderLoading={renderLoading} renderError={renderError}>
+  {children}
+</PlatformProvider>
+```
+
+| Export                                         | What it does                                                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `PlatformProvider`                             | Puts the host in context and installs the single keyboard listener that dispatches command shortcuts |
+| `usePlatformHost()`                            | The `PlatformHost` (throws with a clear message outside a provider)                                  |
+| `useHostSelector(selector, equals?)`           | A slice of host state (remotes, instances, config); no rerender when the slice is unchanged          |
+| `useHostDiagnostics(selector?)`                | A slice of the diagnostics log, updated on every emitted event                                       |
+| `useSubscription(subscribe, compute, equals?)` | The primitive the other two are built on, for any store                                              |
+| `useShellLocation()`                           | The current shell location, from `ShellNavigation`                                                   |
+| `useRegistryVersion(kinds?)`                   | A counter that increments whenever a registry changes; handy as a memo dependency                    |
+
+`renderLoading` and `renderError` on the provider are how a shell dresses every outlet at once
+in its own design system. Both are optional; see [Outlet states](#outlet-states).
+
+## Mounting
+
+```tsx
+import { MfeOutlet, WidgetSlot, SurfaceMount } from "@platform/host-react"
+```
+
+| Component      | Props                                                                                                                                                                                                                   |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MfeOutlet`    | `mfeId`, `routePrefix?`, `fallback?`, `errorFallback?(error, retry)`, `className?`, `headless?`, `onStateChange?(state)`; states `loading`, `mounted`, `error`, `unavailable`, `denied`, `disabled`, `restart-required` |
+| `WidgetSlot`   | `mfeId`, `widgetId`, `props?`, `slot?` (stable instance key), `fallback?`, `errorFallback?`, `className?`                                                                                                               |
+| `SurfaceMount` | `surface` (a remote's `MountableSurface`), `className?`, `owner?`; mounts help or release-note content into a host-owned element and keeps a failure inside it                                                          |
+
+This is the part that belongs in a package rather than in a shell: ref timing,
+dispose-on-unmount, StrictMode double-mounts, abort signals on in-flight loads, and pushing
+prop changes to a widget through `setProps` instead of remounting it. Getting any of it subtly
+wrong looks like an MFE bug.
+
+A headless mount (`headless`) keeps a remote's registrations live without showing it — how a
+shell's settings page renders a group whose owner is not on screen.
+
+## Outlet states
+
+```ts
+import {
+  outletStateFor,
+  OUTLET_STATE_TITLES,
+  OutletLoading,
+  OutletError,
+} from "@platform/host-react"
+import type { OutletState, OutletRenderers } from "@platform/host-react"
+```
+
+`outletStateFor(error)` maps a `PlatformError` to the outlet state it produces — pure, so a
+shell can render each state however it likes. `OutletLoading` and `OutletError` are the
+built-in fallbacks: structural markup on the `platform-*` classes, no design system, enough for
+an outlet to say something useful before a shell supplies its own.
+
+Resolution order for each outlet is per-instance prop, then provider default, then built-in:
+
+```tsx
+// once, for every outlet
+<PlatformProvider
+  host={host}
+  renderLoading={(props) => <MySkeleton {...props} />}
+  renderError={(props) => <MyErrorState {...props} />}
+>
+
+// or for one outlet
+<MfeOutlet mfeId="asset-tracker" errorFallback={(error, retry) => <Custom error={error} onRetry={retry} />} />
+```
+
+## TanStack bridge
+
+```tsx
+import { createTanStackShellNavigation, mfeRouteHelpers } from "@platform/host-react/tanstack"
+
+const navigation = createTanStackShellNavigation(router) // ShellNavigation + router + dispose()
+
+// catch-all `$` route: any path under a registered prefix belongs to that MFE
+export const Route = createFileRoute("/$")({ component: MfeRoute })
+function MfeRoute() {
+  const host = usePlatformHost()
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const match = mfeRouteHelpers({ host }).matchMfeForPath(pathname)
+  if (!match) return <NotFound />
+  return <MfeOutlet key={match.mfeId} mfeId={match.mfeId} routePrefix={match.routePrefix} />
+}
+```
+
+The router's history is the single browser-history owner; remotes navigate through it and
+nothing on `window` is patched ([Shell history](/docs/routing/shell-history)).
+`mfeRouteHelpers({ host })` returns `matchMfeForPath(pathname)` (longest prefix over manifests
+and registry entries, widget libraries excluded) and `routePrefixes()`.
+
+`@tanstack/react-router` is an optional peer dependency: a shell on another router imports
+`@platform/host-react` and writes its own `ShellNavigation`.
+
+## Styles
+
+`@platform/host-react/styles.css` holds the structural rules the outlet and the widget slot
+need — which element is visible in which state, and enough styling for the built-in fallbacks
+to be legible. It defines no colours of its own beyond CSS variables a shell may set.

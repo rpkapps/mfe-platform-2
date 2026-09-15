@@ -7,7 +7,7 @@ description: The platform command line and the shareable ESLint plugin and flat 
 
 ```text
 platform create <name>       scaffold a new MFE project
-platform dev                 Vite dev server + local shell harness
+platform dev                 Vite dev server + the development manifest
 platform build               vite build + manifest validation and summary
 platform manifest            generate and print the platform manifest
 platform validate            project structure, identity, configuration, generated files and manifest
@@ -37,18 +37,17 @@ pnpm dlx @platform/cli create my-mfe          # or npx @platform/cli create my-m
 | `--mfe-id <id>`                       | inferred | Override the `mfeId` inferred from the package name (`@acme/my-mfe` → `my-mfe`)                                        |
 | `--display-name <name>`               | inferred | Override the display name (title case of the id)                                                                       |
 
-`name` may be scoped (`@acme/asset-tracker`); the folder is the last segment. The scaffold is listed file by file in [Create an MFE](/docs/getting-started/create-mfe). With `--link-platform`, `@platform/react`, `@platform/vite`, `@platform/cli`, `@platform/host` and `@tecton/react` are packed with `pnpm pack` into `.platform/packs/*.tgz` and referenced as `file:./.platform/packs/<name>.tgz` dependencies, so they install exactly like published packages (without pnpm the package directories are linked with `file:` paths). Without it the platform packages use `^0.1.0` and Tecton the pinned git specifier.
+`name` may be scoped (`@acme/asset-tracker`); the folder is the last segment. The scaffold is listed file by file in [Create an MFE](/docs/getting-started/create-mfe). With `--link-platform`, `@platform/mfe-react`, `@platform/vite`, `@platform/cli`, `@platform/host` and `@tecton/react` are packed with `pnpm pack` into `.platform/packs/*.tgz` and referenced as `file:./.platform/packs/<name>.tgz` dependencies, so they install exactly like published packages (without pnpm the package directories are linked with `file:` paths). Without it the platform packages use `^0.1.0` and Tecton the pinned git specifier.
 
 ### `dev`
 
-| Flag                         | Default                                      |
-| ---------------------------- | -------------------------------------------- |
-| `--port <port>`              | Vite's default (5173); `strictPort` when set |
-| `--host [host]`              | Expose on the network, or a specific host    |
-| `--open`                     | Open the harness in the browser              |
-| `--harness` / `--no-harness` | Serve `/__platform/harness/` (on)            |
+| Flag            | Default                                      |
+| --------------- | -------------------------------------------- |
+| `--port <port>` | Vite's default (5173); `strictPort` when set |
+| `--host [host]` | Expose on the network, or a specific host    |
+| `--open`        | Open the dev server in the browser           |
 
-Starts the project's own Vite dev server with its `vite.config.ts` (`mode: "development"`) and prints the harness URL (`<origin>/__platform/harness/`) and the dev manifest URL (`<origin>/platform-manifest.json`, usable as a manifest override in an SSR shell).
+Starts the project's own Vite dev server with its `vite.config.ts` (`mode: "development"`) and prints the development manifest URL (`<origin>/platform-manifest.json`), which a shell loads as a [manifest override](/docs/manifest-overrides).
 
 ### `build`
 

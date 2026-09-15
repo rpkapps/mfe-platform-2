@@ -5,7 +5,7 @@ import {
   useNavigation,
   useRegisterCommand,
   useRegisterSettingsGroup,
-} from "@platform/react"
+} from "@platform/mfe-react"
 
 export const recent = createPlatformStorage({
   scope: "session",

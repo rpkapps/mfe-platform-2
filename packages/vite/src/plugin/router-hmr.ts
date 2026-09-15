@@ -4,7 +4,7 @@ import type { Plugin } from "vite"
 
 import type { PlatformContext } from "./context"
 
-/** Global registry of live MFE routers by `mfeId`, maintained by `@platform/react`. */
+/** Global registry of live MFE routers by `mfeId`, maintained by `@platform/mfe-react`. */
 export const ROUTER_REGISTRY_KEY = "__PLATFORM_TSR_ROUTERS__"
 
 const GLOBAL_ROUTER = "window.__TSR_ROUTER__"

@@ -5,7 +5,7 @@ import {
   useBreadcrumb,
   useRuntimeEnv,
   useNotifications,
-} from "@platform/react"
+} from "@platform/mfe-react"
 
 export function Help() {
   useBreadcrumb({ label: "Help" })

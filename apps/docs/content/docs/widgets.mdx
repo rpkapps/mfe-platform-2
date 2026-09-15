@@ -8,7 +8,7 @@ description: Widgets are React components that the shell or other surfaces mount
 A widget is an ordinary component. `createWidget` attaches its metadata and props schema; the definition lives in `src/mfe.tsx` under a kebab-case key that becomes the widget id:
 
 ```tsx title="src/widgets/asset-card.tsx"
-import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/react"
+import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/mfe-react"
 
 export function AssetCard({ assetId, compact }: { assetId: string; compact?: boolean }) {
   const navigation = useNavigation()
@@ -27,7 +27,7 @@ export function AssetCard({ assetId, compact }: { assetId: string; compact?: boo
 ```
 
 ```tsx title="src/mfe.tsx"
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget } from "@platform/mfe-react"
 import { z } from "zod"
 
 export default createMfe({
@@ -52,7 +52,7 @@ The definition lists every widget (`widgets[]`: `id`, `title`, `description`); t
 ## Mounting from the shell
 
 ```tsx title="apps/shell/src/routes/dashboard.tsx"
-import { WidgetSlot } from "@platform/host/react"
+import { WidgetSlot } from "@platform/host-react"
 
 <WidgetSlot mfeId="asset-tracker" widgetId="asset-card" slot="dashboard-asset-card" props={{ assetId: "pump-42" }} />
 <WidgetSlot mfeId="widget-a" widgetId="kpi-tile" slot="kpi-1" props={{ label: "Production", value: kpi, unit: "bbl/d" }} />
@@ -105,7 +105,7 @@ Its manifest has `kind: "widget-library"`, `hasRoutes: false` and no `routePrefi
 ## Testing a widget
 
 ```ts
-import { createTestBridge } from "@platform/react/testing"
+import { createTestBridge } from "@platform/mfe-react/testing"
 import definition from "../mfe"
 
 const bridge = createTestBridge({

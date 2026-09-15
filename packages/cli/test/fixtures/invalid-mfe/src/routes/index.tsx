@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { useRegisterCommand, useRegisterSettingsGroup, useTelemetry } from "@platform/react"
+import { useRegisterCommand, useRegisterSettingsGroup, useTelemetry } from "@platform/mfe-react"
 import { helper } from "@acme/mfe-other"
 
 export const Route = createFileRoute("/invalid-mfe/")({

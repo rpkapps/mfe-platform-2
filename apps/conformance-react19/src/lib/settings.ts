@@ -1,4 +1,4 @@
-import { useRegisterSettingsGroup } from "@platform/react"
+import { useRegisterSettingsGroup } from "@platform/mfe-react"
 import { z } from "zod"
 
 const densitySchema = z.enum(["compact", "comfortable"])

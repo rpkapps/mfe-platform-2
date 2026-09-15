@@ -24,6 +24,7 @@
     "storage",
     "platform-context",
     "permission-groups",
+    "authentication",
     "slice-subscriptions",
     "telemetry",
     "help",

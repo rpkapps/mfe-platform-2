@@ -141,4 +141,4 @@ Variables whose names match `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `PRIVATE`, 
 
 ## Local development
 
-The harness builds its own document (`environment: "local"`, devtools always on, no manifest cache) and its _Remotes_ page has an editor for each remote's allow-listed `env`; `mfe.config.ts` `default` values apply when a key is omitted. The conformance shell in development derives the document from `PLATFORM_*` variables on every request (`scripts/dev-conformance.mjs` sets them). See [Local development](/docs/local-development).
+`mfe.config.ts` `default` values apply when a key is omitted. The conformance shell in development derives the document from `PLATFORM_*` variables on every request (`scripts/dev-conformance.mjs` sets them); the developer tools' _Runtime_ panel shows the document in force, with sensitive-looking keys masked. See [Local development](/docs/local-development).

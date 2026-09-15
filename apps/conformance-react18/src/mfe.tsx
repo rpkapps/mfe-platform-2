@@ -1,4 +1,4 @@
-import { createMfe, createWidget, type MfeRouter } from "@platform/react"
+import { createMfe, createWidget, type MfeRouter } from "@platform/mfe-react"
 import { z } from "zod"
 
 import "./styles.css"

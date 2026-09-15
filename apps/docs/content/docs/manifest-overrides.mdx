@@ -20,11 +20,11 @@ The chosen URL and its source (`query`, `override`, `runtime-config`, `registry`
 https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
 ```
 
-The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("asset-tracker", null)`, from the harness _Remotes_ page, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
+The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("asset-tracker", null)`, from the override control in the developer tools, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
 
 ## Developer tools
 
-The _Overview_ tab lists every known `mfeId` with the effective URL and its source; the harness _Remotes_ page adds an override editor. Setting an override invalidates the loader cache for that remote.
+The _Overview_ tab lists every known `mfeId` with the effective URL and its source, and offers the override control — the recommended way to point a deployed shell at a local dev server. Setting an override invalidates the loader cache for that remote.
 
 ## Registry
 
@@ -57,7 +57,7 @@ const host = createPlatformHost({
 })
 ```
 
-A `RegistryEntry` is `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`; without `manifestUrl` the default is `/mfes/<mfeId>/platform-manifest.json` (`defaultManifestUrl` option). `host.remotes.register(entry)` adds or refreshes an entry at runtime (the harness does this for every connected manifest). Requesting an `mfeId` that is in neither the registry nor the runtime configuration fails with `REMOTE_UNKNOWN`.
+A `RegistryEntry` is `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`; without `manifestUrl` the default is `/mfes/<mfeId>/platform-manifest.json` (`defaultManifestUrl` option). `host.remotes.register(entry)` adds or refreshes an entry at runtime, for a shell whose registry is not known up front. Requesting an `mfeId` that is in neither the registry nor the runtime configuration fails with `REMOTE_UNKNOWN`.
 
 ## Cache busting
 

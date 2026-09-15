@@ -6,12 +6,16 @@ import {
   createMemoryTelemetryAdapter,
   createPlatformHost,
   loadRuntimeConfig,
+  type CredentialAdapter,
   type PlatformHost,
   type RuntimeConfig,
 } from "@platform/host"
-import { createTanStackShellNavigation } from "@platform/host/tanstack"
-import { PlatformProvider, createSonnerNotificationPort } from "@platform/host/react"
+import { PlatformProvider } from "@platform/host-react"
+import { createTanStackShellNavigation } from "@platform/host-react/tanstack"
 import { FEATURE_FLAGS, PROJECTS, TENANT, USERS, JOBS } from "@platform-internal/conformance"
+
+import { createSonnerNotificationPort } from "@/components/notifications"
+import { LoadingState, RemoteErrorState } from "@/components/status"
 
 import { registry } from "./registry"
 
@@ -55,10 +59,37 @@ export function createShellHost({
       memoryTelemetry,
       createConsoleTelemetryAdapter("[shell telemetry]")
     ),
-    policy: { permissionGroups: "all", preflight: true },
-    devtools: runtimeConfig.devtools,
-    hostKind: "shell",
+    policy: {
+      permissionGroups: "all",
+      preflight: true,
+      // Nothing beyond the shell's own origin: the conformance MFEs call the
+      // shell, and the E2E suite asserts that anything else is refused.
+      credentialOrigins: [],
+    },
+    credentials: conformanceCredentials(),
+    // The shell decides which developer tools to load; the host never imports them,
+    // so they stay a separate chunk that a production shell can leave out entirely.
+    devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
   })
+}
+
+/**
+ * Stand-in for a real identity provider. A production shell implements this
+ * against its own IdP — the platform only ever sees `getToken`/`subscribe`, so
+ * no SDK and no remote learns which provider is in use.
+ */
+function conformanceCredentials(): CredentialAdapter {
+  let issued = 0
+  return {
+    getToken(request) {
+      issued += 1
+      const audience = request?.audience ?? "default"
+      return Promise.resolve(
+        `conformance.${audience}.${request?.forceRefresh ? "refreshed" : "cached"}.${issued}`
+      )
+    },
+    subscribe: () => () => {},
+  }
 }
 
 export function switchUser(host: PlatformHost, key: UserKey) {
@@ -110,7 +141,13 @@ export function ShellPlatform({
   if (!host) return <HostContext.Provider value={null}>{children}</HostContext.Provider>
   return (
     <HostContext.Provider value={host}>
-      <PlatformProvider host={host}>{children}</PlatformProvider>
+      <PlatformProvider
+        host={host}
+        renderLoading={(props) => <LoadingState {...props} />}
+        renderError={(props) => <RemoteErrorState {...props} />}
+      >
+        {children}
+      </PlatformProvider>
     </HostContext.Provider>
   )
 }

@@ -1,10 +1,19 @@
-import { useRuntimeEnv } from "@platform/react"
+import {
+  PlatformError,
+  usePlatformFetch,
+  useRuntimeEnv,
+  type PlatformFetch,
+} from "@platform/mfe-react"
 
 /**
- * Data access. The API base URL is a runtime environment value (mfe.config.ts → env,
- * injected per deployment by the host) read with `useRuntimeEnv()` in components and
- * `context.platform.runtime.env` in loaders. Sample data keeps the harness working
- * without a backend.
+ * Data access. The API base URL is a runtime environment value
+ * (mfe.config.ts → env, injected per deployment by the host) read with
+ * `useRuntimeEnv()` in components and `context.platform.runtime.env` in loaders.
+ *
+ * Every call goes through the platform fetch, which attaches the shell's access
+ * token. Nothing here ever returns stand-in data for a failed request: a route
+ * that cannot load its data renders its `errorComponent`, so a 401 looks like a
+ * 401 instead of three plausible-looking rows.
  */
 export interface Asset {
   id: string
@@ -18,57 +27,61 @@ export interface Region {
   name: string
 }
 
-export const SAMPLE_ASSETS: Asset[] = [
-  { id: "pump-1", name: "Pump 1", status: "online", site: "North Field" },
-  { id: "valve-7", name: "Valve 7", status: "maintenance", site: "North Field" },
-  { id: "compressor-2", name: "Compressor 2", status: "offline", site: "South Field" },
-]
-
-export const SAMPLE_REGIONS: Region[] = [
-  { id: "eu", name: "Europe" },
-  { id: "us", name: "United States" },
-  { id: "apac", name: "Asia Pacific" },
-]
-
 async function getJson<T>(
+  platformFetch: PlatformFetch,
   url: string,
-  signal: AbortSignal | undefined,
-  fallback: T
+  signal?: AbortSignal
 ): Promise<T> {
-  try {
-    const response = await fetch(url, { signal, headers: { accept: "application/json" } })
-    if (!response.ok) return fallback
-    return (await response.json()) as T
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw error
-    return fallback
+  const response = await platformFetch(url, {
+    signal,
+    audience: "api",
+    headers: { accept: "application/json" },
+  })
+  if (!response.ok) {
+    throw new PlatformError({
+      code: "INTERNAL",
+      message: `${url} responded ${response.status} ${response.statusText}.`,
+      source: url,
+    })
   }
+  return (await response.json()) as T
 }
 
-export function fetchAssets(baseUrl: string, signal?: AbortSignal): Promise<Asset[]> {
-  return getJson(`${baseUrl}/assets`, signal, SAMPLE_ASSETS)
+export function fetchAssets(
+  platformFetch: PlatformFetch,
+  baseUrl: string,
+  signal?: AbortSignal
+): Promise<Asset[]> {
+  return getJson<Asset[]>(platformFetch, `${baseUrl}/assets`, signal)
 }
 
-export async function fetchAsset(
+export function fetchAsset(
+  platformFetch: PlatformFetch,
   baseUrl: string,
   assetId: string,
   signal?: AbortSignal
 ): Promise<Asset> {
-  const fallback = SAMPLE_ASSETS.find((asset) => asset.id === assetId)
-  const asset = await getJson<Asset | null>(
+  return getJson<Asset>(
+    platformFetch,
     `${baseUrl}/assets/${encodeURIComponent(assetId)}`,
-    signal,
-    fallback ?? null
+    signal
   )
-  if (!asset) throw new Error(`Asset "${assetId}" was not found.`)
-  return asset
 }
 
-export function fetchRegions(baseUrl: string, signal?: AbortSignal): Promise<Region[]> {
-  return getJson(`${baseUrl}/regions`, signal, SAMPLE_REGIONS)
+export function fetchRegions(
+  platformFetch: PlatformFetch,
+  baseUrl: string,
+  signal?: AbortSignal
+): Promise<Region[]> {
+  return getJson<Region[]>(platformFetch, `${baseUrl}/regions`, signal)
 }
 
 /** Hook form for components: the base URL comes from the typed runtime env. */
 export function useApiBaseUrl(): string {
   return useRuntimeEnv().API_BASE_URL
+}
+
+/** Everything a component needs to call the API: the base URL and an authenticated fetch. */
+export function useApi(): { baseUrl: string; fetch: PlatformFetch } {
+  return { baseUrl: useApiBaseUrl(), fetch: usePlatformFetch() }
 }

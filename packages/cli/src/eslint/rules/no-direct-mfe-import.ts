@@ -3,7 +3,7 @@ import { dirname, resolve } from "node:path"
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils"
 
 import { matchesAny, normalizePath } from "../../glob"
-import { createRule, filenameOf, projectRootOf, stringValue } from "../utils"
+import { createRule, filenameOf, isPlatformSource, projectRootOf, stringValue } from "../utils"
 
 type Options = [{ allow?: string[] }]
 type MessageIds = "mfePackage" | "federationAlias" | "outsideProject"
@@ -49,6 +49,9 @@ export default createRule<Options, MessageIds>({
     const check = (node: TSESTree.Node, source: string | null) => {
       if (source === null) return
       if (allow.length && matchesAny(source, allow)) return
+      // The SDK is `@platform/mfe-react`, which matches the pattern below but is
+      // the platform, not another MFE.
+      if (isPlatformSource(source)) return
       if (MFE_PACKAGE_RE.test(source)) {
         context.report({ node, messageId: "mfePackage", data: { source } })
         return

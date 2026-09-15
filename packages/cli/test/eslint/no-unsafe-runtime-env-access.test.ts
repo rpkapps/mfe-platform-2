@@ -3,8 +3,8 @@ import { ruleTester } from "./rule-tester"
 
 ruleTester.run("no-unsafe-runtime-env-access", rule, {
   valid: [
-    'import { useRuntimeEnv } from "@platform/react"\nconst env = useRuntimeEnv()',
-    'import { usePlatform } from "@platform/react"\nconst runtime = usePlatform((p) => p.runtime)',
+    'import { useRuntimeEnv } from "@platform/mfe-react"\nconst env = useRuntimeEnv()',
+    'import { usePlatform } from "@platform/mfe-react"\nconst runtime = usePlatform((p) => p.runtime)',
     "const mode = import.meta.env.MODE",
     "const dev = import.meta.env.DEV",
     "const node = process.env.NODE_ENV",

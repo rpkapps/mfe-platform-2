@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { AppFinder } from "@platform/host/react"
+import { AppFinder } from "@/components"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { useShellHost } from "@/lib/platform"

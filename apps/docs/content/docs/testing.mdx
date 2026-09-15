@@ -1,6 +1,6 @@
 ---
 title: Testing
-description: The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers and the harness.
+description: The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers.
 ---
 
 ## What the platform suite covers
@@ -11,7 +11,7 @@ Consuming MFEs do not duplicate any of this.
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs                                                                                                                          | `internal/core` unit tests (Vitest)                                    |
 | Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics                                                                                                                                                          | `packages/vite` unit tests + fixtures                                  |
-| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                                                                             | `packages/react` unit tests (jsdom)                                    |
+| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                                                                             | `packages/mfe-react` unit tests (jsdom)                                |
 | CLI: scaffold, `platform validate`, every lint rule                                                                                                                                                                                                                    | `packages/cli` unit + fixture tests                                    |
 | Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy                                                                                                                                               | `packages/host` unit tests                                             |
 | Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes)                                                                                                                                                     | `test/integration` (Vitest)                                            |
@@ -21,15 +21,15 @@ Run it with `pnpm test`, `pnpm test:integration` and `pnpm e2e` (after `pnpm bui
 
 ## What an MFE tests
 
-- **Unit**: components, hooks and the mounted definition with `@platform/react/testing` (`src/__tests__/*.test.tsx`, jsdom).
-- **E2E**: Playwright against the harness started by `platform dev` (`e2e/*.spec.ts`), asserting the flows that matter to the product.
+- **Unit**: components, hooks and the mounted definition with `@platform/mfe-react/testing` (`src/__tests__/*.test.tsx`, jsdom).
+- **E2E**: the product's own Playwright suite against a shell that loads the MFE through a manifest override, asserting the flows that matter to the product. `platform test --e2e` runs Playwright for a project that adds it.
 
 `platform test` runs Vitest with the scaffolded `vitest.config.ts` (`platform()` injects the MFE identity; no federation); `platform test --e2e` runs Playwright. The scaffold includes one example of each.
 
-## `@platform/react/testing`
+## `@platform/mfe-react/testing`
 
 ```ts
-import { createTestBridge, renderMfe } from "@platform/react/testing"
+import { createTestBridge, renderMfe } from "@platform/mfe-react/testing"
 import { within } from "@testing-library/react"
 
 import definition from "../mfe"
@@ -83,7 +83,7 @@ handle.dispose()
 
 ```tsx
 import { renderHook } from "@testing-library/react"
-import { PlatformTestProvider } from "@platform/react/testing"
+import { PlatformTestProvider } from "@platform/mfe-react/testing"
 
 const bridge = createTestBridge({ mfeId: "asset-tracker" })
 const { result } = renderHook(() => usePlatform((p) => p.user?.displayName), {

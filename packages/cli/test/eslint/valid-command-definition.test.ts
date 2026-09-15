@@ -1,7 +1,8 @@
 import rule from "../../src/eslint/rules/valid-command-definition"
 import { ruleTester, validFile } from "./rule-tester"
 
-const imports = 'import { useRegisterCommand, CommandRegistration } from "@platform/react"\n'
+const imports =
+  'import { useRegisterCommand, CommandRegistration } from "@platform/mfe-react"\n'
 
 ruleTester.run("valid-command-definition", rule, {
   valid: [

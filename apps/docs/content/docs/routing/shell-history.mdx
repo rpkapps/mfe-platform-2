@@ -23,16 +23,16 @@ interface ShellNavigation {
 }
 ```
 
-A TanStack Start or TanStack Router shell gets it for free from `@platform/host/tanstack`:
+A TanStack Start or TanStack Router shell gets it for free from `@platform/host-react/tanstack`:
 
 ```ts title="apps/shell/src/router.tsx"
-import { createTanStackShellNavigation } from "@platform/host/tanstack"
+import { createTanStackShellNavigation } from "@platform/host-react/tanstack"
 
 const navigation = createTanStackShellNavigation(router)
 const host = createPlatformHost({ runtimeConfig, registry, navigation })
 ```
 
-`createTanStackShellNavigation` subscribes to the router's history, forwards `push`/`replace` through `router.navigate` and reports every change to the remotes as `push`, `replace` or `pop`; nothing on `window` is patched. The conformance shell creates it in its root layout and passes it to `createPlatformHost({ navigation })`. The local harness uses a browser navigation (one `popstate` listener) with the harness base path stripped.
+`createTanStackShellNavigation` subscribes to the router's history, forwards `push`/`replace` through `router.navigate` and reports every change to the remotes as `push`, `replace` or `pop`; nothing on `window` is patched. The conformance shell creates it in its root layout and passes it to `createPlatformHost({ navigation })`. A shell without a router uses `createBrowserNavigation` instead: one `popstate` listener and ordinary History API calls.
 
 ## The adapter
 
@@ -65,7 +65,7 @@ While the shell URL is **outside the MFE's prefix** — another MFE or a shell p
 `useNavigation()` gives the absolute form for cross-MFE links and the relative form for internal ones:
 
 ```tsx
-import { useNavigation } from "@platform/react"
+import { useNavigation } from "@platform/mfe-react"
 
 function Links() {
   const nav = useNavigation()

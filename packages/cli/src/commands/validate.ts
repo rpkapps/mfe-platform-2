@@ -268,14 +268,18 @@ function checkPackageJson(root: string, findings: Findings): PackageJson | null 
       { source: file, override: 'package.json → "type": "module"' }
     )
   const deps = allDependencies(pkg)
-  for (const required of ["@platform/react", "@tanstack/react-router"]) {
-    if (!deps[required])
+  // A widget library has no routes, so it has no reason to carry a router.
+  const required = existsSync(join(root, "src", "routes"))
+    ? ["@platform/mfe-react", "@tanstack/react-router"]
+    : ["@platform/mfe-react"]
+  for (const name of required) {
+    if (!deps[name])
       findings.add(
         "error",
         "package.json",
         "DEPENDENCY_MISSING",
-        `package.json does not depend on ${required}.`,
-        { source: file, override: `pnpm add ${required}` }
+        `package.json does not depend on ${name}.`,
+        { source: file, override: `pnpm add ${name}` }
       )
   }
   for (const dev of ["@platform/vite", "@platform/cli"]) {

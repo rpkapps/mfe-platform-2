@@ -80,7 +80,6 @@ export interface DependencySpecs {
   platformReact: string
   platformVite: string
   platformCli: string
-  platformHost: string
   tecton: string
 }
 
@@ -116,7 +115,6 @@ export function dependencySpecs(
       platformReact: PLATFORM_VERSION_RANGE,
       platformVite: PLATFORM_VERSION_RANGE,
       platformCli: PLATFORM_VERSION_RANGE,
-      platformHost: PLATFORM_VERSION_RANGE,
       tecton: TECTON_GIT_SPEC,
     }
   }
@@ -132,7 +130,6 @@ export function dependencySpecs(
     platformReact: link(join(root, "packages", "react")),
     platformVite: link(join(root, "packages", "vite")),
     platformCli: link(join(root, "packages", "cli")),
-    platformHost: link(join(root, "packages", "host")),
     tecton: link(resolveTectonLink(root)),
   }
 }
@@ -168,7 +165,6 @@ export function templateContext(options: {
       PLATFORM_REACT_SPEC: specs.platformReact,
       PLATFORM_VITE_SPEC: specs.platformVite,
       PLATFORM_CLI_SPEC: specs.platformCli,
-      PLATFORM_HOST_SPEC: specs.platformHost,
       TECTON_SPEC: specs.tecton,
     },
   }
@@ -283,7 +279,7 @@ export async function create(options: CreateOptions): Promise<CreateResult> {
   ]
   if (!installed) nextSteps.push(`${packageManager} install`)
   nextSteps.push(
-    `${run} dev        # Vite + local shell harness at http://localhost:5173/__platform/harness/`
+    `${run} dev        # Vite dev server; manifest at http://localhost:5173/platform-manifest.json`
   )
   nextSteps.push(`${run} lint       # platform ESLint rules (@platform/cli/eslint)`)
   nextSteps.push(`${run} validate   # manifest, identity, config and generated files`)

@@ -5,6 +5,5 @@ export default defineConfig({
     name: "host",
     environment: "jsdom",
     include: ["test/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
-    setupFiles: ["./test/setup.ts"],
   },
 })

@@ -7,21 +7,25 @@ import {
   loadDevtools,
   setDevtoolsFlag,
   shouldLoadDevtools,
+  type DevtoolsModule,
 } from "../src/devtools"
 import { createTestHost, fakeFetch, fakeLoader } from "./fixtures"
 
 function hostWith(
   policy: "flag" | "always" | "never",
   environment: string,
-  environments = ["development", "local", "test", "staging"]
+  environments = ["development", "local", "test", "staging"],
+  load?: () => Promise<DevtoolsModule>
 ) {
   return createTestHost({
     fetch: fakeFetch({}),
     loader: fakeLoader({}),
     environment,
-    devtools: { policy, environments },
+    devtools: { policy, environments, load },
   })
 }
+
+const fakeDevtools: DevtoolsModule = { DevtoolsPanel: () => null }
 
 describe("shouldLoadDevtools", () => {
   it("evaluates the flag/policy/environment matrix", () => {
@@ -80,51 +84,67 @@ describe("shouldLoadDevtools", () => {
     })
   })
 
-  it("loads the devtools module lazily and reports it", async () => {
-    const host = hostWith("always", "test")
+  it("loads the shell's devtools module once and reports it", async () => {
+    let calls = 0
+    const host = hostWith("always", "test", undefined, () => {
+      calls += 1
+      return Promise.resolve(fakeDevtools)
+    })
     const module = await loadDevtools(host)
-    expect(typeof module.DevtoolsPanel).toBe("function")
-    expect(typeof module.registerDevtoolsPanel).toBe("function")
+    expect(module).toBe(fakeDevtools)
+    expect(await loadDevtools(host)).toBe(fakeDevtools)
+    expect(calls).toBe(1)
     expect(
       host.diagnostics
         .list({ type: "devtools" })
         .some((event) => (event as { action: string }).action === "loaded")
     ).toBe(true)
   })
+
+  it("explains itself when the shell supplied no loader", async () => {
+    const host = hostWith("always", "test")
+    await expect(loadDevtools(host)).rejects.toMatchObject({
+      code: "INTERNAL",
+      override: "createPlatformHost → devtools.load",
+    })
+    expect(host.diagnostics.list({ type: "devtools" })).toContainEqual(
+      expect.objectContaining({ action: "failed" })
+    )
+  })
+
+  it("retries after a failed load", async () => {
+    let attempt = 0
+    const host = hostWith("always", "test", undefined, () => {
+      attempt += 1
+      return attempt === 1
+        ? Promise.reject(new Error("offline"))
+        : Promise.resolve(fakeDevtools)
+    })
+    await expect(loadDevtools(host)).rejects.toThrow("offline")
+    expect(await loadDevtools(host)).toBe(fakeDevtools)
+  })
 })
 
 describe("build output", () => {
   const dist = `${[resolve(process.cwd(), "dist"), resolve(process.cwd(), "packages/host/dist")].find((candidate) => existsSync(`${candidate}/index.js`)) ?? resolve(process.cwd(), "dist")}/`
   const skip = !existsSync(`${dist}index.js`)
-  it.skipIf(skip)(
-    "keeps React Flow out of the main entries (only the lazy devtools chunk imports @xyflow)",
-    () => {
-      const main = readFileSync(`${dist}index.js`, "utf8")
-      expect(main).not.toContain("@xyflow")
-      expect(main).not.toContain("DevtoolsPanel")
-      for (const entry of ["react.js", "tanstack.js", "harness.js"]) {
-        if (existsSync(`${dist}${entry}`))
-          expect(readFileSync(`${dist}${entry}`, "utf8")).not.toContain("@xyflow")
-      }
-      // Chunks statically reachable from index.js never import React Flow.
-      const seen = new Set<string>()
-      const visit = (file: string) => {
-        if (seen.has(file) || !existsSync(`${dist}${file}`)) return
-        seen.add(file)
-        const source = readFileSync(`${dist}${file}`, "utf8")
-        expect(source, file).not.toContain("@xyflow")
-        for (const match of source.matchAll(/^import[^"']*["']\.\/([^"']+)["']/gm))
-          visit(match[1]!)
-        for (const match of source.matchAll(/^export[^"']*from\s*["']\.\/([^"']+)["']/gm))
-          visit(match[1]!)
-      }
-      visit("index.js")
-      const reachable = Array.from(seen)
-        .map((file) => readFileSync(`${dist}${file}`, "utf8"))
-        .join("\n")
-      expect(reachable).toMatch(/import\(["']\.\/devtools-entry[^"']*["']\)/)
+  it.skipIf(skip)("ships no developer tools at all — the shell loads its own", () => {
+    // The tools used to be a lazy chunk inside this package, which is why every
+    // shell paid for React Flow in its dependency tree. They are a separate
+    // package now, so nothing here may reference them, eagerly or lazily.
+    const seen = new Set<string>()
+    const visit = (file: string) => {
+      if (seen.has(file) || !existsSync(`${dist}${file}`)) return
+      seen.add(file)
+      const source = readFileSync(`${dist}${file}`, "utf8")
+      expect(source, file).not.toContain("@xyflow")
+      expect(source, file).not.toContain("DevtoolsPanel")
+      for (const match of source.matchAll(/["']\.\/([^"']+\.js)["']/g)) visit(match[1]!)
     }
-  )
+    for (const entry of ["index.js", "react.js", "tanstack.js"])
+      if (existsSync(`${dist}${entry}`)) visit(entry)
+    expect(seen.size).toBeGreaterThan(0)
+  })
   it.skipIf(skip)("ships the entrypoint with a node shebang and the stylesheet", () => {
     expect(readFileSync(`${dist}entrypoint.js`, "utf8").startsWith("#!/usr/bin/env node")).toBe(
       true

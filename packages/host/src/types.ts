@@ -1,6 +1,7 @@
 import type {
   BreadcrumbStore,
   CapabilityId,
+  CredentialAdapter,
   CommandRegistry,
   CommandState,
   DevInfo,
@@ -33,6 +34,9 @@ import type {
   SnapshotShareRow,
 } from "@platform-internal/diagnostics"
 
+import type { DevtoolsLoader } from "./devtools"
+import type { HostFaults } from "./faults"
+
 export type { ManifestUrlSource, RemoteInstanceState }
 
 /** Static registry of remotes known to the shell (the platform registry precedence level). */
@@ -59,11 +63,22 @@ export interface HostPolicy {
   allowedOrigins?: string[]
   /** Coarse permission preflight against `manifest.permissionGroups` (default true). */
   preflight?: boolean
+  /**
+   * Origins besides the shell's own that a remote may attach a bearer token to.
+   * Anything else is refused before the request is sent.
+   */
+  credentialOrigins?: string[]
 }
 
 export interface DevtoolsOptions {
   policy?: "flag" | "always" | "never"
   environments?: string[]
+  /**
+   * How the shell loads its developer-tools module, e.g.
+   * `() => import("@platform/devtools")`. Without it the tools cannot open.
+   * A function, so it never enters the serialisable runtime configuration.
+   */
+  load?: DevtoolsLoader
 }
 
 export interface PlatformHostOptions {
@@ -75,10 +90,11 @@ export interface PlatformHostOptions {
   telemetry?: TelemetryAdapter | Telemetry
   storage?: StorageBackend
   notifications?: NotificationPort
+  /** Issues access tokens for remotes that were granted the `auth` capability. */
+  credentials?: CredentialAdapter
   policy?: HostPolicy
   devtools?: DevtoolsOptions
   overlays?: { baseZIndex?: number; document?: Document }
-  hostKind?: "shell" | "harness"
   environment?: string
   /** Modules the shell shares with remotes when the default loader is used. */
   shared?: Record<
@@ -204,8 +220,17 @@ export interface RemotesApi {
   /** Longest route-prefix match over loaded manifests and registry entries. */
   matchRoute(pathname: string): { mfeId: string; routePrefix: string } | null
   sharedReport(mfeId: string): SnapshotShareRow[]
-  /** Register or refresh a registry entry at runtime (harness, tests). */
+  /** Register or refresh a registry entry at runtime (tests, dynamic registries). */
   register(entry: RegistryEntry): void
+  /** Faults the developer tools are currently injecting. */
+  faults(): HostFaults
+  /**
+   * Simulate a failure the shell would otherwise be hard to push into. Ignored
+   * unless the developer tools are allowed to load, so production cannot reach
+   * it; setting one drops cached definitions so the next load takes the faulted
+   * path.
+   */
+  setFault<K extends keyof HostFaults>(fault: K, value: HostFaults[K]): void
 }
 
 export interface HostEvents extends Record<string, unknown> {
@@ -232,7 +257,6 @@ export interface CommandRunner {
 }
 
 export interface PlatformHost {
-  readonly kind: "shell" | "harness"
   readonly environment: string
   readonly protocolVersion: string
   readonly config: {
@@ -260,12 +284,14 @@ export interface PlatformHost {
   readonly storage: StorageBackend
   readonly navigation: ShellNavigation
   readonly notifications: NotificationPort | undefined
+  readonly credentials: CredentialAdapter | undefined
   readonly loader: RemoteLoader
   readonly remotes: RemotesApi
   readonly commands: CommandRunner
   readonly events: Emitter<HostEvents>
   readonly policy: Required<Pick<HostPolicy, "permissionGroups" | "preflight">> & HostPolicy
-  readonly devtools: Required<DevtoolsOptions>
+  readonly devtools: Required<Pick<DevtoolsOptions, "policy" | "environments">> &
+    Pick<DevtoolsOptions, "load">
   /** Subscribe to any host state change (remotes, instances, config). */
   subscribe(listener: () => void): () => void
   snapshot(): DiagnosticSnapshot

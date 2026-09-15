@@ -30,7 +30,6 @@ export type {
   CssOptions,
   ManifestOptions,
   RuntimeOverrides,
-  HarnessOptions,
   SharedOptions,
   ReactPluginOptions,
   ModuleFederationOptions,
@@ -93,12 +92,8 @@ export { MFE_ID_DEFINE, ROUTE_PREFIX_DEFINE }
 export { rewriteRouterHmrGlue, ROUTER_REGISTRY_KEY } from "./plugin/router-hmr"
 export {
   renderRefreshPreamble,
-  injectHarnessConfig,
-  renderFallbackHarness,
-  resolveHarnessDir,
   DEV_MANIFEST_PATH,
   REFRESH_PREAMBLE_PATH,
-  HARNESS_PATH,
   RESTART_EVENT,
 } from "./plugin/dev"
 

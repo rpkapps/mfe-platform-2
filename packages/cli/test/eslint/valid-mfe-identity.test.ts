@@ -1,7 +1,7 @@
 import rule from "../../src/eslint/rules/valid-mfe-identity"
 import { ruleTester } from "./rule-tester"
 
-const imports = 'import { createMfe, createWidget } from "@platform/react"\n'
+const imports = 'import { createMfe, createWidget } from "@platform/mfe-react"\n'
 const bootstrap = "/project/src/mfe.tsx"
 
 ruleTester.run("valid-mfe-identity", rule, {
@@ -15,7 +15,7 @@ ruleTester.run("valid-mfe-identity", rule, {
       filename: bootstrap,
     },
     {
-      code: `${imports}import { withTecton } from "@platform/react/tecton"\nexport default withTecton(createMfe({ routeTree }))`,
+      code: `${imports}import { withTecton } from "@platform/mfe-react/tecton"\nexport default withTecton(createMfe({ routeTree }))`,
       filename: bootstrap,
     },
     {

@@ -1,0 +1,73 @@
+---
+title: "@platform/devtools"
+description: The developer tools panel a shell loads on demand — its exports, the DevtoolsHost port it talks to, and how to add a panel of your own.
+---
+
+The panel, the dependency graph and their styles. `@platform/host` never imports this package;
+the shell does, on demand, so a shell that does not want the tools never carries React Flow or
+Tecton in its dependency tree. See [Developer tools](/docs/developer-tools) for the behaviour.
+
+```ts title="apps/shell/src/lib/platform.ts"
+createPlatformHost({
+  devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
+})
+```
+
+Peer dependencies: `react`, `react-dom`, `@tecton/react`, `react-aria-components`,
+`lucide-react` and `cn`. Entry points: `@platform/devtools` and `@platform/devtools/styles.css`.
+
+## Exports
+
+| Export                                                                                  | What it is                                                 |
+| --------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `DevtoolsPanel`                                                                         | The panel: `{ host, defaultTab?, refreshMs?, className? }` |
+| `DEVTOOLS_TABS`                                                                         | The built-in tabs, in order                                |
+| `registerDevtoolsPanel(definition)`                                                     | Add a tab; returns a disposer                              |
+| `listDevtoolsPanels()`, `subscribeDevtoolsPanels(listener)`                             | The registered custom tabs and their changes               |
+| `buildDependencyGraph(snapshot)`                                                        | The provider/requester graph behind the _Dependencies_ tab |
+| `DevtoolsHost`, `DevtoolsFaults`, `DevtoolsPanelDefinition`, `DevtoolsPanelRenderProps` | The types                                                  |
+
+## The `DevtoolsHost` port
+
+The tools talk to a structural port, not to `@platform/host`. `PlatformHost` satisfies it, and
+so can a shell with a different runtime:
+
+```ts
+interface DevtoolsHost {
+  snapshot(): DiagnosticSnapshot
+  subscribe(listener: () => void): () => void
+  diagnostics: DiagnosticsBus
+  telemetryEvents?: () => RecordedTelemetryEvent[]
+  remotes?: {
+    retry?(mfeId: string): Promise<unknown>
+    setLocalOverride?(mfeId: string, url: string | null): void
+    faults?(): DevtoolsFaults
+    setFault?<K extends keyof DevtoolsFaults>(fault: K, value: DevtoolsFaults[K]): void
+  }
+}
+```
+
+Everything under `remotes` is optional, and a panel that needs a member it did not get says so
+rather than rendering dead controls — the _Faults_ tab does exactly that when `setFault` is
+missing.
+
+## A panel of your own
+
+```tsx
+import { registerDevtoolsPanel } from "@platform/devtools"
+
+const dispose = registerDevtoolsPanel({
+  id: "feature-flags",
+  title: "Flags",
+  order: 50, // default 100; ties break on title
+  render: ({ host, snapshot }) => <MyFlagsPanel snapshot={snapshot} />,
+})
+```
+
+Register it after the tools load — inside the module the shell's `devtools.load` imports, or
+from a `loadDevtools(host).then(...)`. Built-in tab ids win over a custom tab with the same id.
+
+## Styles
+
+`@platform/devtools/styles.css` lays out the panel and the drawer a shell renders it in, on the
+Tecton tokens. Import it alongside the shell's own stylesheet.

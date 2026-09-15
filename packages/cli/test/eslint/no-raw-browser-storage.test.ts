@@ -3,7 +3,7 @@ import { ruleTester } from "./rule-tester"
 
 ruleTester.run("no-raw-browser-storage", rule, {
   valid: [
-    'import { createPlatformStorage } from "@platform/react"\nexport const store = createPlatformStorage({ scope: "local", key: "x", defaults: {} })',
+    'import { createPlatformStorage } from "@platform/mfe-react"\nexport const store = createPlatformStorage({ scope: "local", key: "x", defaults: {} })',
     "const localStorage = new Map()\nlocalStorage.get('x')",
     "const cookie = document.cookie",
     "const settings = { localStorage: true }\nsettings.localStorage",

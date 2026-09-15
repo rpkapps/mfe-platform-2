@@ -21,7 +21,7 @@ export const DEDUPED_PACKAGES = [
   "@tanstack/react-router",
   "@tanstack/history",
   "@tanstack/react-store",
-  "@platform/react",
+  "@platform/mfe-react",
 ]
 
 /**

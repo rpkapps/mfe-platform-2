@@ -87,7 +87,7 @@ A failing devtools chunk or panel records `devtools: failed`; the toggle stays a
 />
 ```
 
-`outletStateFor(error)` maps a `PlatformError` to the state (`MANIFEST_FETCH_FAILED`, `REMOTE_LOAD_FAILED` → `unavailable`; `PERMISSION_DENIED` → `denied`; `REMOTE_DISABLED` → `disabled`), and `RemoteErrorState` / `LoadingState` are the default renderers. `WidgetSlot` takes the same `fallback` and `errorFallback`.
+`outletStateFor(error)` from `@platform/host-react` maps a `PlatformError` to the state (`MANIFEST_FETCH_FAILED`, `REMOTE_LOAD_FAILED` → `unavailable`; `PERMISSION_DENIED` → `denied`; `REMOTE_DISABLED` → `disabled`). `OutletLoading` and `OutletError` are the built-in renderers — structural markup, no design system — and a shell replaces them for every outlet at once with `renderLoading` / `renderError` on `PlatformProvider`, or per outlet with `fallback` / `errorFallback`. `WidgetSlot` takes the same props.
 
 Inside an MFE, `<MfeErrorBoundary fallback={…}>` and `<MfeLoading />` are the platform-styled boundary and skeleton for your own subtrees.
 

@@ -14,13 +14,12 @@
     "lint:fix": "platform lint --fix",
     "test": "platform test",
     "test:watch": "platform test --watch",
-    "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@platform/react": "__PLATFORM_REACT_SPEC__",
+    "@platform/mfe-react": "__PLATFORM_REACT_SPEC__",
     "@tanstack/react-router": "^1.170.0",
 {{#tecton}}
     "@tecton/react": "__TECTON_SPEC__",
@@ -35,9 +34,7 @@
   },
   "devDependencies": {
     "@platform/cli": "__PLATFORM_CLI_SPEC__",
-    "@platform/host": "__PLATFORM_HOST_SPEC__",
     "@platform/vite": "__PLATFORM_VITE_SPEC__",
-    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.0.0",
     "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.0",

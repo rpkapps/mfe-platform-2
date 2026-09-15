@@ -46,6 +46,8 @@ import { createModuleFederationLoader } from "@platform-internal/module-federati
 
 import { approveCapabilities, createBridge, createExposedContextStore } from "./bridge"
 import { createCommandRunner } from "./commands"
+import { decideDevtools } from "./devtools"
+import { createFaultStore, withFaults } from "./faults"
 import {
   assertOriginAllowed,
   createOverrideStore,
@@ -111,7 +113,7 @@ const noopSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(reso
 
 /**
  * The shell-side runtime. Framework-free: React bindings live in
- * `@platform/host/react`, the TanStack bridge in `@platform/host/tanstack`.
+ * `@platform/host-react`, the TanStack bridge in `@platform/host-react/tanstack`.
  */
 interface SharedWork<T> {
   /** The shared task; settles once for every caller. */
@@ -181,7 +183,6 @@ function shareWork<T>(run: (signal: AbortSignal) => Promise<T>): SharedWork<T> {
 }
 
 export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
-  const kind = options.hostKind ?? "shell"
   const configStore = createStore<RuntimeConfig>(options.runtimeConfig)
   const environment = options.environment ?? options.runtimeConfig.environment
   const hasWindow = typeof window !== "undefined"
@@ -312,9 +313,15 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
   const devtools: PlatformHost["devtools"] = {
     policy: options.devtools?.policy ?? options.runtimeConfig.devtools.policy,
     environments: options.devtools?.environments ?? options.runtimeConfig.devtools.environments,
+    load: options.devtools?.load,
   }
 
   // --- loader ------------------------------------------------------------
+  // Fault injection for the developer tools; a pass-through until one is set,
+  // and reachable only where the tools themselves are allowed to load.
+  const faults = createFaultStore()
+  // `host.loader` stays the loader the shell passed in, extra API and all; the
+  // fault wrapper is what this module loads through.
   const loader: RemoteLoader =
     options.loader ??
     createModuleFederationLoader({
@@ -327,6 +334,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       },
       cacheBust: options.runtimeConfig.cache.bustOnRetry,
     })
+  const faultedLoader: RemoteLoader = withFaults(loader, faults)
 
   // --- remote records ----------------------------------------------------
   const overrides = createOverrideStore({ storage, search: options.search })
@@ -420,7 +428,6 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
 
   // --- host object (filled progressively so helpers can reference it) ------
   const host = {
-    kind,
     environment,
     protocolVersion: PLATFORM_PROTOCOL_VERSION,
     context,
@@ -433,6 +440,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
     storage,
     navigation: options.navigation,
     notifications: options.notifications,
+    credentials: options.credentials,
     loader,
     events,
     policy,
@@ -815,7 +823,9 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       })
     }
     if (policy.preflight && manifest.permissionGroups.length) {
-      const groups = new Set(context.getState().permissionGroups)
+      const groups = faults.get().denyGroups
+        ? new Set<string>()
+        : new Set(context.getState().permissionGroups)
       const missingGroups = manifest.permissionGroups.filter((group) => !groups.has(group))
       if (missingGroups.length) {
         diagnostics.emit({ type: "preflight.denied", missingGroups, mfeId })
@@ -856,12 +866,12 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       assertLoadable(mfeId, manifest)
       const record = records.getState()[mfeId]!
       updateRecord(mfeId, { state: "loading", error: undefined })
-      await loader.register(manifest, {
+      await faultedLoader.register(manifest, {
         manifestUrl: record.manifestUrl!,
         dev: manifest.dev !== undefined,
       })
       const [definition] = await Promise.all([
-        loader.load(manifest, { manifestUrl: record.manifestUrl!, signal }),
+        faultedLoader.load(manifest, { manifestUrl: record.manifestUrl!, signal }),
         ensureRemoteStylesheets(manifest, record.manifestUrl!).catch((error: unknown) => {
           diagnostics.emit({
             type: "log",
@@ -1055,7 +1065,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       const manifest = records.getState()[mfeId]!.manifest!
       updateInstance(instanceId, { state: "mounting" })
       updateRecord(mfeId, { state: "mounting" })
-      const capabilities = approveCapabilities(host, manifest)
+      const capabilities = approveWithFaults(manifest)
       const { bridge } = createBridge({
         host,
         manifest,
@@ -1065,6 +1075,8 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         runtimeConfig: configStore.getState(),
         diagnostics: sink,
         notifications: options.notifications,
+        credentials: options.credentials,
+        credentialOrigins: policy.credentialOrigins,
         headless: mountOptions.headless,
       })
       prepareContainer(mountOptions.container, mfeId, instanceId, mountOptions.slot)
@@ -1185,7 +1197,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         })
       }
       updateInstance(instanceId, { state: "mounting" })
-      const capabilities = approveCapabilities(host, manifest)
+      const capabilities = approveWithFaults(manifest)
       const { bridge } = createBridge({
         host,
         manifest,
@@ -1195,6 +1207,8 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         runtimeConfig: configStore.getState(),
         diagnostics: sink,
         notifications: options.notifications,
+        credentials: options.credentials,
+        credentialOrigins: policy.credentialOrigins,
       })
       prepareContainer(mountOptions.container, mfeId, instanceId, mountOptions.slot)
       mountOptions.container.setAttribute("data-platform-widget", widgetId)
@@ -1294,6 +1308,13 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
     }
   }
 
+  /** Approved capabilities, minus anything the developer tools are dropping. */
+  const approveWithFaults = (manifest: MfeManifest) => {
+    const approved = approveCapabilities(host, manifest)
+    const dropped = faults.get().droppedCapabilities
+    return dropped.length ? approved.filter((id) => !dropped.includes(id)) : approved
+  }
+
   const remotes: RemotesApi = {
     list: () => Object.values(records.getState()),
     get: (mfeId) => records.getState()[mfeId],
@@ -1337,11 +1358,11 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       const manifest = await loadManifest(mfeId)
       const record = records.getState()[mfeId]!
       if (!isEnabled(record.registry, manifest, mfeId)) return
-      await loader.register(manifest, {
+      await faultedLoader.register(manifest, {
         manifestUrl: record.manifestUrl!,
         dev: manifest.dev !== undefined,
       })
-      await loader.preload?.(manifest, { manifestUrl: record.manifestUrl! })
+      await faultedLoader.preload?.(manifest, { manifestUrl: record.manifestUrl! })
     },
     mount,
     mountWidget,
@@ -1364,6 +1385,31 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
     },
     sharedReport: safeSharedReport,
     register: registerEntry,
+    faults: () => faults.get(),
+    setFault(fault, value) {
+      // The same gate the developer tools themselves pass, so production cannot
+      // reach this even by calling it.
+      if (!decideDevtools(host).allowed) {
+        diagnostics.emit({
+          type: "devtools",
+          action: "denied",
+          reason: "policy-never",
+        })
+        return
+      }
+      faults.set(fault, value)
+      diagnostics.emit({
+        type: "log",
+        level: "warn",
+        message: `Developer tools fault "${String(fault)}" set to ${JSON.stringify(value)}.`,
+      })
+      // Drop cached definitions so the next load goes through the faulted path.
+      for (const mfeId of Object.keys(records.getState())) {
+        definitions.delete(mfeId)
+        loader.invalidate?.(mfeId)
+      }
+      notify()
+    },
   }
   ;(host as { remotes: RemotesApi }).remotes = remotes
   ;(host as { commands: PlatformHost["commands"] }).commands = createCommandRunner(host)
@@ -1419,7 +1465,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       telemetry: memoryTelemetry.events,
       overlays: overlays.getState(),
       diagnostics: diagnostics.list(),
-      host: { kind, environment, protocolVersion: PLATFORM_PROTOCOL_VERSION },
+      host: { environment, protocolVersion: PLATFORM_PROTOCOL_VERSION },
     })
   }
 

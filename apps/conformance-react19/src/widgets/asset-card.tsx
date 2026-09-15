@@ -1,4 +1,4 @@
-import { useNavigation, useRegisterCommand } from "@platform/react"
+import { useNavigation, useRegisterCommand } from "@platform/mfe-react"
 import { ASSETS, TEST_IDS } from "@platform-internal/conformance"
 
 import { Button } from "@tecton/react/components/button"

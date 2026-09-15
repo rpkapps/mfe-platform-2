@@ -50,7 +50,7 @@ describe("analyzeSourceFile", () => {
     // with nothing for the developer to fix, and so nothing to warn about.
     const result = analyzeSourceFile(
       [
-        'import { useRegisterCommand } from "@platform/react"',
+        'import { useRegisterCommand } from "@platform/mfe-react"',
         "export function AssetCard({ assetId }: { assetId: string }) {",
         '  useRegisterCommand({ id: "open-asset", label: `Open ${assetId}`, handler: () => {} })',
         "  return null",
@@ -66,7 +66,7 @@ describe("analyzeSourceFile", () => {
     // A non-literal id: the command cannot be named at all, whoever registers it.
     const unnamed = analyzeSourceFile(
       [
-        'import { useRegisterCommand } from "@platform/react"',
+        'import { useRegisterCommand } from "@platform/mfe-react"',
         "export function C({ id }: { id: string }) {",
         '  useRegisterCommand({ id, label: "Open" })',
         "  return null",
@@ -79,7 +79,7 @@ describe("analyzeSourceFile", () => {
     // real omission — and the warning names the command.
     const staticNote = analyzeSourceFile(
       [
-        'import { createMfe } from "@platform/react"',
+        'import { createMfe } from "@platform/mfe-react"',
         "const suffix = String(Date.now())",
         "export default createMfe({",
         '  mfeId: "asset-tracker",',
@@ -176,7 +176,7 @@ describe("analyzeSourceFile", () => {
 
   it("never throws on unparsable code", () => {
     const result = analyzeSourceFile(
-      'import { useRegisterCommand } from "@platform/react"\nexport const x = {{{',
+      'import { useRegisterCommand } from "@platform/mfe-react"\nexport const x = {{{',
       "broken.tsx"
     )
     expect(result.capabilities).toEqual([])

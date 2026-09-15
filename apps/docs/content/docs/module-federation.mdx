@@ -53,7 +53,7 @@ For the record, this is what `platform()` passes to `@module-federation/vite`:
 
 Every remote records `protocolVersion` (currently `1.0`) in its manifest; the host has its own. A remote is loadable when the **majors match**. The minor may differ: minors add optional fields and never change the meaning of existing ones.
 
-A mismatch raises `PROTOCOL_INCOMPATIBLE` before anything is loaded, naming the host and remote versions: upgrade the remote's `@platform/react` and `@platform/vite`, or the host's `@platform/host`, so the majors match. The check is loader-neutral and also covers manifests, `mount/dispose`, the bridge, registrations and diagnostics.
+A mismatch raises `PROTOCOL_INCOMPATIBLE` before anything is loaded, naming the host and remote versions: upgrade the remote's `@platform/mfe-react` and `@platform/vite`, or the host's `@platform/host`, so the majors match. The check is loader-neutral and also covers manifests, `mount/dispose`, the bridge, registrations and diagnostics.
 
 ## Loader abstraction
 

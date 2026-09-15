@@ -1,48 +1,49 @@
 ---
 title: "@platform/host"
-description: Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.
+description: The framework-free shell runtime, its headless command, search and settings APIs, the testing helpers and the Docker entrypoint.
 ---
 
-Entry points: `@platform/host` (runtime), `@platform/host/react` (components), `@platform/host/tanstack` (shell navigation and `$`-route helpers), `@platform/host/harness` (the local shell), `@platform/host/entrypoint` (runtime configuration generator, also the `platform-host-entrypoint` binary) and `@platform/host/styles.css`.
+`@platform/host` declares **no peer dependencies**: no React, no router, no design system. It is the runtime plus the headless APIs a shell builds its own UI on. React bindings are [`@platform/host-react`](/docs/reference/host-react); the chrome is the shell's own code.
+
+Entry points: `@platform/host` (runtime and headless APIs), `@platform/host/testing` (an in-memory host for testing a shell's chrome), `@platform/host/entrypoint` (runtime configuration generator, also the `platform-host-entrypoint` binary) and `@platform/host/styles.css` (the overlay roots the overlay manager creates).
 
 ## `createPlatformHost(options)`
 
 ```ts
 import { createPlatformHost, loadRuntimeConfig } from "@platform/host"
-import { createTanStackShellNavigation } from "@platform/host/tanstack"
-import { createSonnerNotificationPort } from "@platform/host/react"
+import { createTanStackShellNavigation } from "@platform/host-react/tanstack"
 
 const host = createPlatformHost({
   runtimeConfig: await loadRuntimeConfig({ inline }), // a parsed RuntimeConfig (required)
   navigation: createTanStackShellNavigation(router), // ShellNavigation (required)
   registry: [{ mfeId: "asset-tracker", manifestUrl: "https://…/platform-manifest.json", displayName: "Asset Tracker" }],
   context: { user, permissionGroups, tenant, project, job, locale, timezone, theme, resolvedTheme, featureFlags, environment, release }, // Partial<ShellContextState> or a ShellContextStore
-  notifications: createSonnerNotificationPort(), // NotificationPort; render <NotificationHost /> once
+  notifications: myNotificationPort, // NotificationPort, implemented by the shell
+  credentials: myCredentialAdapter, // CredentialAdapter (see Authentication)
   telemetry: adapter, // TelemetryAdapter or a Telemetry instance
-  policy: { permissionGroups: "all", preflight: true, allowedOrigins?, capabilities?(manifest) },
-  devtools: { policy?: "flag" | "always" | "never", environments?: string[] }, // default: runtimeConfig.devtools
-  hostKind: "shell", // or "harness"
+  policy: { permissionGroups: "all", preflight: true, allowedOrigins?, credentialOrigins?, capabilities?(manifest) },
+  devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
 })
 ```
 
-| Option                                                                                                                | Description                                                                                                                                         |
-| --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `runtimeConfig`                                                                                                       | Required, a validated `RuntimeConfig` ([Runtime configuration](/docs/runtime-configuration))                                                        |
-| `navigation`                                                                                                          | Required `ShellNavigation` ([Shell history](/docs/routing/shell-history))                                                                           |
-| `registry`                                                                                                            | `RegistryEntry[]`: `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`                                         |
-| `loader`                                                                                                              | `RemoteLoader`; default: Module Federation (`shared` lists the modules the shell offers: `{ version, lib, singleton?, requiredVersion? }` per name) |
-| `context`                                                                                                             | Initial shell context or an existing store                                                                                                          |
-| `telemetry`, `storage`, `notifications`                                                                               | Adapters; storage defaults to the browser backend                                                                                                   |
-| `policy`                                                                                                              | `capabilities(manifest)` (default: manifest + implicit), `permissionGroups: "all" \| string[]`, `allowedOrigins`, `preflight` (default `true`)      |
-| `devtools`, `overlays`                                                                                                | `{ policy, environments }`; `{ baseZIndex?, document? }`                                                                                            |
-| `hostKind`, `environment`                                                                                             | `"shell"` (default) or `"harness"`; environment defaults to `runtimeConfig.environment`                                                             |
-| `refreshRuntimeConfig`, `defaultManifestUrl`, `fetch`, `origin`, `search`, `sleep`, `diagnosticsLimit`, `autoPreload` | Overrides for `config.refresh()`, the default `/mfes/<mfeId>/platform-manifest.json`, tests and preloading                                          |
+| Option                                                                                                                | Description                                                                                                                                                         |
+| --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `runtimeConfig`                                                                                                       | Required, a validated `RuntimeConfig` ([Runtime configuration](/docs/runtime-configuration))                                                                        |
+| `navigation`                                                                                                          | Required `ShellNavigation` ([Shell history](/docs/routing/shell-history))                                                                                           |
+| `registry`                                                                                                            | `RegistryEntry[]`: `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`                                                         |
+| `loader`                                                                                                              | `RemoteLoader`; default: Module Federation (`shared` lists the modules the shell offers: `{ version, lib, singleton?, requiredVersion? }` per name)                 |
+| `context`                                                                                                             | Initial shell context or an existing store                                                                                                                          |
+| `telemetry`, `storage`, `notifications`, `credentials`                                                                | Adapters; storage defaults to the browser backend, `credentials` is a `CredentialAdapter` ([Authentication](/docs/authentication))                                  |
+| `policy`                                                                                                              | `capabilities(manifest)` (default: manifest + implicit), `permissionGroups: "all" \| string[]`, `allowedOrigins`, `credentialOrigins`, `preflight` (default `true`) |
+| `devtools`, `overlays`                                                                                                | `{ policy, environments, load }` — `load` is how the shell supplies its tools, e.g. `() => import("@platform/devtools")`; `{ baseZIndex?, document? }`              |
+| `environment`                                                                                                         | Defaults to `runtimeConfig.environment`                                                                                                                             |
+| `refreshRuntimeConfig`, `defaultManifestUrl`, `fetch`, `origin`, `search`, `sleep`, `diagnosticsLimit`, `autoPreload` | Overrides for `config.refresh()`, the default `/mfes/<mfeId>/platform-manifest.json`, tests and preloading                                                          |
 
 ### `PlatformHost`
 
 | Member                                                     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kind`, `environment`, `protocolVersion`                   | Identity of the host                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `environment`, `protocolVersion`                           | Identity of the host                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `config`                                                   | `get()`, `subscribe(listener)`, `refresh()` (re-fetches `/platform-config.json` unless `refreshRuntimeConfig` is given)                                                                                                                                                                                                                                                                                                                                                               |
 | `context`                                                  | Shell context store: `getState()`, `setState()`, `patch(partial)`, `subscribe()`; every change bumps `revision`                                                                                                                                                                                                                                                                                                                                                                       |
 | `exposedContext`                                           | Policy-filtered read-only view handed to remotes                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -61,79 +62,46 @@ const host = createPlatformHost({
 
 Other runtime exports: `loadRuntimeConfig({ inline?, url?, fetch?, fallback?, diagnostics?, document?, window?, signal? })`, `readInlineRuntimeConfig`, `diffRuntimeConfig`, `RUNTIME_CONFIG_SCRIPT_ID` (`platform-config`), `RUNTIME_CONFIG_URL`; `resolveManifestUrl`, `assertOriginAllowed`, `fetchManifest`, `createOverrideStore`, `defaultManifestUrl`, `MANIFEST_OVERRIDES_KEY` (`platform:manifest-overrides`), `MANIFEST_QUERY_PREFIX` (`platform.override.`); `createBridge`, `createSettingsValuePort`, `settingsStorageKey`, `approveCapabilities`; `createCommandSearchIndex`, `collectEntries`, `scoreEntry`, `SEARCH_GROUPS`; `runCommand`, `createCommandRunner`, `commandHref`, `isCommandAvailable`; `installShortcutListener`, `isEditableTarget`; `settingsController`, `readSettingsGroupValues`; `shouldLoadDevtools`, `loadDevtools`, `decideDevtools`, `readDevtoolsFlag`, `setDevtoolsFlag`, `DEVTOOLS_FLAG_KEY` (`platform:devtools`), `DEVTOOLS_QUERY` (`platform.devtools`); `stateForError`; and every type from `types.ts` (`PlatformHost`, `PlatformHostOptions`, `RegistryEntry`, `HostPolicy`, `RemoteRecord`, `InstanceRecord`, `MountOptions`, `WidgetMountOptions`, `MountedInstance`, `WidgetInstance`, `RemotesApi`, `CommandRunner`, `HostEvents`…).
 
-## React components — `@platform/host/react`
+## Headless APIs for a shell's own UI
 
-```tsx
-import {
-  PlatformProvider,
-  MfeOutlet,
-  WidgetSlot,
-  CommandPalette,
-  SettingsHost,
-  HelpSlot,
-  ReleaseNotesSlot,
-  Breadcrumbs,
-  AppFinder,
-  NotificationHost,
-  createSonnerNotificationPort,
-  PlatformDevtools,
-  ShellOverlayProvider,
-  usePlatformHost,
-  useHostSelector,
-  useHostDiagnostics,
-  useSubscription,
-  useShellLocation,
-  useRegistryVersion,
-  RemoteErrorState,
-  LoadingState,
-  outletStateFor,
-  SurfaceMount,
-} from "@platform/host/react"
-```
+The chrome the platform used to ship — a command palette, a settings page, breadcrumbs, an app
+finder — is now the shell's own code, because a shell's design system is not the platform's
+business. What the platform keeps is the part that is hard to get right:
 
-| Component                                          | Props                                                                                                                                                                                               |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `PlatformProvider`                                 | `host`; wraps the shell tree and installs the single keyboard listener that dispatches command shortcuts                                                                                            |
-| `MfeOutlet`                                        | `mfeId`, `routePrefix?`, `fallback?`, `errorFallback?(error, retry)`, `className?`, `headless?`, `onStateChange?(state)`; states `loading`, `mounted`, `error`, `unavailable`, `denied`, `disabled` |
-| `WidgetSlot`                                       | `mfeId`, `widgetId`, `props?`, `slot?` (stable instance key), `fallback?`, `errorFallback?`, `className?`                                                                                           |
-| `CommandPalette`                                   | `hotkey?` (default `mod+k`, `null` disables), `placeholder?`, `open?`, `onOpenChange?`, `settingsPath?`, `helpPath?`, `releaseNotesPath?`, `limit?`                                                 |
-| `SettingsHost`                                     | `groupFilter?`, `selectedGroup?`, `onSelectGroup?`, `focusField?`, `className?`, `emptyState?`; framework-managed groups render, MFE-managed ones link                                              |
-| `HelpSlot`, `ReleaseNotesSlot`                     | `mfeId?`, `selected?`, `emptyState?`, `className?`                                                                                                                                                  |
-| `Breadcrumbs`                                      | `renderer?(entries)`, `maxItems?`, `className?`, `announcePrefix?`                                                                                                                                  |
-| `AppFinder`                                        | `shellName?`, `className?`, `extra?: { id, name, href, description?, category?, keywords? }[]`; discoverable, enabled remotes only                                                                  |
-| `NotificationHost`                                 | Tecton `Toaster` props; renders the toaster `createSonnerNotificationPort()` writes to                                                                                                              |
-| `PlatformDevtools`                                 | `defaultOpen?`, `force?`, `className?`; lazy (`loadDevtools`), governed by the flag, policy and environment                                                                                         |
-| `ShellOverlayProvider`                             | `children`, `attributes?`; gives the shell's own overlays a root on the same overlay manager                                                                                                        |
-| `RemoteErrorState`, `LoadingState`, `SurfaceMount` | The boundary states and the surface mounter the components use                                                                                                                                      |
+| Export                                                                            | What it gives you                                                                                                           |
+| --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `createCommandSearchIndex(host)`, `collectEntries`, `scoreEntry`, `SEARCH_GROUPS` | A ranked, grouped search over commands, MFEs, routes, settings, help and release notes — everything a palette lists         |
+| `runCommand`, `createCommandRunner`, `commandHref`, `isCommandAvailable`          | Running a command with its state machine, abort support, outcome reporting and telemetry                                    |
+| `installShortcutListener(host)`, `isEditableTarget`                               | One keyboard listener that dispatches registered shortcuts and stays out of inputs (`PlatformProvider` installs it for you) |
+| `settingsController(...)`, `readSettingsGroupValues`                              | Control inference, validation, persistence, async options and migration for a settings page                                 |
+| `outletStateFor` (from `@platform/host-react`)                                    | Which state an error puts an outlet in                                                                                      |
 
-## TanStack bridge — `@platform/host/tanstack`
+`apps/conformance-shell/src/components` in the platform repository is the reference
+implementation of all of it — copy it and restyle it, shadcn-style, rather than depending on it.
 
-```tsx
-import { createTanStackShellNavigation, mfeRouteHelpers } from "@platform/host/tanstack"
-
-const navigation = createTanStackShellNavigation(router) // ShellNavigation + router + dispose()
-
-// catch-all `$` route: any path under a registered prefix belongs to that MFE
-export const Route = createFileRoute("/$")({ component: MfeRoute })
-function MfeRoute() {
-  const host = usePlatformHost()
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
-  const match = mfeRouteHelpers({ host }).matchMfeForPath(pathname)
-  if (!match) return <NotFound />
-  return <MfeOutlet key={match.mfeId} mfeId={match.mfeId} routePrefix={match.routePrefix} />
-}
-```
-
-`mfeRouteHelpers({ host })` returns `matchMfeForPath(pathname)` (longest prefix over manifests and registry entries; widget libraries excluded) and `routePrefixes()`.
-
-## Harness — `@platform/host/harness`
+## Testing a shell — `@platform/host/testing`
 
 ```ts
-import { mountHarness } from "@platform/host/harness"
-const { host, lab, unmount } = mountHarness({ container?, manifestUrls?, basePath?, context?, runtimeConfig?, devtools?, hostKind? })
+import {
+  createTestHost,
+  fakeLoader,
+  recordingFetch,
+  manifest,
+  definition,
+} from "@platform/host/testing"
+
+const host = createTestHost({
+  fetch: recordingFetch({
+    "http://shell.test/mfes/asset-tracker/platform-manifest.json": manifest(),
+  }),
+  loader: fakeLoader({ "asset-tracker": definition() }),
+})
 ```
 
-The local shell served by `platform dev` at `/__platform/harness/` (built into `dist/harness/`). Manifest URLs come from `window.__PLATFORM_HARNESS__.manifestUrl` (injected by the dev server), `?manifest=<url>` or `/platform-manifest.json`. Also exported: `createFailureLab`, `createLabLoader`, `connectManifest`, `readHarnessManifestUrls`, `detectBasePath`, `createBasedNavigation`, `DEFAULT_HARNESS_CONTEXT`, `HARNESS_PREFIX`. See [Local development](/docs/local-development).
+An in-memory host with memory navigation and storage, a fake loader that answers from a map of
+definitions, a manifest builder and a `fetch` that answers from a URL map (with `failures` and
+`status` overrides for retry and error paths). Enough to unit-test a shell's chrome with no
+browser, no network and no real remote.
 
 ## Entrypoint — `@platform/host/entrypoint`
 
@@ -156,8 +124,11 @@ Reads only `PLATFORM_*` variables, refuses sensitive-looking names, validates th
 
 ## Styles
 
-`@platform/host/styles.css` contains the host component styles (outlet states, palette, settings host, breadcrumbs, harness) built on the Tecton tokens; import it after `@tecton/react/globals.css`.
+`@platform/host/styles.css` is small on purpose: it styles the overlay roots and layers the
+host's overlay manager creates, and nothing else. Outlet layout ships with
+[`@platform/host-react/styles.css`](/docs/reference/host-react); the developer tools bring
+`@platform/devtools/styles.css`; the chrome's own styles belong to the shell.
 
 ## Core helpers re-exported by the host
 
-Shells compose the host from adapters and backends that live in the platform core; `@platform/host` re-exports them so a shell outside this repository never depends on an internal package: `createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`, `createTelemetry`, `createBrowserNavigation`, `createMemoryNavigation`, `createBrowserStorageBackend`, `createMemoryStorageBackend`, `createShellContextStore`, `createPermissionHelpers`, `PlatformError`, `ERROR_CODES`, `validateManifest`, `parseRuntimeConfig`, `generateRuntimeConfig`, and the types `Telemetry`, `TelemetryAdapter`, `ShellNavigation`, `StorageBackend`, `ShellContextState`, `MfeManifest`, `RuntimeConfig`, `HostBridge`, `RemoteDefinition`, `RemoteLoader`. A shell on TanStack Router uses `createTanStackShellNavigation` from `@platform/host/tanstack`.
+Shells compose the host from adapters and backends that live in the platform core; `@platform/host` re-exports them so a shell outside this repository never depends on an internal package: `createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`, `createTelemetry`, `createBrowserNavigation`, `createMemoryNavigation`, `createBrowserStorageBackend`, `createMemoryStorageBackend`, `createShellContextStore`, `createPermissionHelpers`, `PlatformError`, `ERROR_CODES`, `validateManifest`, `parseRuntimeConfig`, `generateRuntimeConfig`, and the types `Telemetry`, `TelemetryAdapter`, `ShellNavigation`, `StorageBackend`, `ShellContextState`, `MfeManifest`, `RuntimeConfig`, `HostBridge`, `RemoteDefinition`, `RemoteLoader`. A shell on TanStack Router uses `createTanStackShellNavigation` from [`@platform/host-react/tanstack`](/docs/reference/host-react#tanstack-bridge).

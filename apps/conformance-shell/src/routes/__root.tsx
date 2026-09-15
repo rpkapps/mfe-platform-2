@@ -16,7 +16,7 @@ import {
   NotificationHost,
   PlatformDevtools,
   ShellOverlayProvider,
-} from "@platform/host/react"
+} from "@/components"
 import { TEST_IDS, PROJECTS } from "@platform-internal/conformance"
 
 import {

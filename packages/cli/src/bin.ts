@@ -104,20 +104,16 @@ cli
   )
 
 cli
-  .command("dev", "Start the Vite dev server with the local shell harness")
+  .command("dev", "Start the Vite dev server and serve the development manifest")
   .option("--port <port>", "Port (default: Vite's, 5173)")
   .option("--host [host]", "Expose on the network (or a specific host)")
-  .option("--open", "Open the harness in the browser")
-  .option("--harness", "Serve the local shell harness (default) — --no-harness to disable", {
-    default: true,
-  })
+  .option("--open", "Open the dev server in the browser")
   .action(
     (
       options: GlobalOptions & {
         port?: string
         host?: string | boolean
         open?: boolean
-        harness: boolean
       }
     ) =>
       run(async () => {
@@ -126,7 +122,6 @@ cli
           port: options.port ? Number.parseInt(String(options.port), 10) : undefined,
           host: options.host,
           open: options.open,
-          harness: options.harness,
         })
       })
   )

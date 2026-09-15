@@ -1,5 +1,6 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
@@ -100,10 +101,19 @@ describe("platform validate", () => {
     )
   })
 
+  it("does not ask a widget library for a router", async () => {
+    const fixture = join(dirname(fileURLToPath(import.meta.url)), "fixtures", "widget-only-mfe")
+    const result = await validate({ cwd: fixture, manifest: false })
+    expect(codes(result.findings)).toEqual([])
+    expect(
+      result.findings.some((finding) => finding.message.includes("@tanstack/react-router"))
+    ).toBe(false)
+  })
+
   it("recognises the bootstrap default export shapes", () => {
     expect(
       defaultExportsCreateMfe(
-        'import { createMfe } from "@platform/react"\nexport default createMfe({})'
+        'import { createMfe } from "@platform/mfe-react"\nexport default createMfe({})'
       )
     ).toBe(true)
     expect(defaultExportsCreateMfe("const mfe = createMfe({})\nexport default mfe")).toBe(true)

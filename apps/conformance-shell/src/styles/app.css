@@ -1,8 +1,12 @@
 @import "tailwindcss";
 @import "@tecton/react/globals.css";
 @import "@platform/host/styles.css";
+@import "@platform/host-react/styles.css";
+@import "@platform/devtools/styles.css";
+@import "./chrome.css";
 @source "./";
-@source "../../../packages/host/src/**/*.tsx";
+@source "../components/**/*.tsx";
+@source "../../../packages/devtools/src/**/*.tsx";
 
 /* Shell-only chrome tweaks; MFE styles never reach here (they are scoped). */
 @layer components {

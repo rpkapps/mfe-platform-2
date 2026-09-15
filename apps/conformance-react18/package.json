@@ -14,7 +14,7 @@
     "test": "platform test"
   },
   "dependencies": {
-    "@platform/react": "workspace:*",
+    "@platform/mfe-react": "workspace:*",
     "@tanstack/react-router": "catalog:",
     "zod": "catalog:",
     "react": "catalog:react18",

@@ -2,7 +2,7 @@ import rule from "../../src/eslint/rules/registration-cleanup"
 import { ruleTester } from "./rule-tester"
 
 const imports =
-  'import { useRegisterCommand, useRegisterSettingsGroup, usePlatform, useBreadcrumb } from "@platform/react"\n'
+  'import { useRegisterCommand, useRegisterSettingsGroup, usePlatform, useBreadcrumb } from "@platform/mfe-react"\n'
 
 ruleTester.run("registration-cleanup", rule, {
   valid: [
@@ -57,7 +57,7 @@ ruleTester.run("registration-cleanup", rule, {
       ],
     },
     {
-      code: `${imports}import * as platform from "@platform/react"\nfunction run() { platform.useBreadcrumb("x") }`,
+      code: `${imports}import * as platform from "@platform/mfe-react"\nfunction run() { platform.useBreadcrumb("x") }`,
       errors: [{ messageId: "hookOutsideComponent" }],
     },
     {
@@ -70,7 +70,7 @@ ruleTester.run("registration-cleanup", rule, {
       ],
     },
     {
-      code: 'import { registerCommand } from "@platform/react"\nfunction Panel() { registerCommand({ id: "a" }); return null }',
+      code: 'import { registerCommand } from "@platform/mfe-react"\nfunction Panel() { registerCommand({ id: "a" }); return null }',
       errors: [{ messageId: "disposerDiscarded", data: { name: "registerCommand" } }],
     },
   ],

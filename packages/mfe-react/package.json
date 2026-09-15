@@ -1,0 +1,68 @@
+{
+  "name": "@platform/mfe-react",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MFE-facing SDK: isolated MFE and widget bootstrap, TanStack Router integration with shell-backed history, platform context, storage, commands, settings, help, release notes, breadcrumbs, telemetry and authenticated fetch.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./tecton": {
+      "types": "./dist/tecton.d.ts",
+      "default": "./dist/tecton.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@tanstack/history": "catalog:",
+    "@standard-schema/spec": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0 <20",
+    "react-dom": ">=18.2.0 <20",
+    "@tanstack/react-router": "^1.170.0",
+    "@tecton/react": "*"
+  },
+  "peerDependenciesMeta": {
+    "@tecton/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "jsdom": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/user-event": "catalog:",
+    "@tecton/react": "catalog:",
+    "react-aria-components": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "@platform-internal/core": "workspace:*"
+  }
+}

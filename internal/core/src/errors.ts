@@ -21,7 +21,7 @@ export const ERROR_CODES = {
   },
   PROTOCOL_INCOMPATIBLE: {
     docs: "/module-federation#protocol-compatibility",
-    hint: "Upgrade the remote's @platform/react and @platform/vite, or the host's @platform/host, so the protocol majors match.",
+    hint: "Upgrade the remote's @platform/mfe-react and @platform/vite, or the host's @platform/host, so the protocol majors match.",
   },
   REMOTE_LOAD_FAILED: {
     docs: "/failure-handling#remote-loading",
@@ -54,6 +54,14 @@ export const ERROR_CODES = {
   PERMISSION_DENIED: {
     docs: "/permission-groups#preflight",
     hint: "The current user lacks a permission group the manifest requires; backend authorization still applies.",
+  },
+  AUTH_UNAVAILABLE: {
+    docs: "/authentication#no-credential-port",
+    hint: "The shell supplied no credential adapter, or this MFE did not receive the `auth` capability. Declare it in mfe.config.ts and pass `credentials` to createPlatformHost.",
+  },
+  AUTH_FAILED: {
+    docs: "/authentication#token-failures",
+    hint: "The shell's credential adapter could not issue a token: the session may have expired, or the requested audience or scopes may not be granted. Sign in again and check the audience.",
   },
   CAPABILITY_UNAVAILABLE: {
     docs: "/platform-context#capabilities",

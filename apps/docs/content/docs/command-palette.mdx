@@ -18,8 +18,28 @@ Permission groups filter results: a command or route the user cannot use is not 
 
 ## Rendering
 
+The palette is **the shell's own component**, not one the platform ships: a shell's design
+system is not the platform's business. What the platform provides is the hard part behind it —
+the search index, the command runner and the shortcut listener — and a reference implementation
+to copy:
+
+```ts
+import {
+  createCommandSearchIndex, // ranked, grouped search over every source in the table above
+  SEARCH_GROUPS,
+  runCommand, // the command state machine, abort support and telemetry
+  commandHref,
+  isCommandAvailable,
+  installShortcutListener, // one listener, stays out of inputs (PlatformProvider installs it)
+} from "@platform/host"
+```
+
+`apps/conformance-shell/src/components/palette.tsx` in the platform repository is 215 lines of
+Tecton on top of those exports. Copy it and restyle it — that is the intended path, and it means
+changing a button never needs a package release.
+
 ```tsx title="apps/shell/src/routes/__root.tsx"
-import { CommandPalette } from "@platform/host/react"
+import { CommandPalette } from "@/components"
 
 ;<CommandPalette
   hotkey="mod+k"
@@ -30,7 +50,7 @@ import { CommandPalette } from "@platform/host/react"
 />
 ```
 
-Props: `hotkey` (default `mod+k`; `null` disables the shortcut), `placeholder`, `open` / `onOpenChange` for a controlled dialog, `settingsPath` (setting results navigate to `<settingsPath>?group=<key>&field=<key>`), `helpPath`, `releaseNotesPath` and `limit`. The component is a Tecton command dialog over the host search index, grouped by source (`command`, `navigate`, `setting`, `help`, `release-note`, `breadcrumb`), with running, failed and done badges for async commands. Shortcuts are dispatched by the single keyboard listener `PlatformProvider` installs.
+The reference implementation's props: `hotkey` (default `mod+k`; `null` disables the shortcut), `placeholder`, `open` / `onOpenChange` for a controlled dialog, `settingsPath` (setting results navigate to `<settingsPath>?group=<key>&field=<key>`), `helpPath`, `releaseNotesPath` and `limit`. It is a Tecton command dialog over the host search index, grouped by source (`command`, `navigate`, `setting`, `help`, `release-note`, `breadcrumb`), with running, failed and done badges for async commands. Shortcuts are dispatched by the single keyboard listener `PlatformProvider` installs, whatever the palette looks like.
 
 ## Programmatic access
 

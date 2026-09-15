@@ -1,10 +1,13 @@
 import {
   createInstanceContextStore,
+  deniedCredentialPort,
   IMPLICIT_CAPABILITIES,
   PLATFORM_PROTOCOL_VERSION,
   runtimeViewFor,
   shallowEqual,
   type CapabilityId,
+  type CredentialAdapter,
+  type CredentialPort,
   type DiagnosticSink,
   type HostBridge,
   type MfeManifest,
@@ -124,6 +127,9 @@ export interface BridgeInput {
   runtimeConfig: RuntimeConfig
   diagnostics: DiagnosticSink
   notifications?: NotificationPort
+  credentials?: CredentialAdapter
+  /** Origins besides the shell's own that this remote may attach a token to. */
+  credentialOrigins?: readonly string[]
   headless?: boolean
 }
 
@@ -175,6 +181,18 @@ export function createBridge(input: BridgeInput): BuiltBridge {
         },
       }
     : undefined
+  // Same gating as `notifications`, but the field is never absent: a remote that
+  // cannot authenticate gets a port that says why, rather than a silent
+  // `undefined` it would have to branch on.
+  const credentials: CredentialPort = !capabilities.includes("auth")
+    ? deniedCredentialPort({ mfeId, cause: "capability" })
+    : !input.credentials
+      ? deniedCredentialPort({ mfeId, cause: "unconfigured" })
+      : {
+          allowedOrigins: [...(input.credentialOrigins ?? [])],
+          getToken: (request) => input.credentials!.getToken(request),
+          subscribe: (listener) => input.credentials!.subscribe(listener),
+        }
   const bridge: HostBridge = {
     protocolVersion: PLATFORM_PROTOCOL_VERSION,
     mfeId,
@@ -191,9 +209,9 @@ export function createBridge(input: BridgeInput): BuiltBridge {
     overlays: host.overlays,
     diagnostics: input.diagnostics,
     notifications,
+    credentials,
     settingsValues: createSettingsValuePort(host.storage, mfeId, input.diagnostics),
     host: {
-      kind: host.kind,
       dev: manifest.dev !== undefined,
       environment: host.environment,
       headless: input.headless,

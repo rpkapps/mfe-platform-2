@@ -1,0 +1,58 @@
+{
+  "name": "@platform/devtools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Developer tools panel for a platform shell: remotes, routes, dependency graph, diagnostics and telemetry. The shell lazy-loads it; the host never imports it.",
+  "exports": {
+    ".": {
+      "types": "./dist/devtools.d.ts",
+      "default": "./dist/devtools.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/devtools.js",
+  "types": "./dist/devtools.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@xyflow/react": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tecton/react": "*",
+    "react-aria-components": "^1.21.0",
+    "lucide-react": "*",
+    "cn": "*"
+  },
+  "devDependencies": {
+    "@platform-internal/core": "workspace:*",
+    "@platform-internal/diagnostics": "workspace:*",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "@tecton/react": "catalog:",
+    "react-aria-components": "catalog:",
+    "lucide-react": "catalog:",
+    "cn": "catalog:",
+    "class-variance-authority": "catalog:",
+    "jsdom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:"
+  }
+}

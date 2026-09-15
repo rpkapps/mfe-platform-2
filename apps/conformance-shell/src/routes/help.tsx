@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { HelpSlot } from "@platform/host/react"
+import { HelpSlot } from "@/components"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { useShellHost } from "@/lib/platform"

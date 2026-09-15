@@ -30,7 +30,7 @@ import { platform } from "@platform/vite"
 export default defineConfig({ plugins: [platform()], test: { environment: "jsdom" } })
 ```
 
-Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__` and `__PLATFORM_ROUTE_PREFIX__` (`createMfe()` reads the first) and dedupes `react`, `react-dom`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/history`, `@tanstack/react-store` and `@platform/react` to the project root.
+Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__` and `__PLATFORM_ROUTE_PREFIX__` (`createMfe()` reads the first) and dedupes `react`, `react-dom`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/history`, `@tanstack/react-store` and `@platform/mfe-react` to the project root.
 
 ### Vite defaults applied
 
@@ -85,33 +85,32 @@ interface MfeConfig {
     tanstackRouter?: string
     platformReact?: string
   }
-  harness?: { enabled?: boolean; dir?: string } // default { enabled: true }, dir from @platform/host/dist/harness
 }
 ```
 
 There is no `breadcrumbs` key: the breadcrumb root label comes from the root route's `staticData.breadcrumb` (then `displayName`), see [Breadcrumbs](/docs/routing/breadcrumbs).
 
-Exported types: `MfeConfig`, `NavigationOptions`, `CapabilityOptions`, `EnvKeyOptions`, `CssOptions`, `ManifestOptions`, `RuntimeOverrides`, `HarnessOptions`, `SharedOptions`, `ReactPluginOptions`, `ModuleFederationOptions`, `PlatformPluginOptions`.
+Exported types: `MfeConfig`, `NavigationOptions`, `CapabilityOptions`, `EnvKeyOptions`, `CssOptions`, `ManifestOptions`, `RuntimeOverrides`, `SharedOptions`, `ReactPluginOptions`, `ModuleFederationOptions`, `PlatformPluginOptions`.
 
 ## Programmatic API
 
 Everything the plugin and the CLI do is exported for scripts and tests:
 
-| Export                                                                                                                                       | Purpose                                                                                                                                           |
-| -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generateManifest({ root, options?, mode?, config?, dev?, cssAssets?, builtAt?, buildId?, persistIdentity? })`                               | Resolve, infer and validate the manifest without Vite → `{ manifest, input, config, routes, analysis, warnings }` (`MANIFEST_INVALID` on failure) |
-| `buildManifestInput(config, options?)`, `serializeManifest(manifest)`, `writeManifestCopy(config, manifest)`, `detectCommit(root)`           | Pieces of manifest generation; the build also writes `.platform/manifest.json`                                                                    |
-| `resolvePlatformConfig({ root, options?, command?, mode?, persistIdentity? })`                                                               | The fully resolved `ResolvedPlatformConfig` (identity, prefix, shared requests, css, tecton, paths, runtime requirements, warnings)               |
-| `buildFederationConfig(config)`                                                                                                              | The `@module-federation/vite` options the plugin applies                                                                                          |
-| `scopeCss(css, { owner, ownerAttribute?, keyframesPrefix?, dropFontFaces? })`, `rewriteAnimationNames`                                       | The build-time selector scoping ([CSS isolation](/docs/isolation/css-isolation)); idempotent                                                      |
-| `resolveIdentity`, `readIdentity`, `writeIdentity`                                                                                           | `.platform/identity.json` handling (`{ mfeId, createdAt }`)                                                                                       |
-| `loadMfeConfig(root)`, `findMfeConfigFile(root)`                                                                                             | Load `mfe.config.*` the way the plugin does                                                                                                       |
-| `deriveRoutes`, `listRouteFiles`, `analyzeRouteSource`, `routePathFromFile`, `joinRoutePath`                                                 | Route metadata from the route files                                                                                                               |
-| `analyzeProjectSources`, `analyzeSourceFile`, `mergeAnalyses`, `finalizeCapabilities`, `listSourceFiles`                                     | Capability and static-registration inference                                                                                                      |
-| `renderEntry(config)`, `writeGeneratedEntry(config)`, `GENERATED_BANNER`                                                                     | The generated `.platform/entry.tsx`                                                                                                               |
-| `computeConfigHash`, `configFingerprint`                                                                                                     | `dev.configHash` (restart diagnostics)                                                                                                            |
-| `renderRefreshPreamble`, `injectHarnessConfig`, `renderFallbackHarness`, `resolveHarnessDir`                                                 | Dev endpoint helpers                                                                                                                              |
-| `MFE_ID_DEFINE`, `ROUTE_PREFIX_DEFINE`, `DEV_MANIFEST_PATH`, `REFRESH_PREAMBLE_PATH`, `HARNESS_PATH`, `RESTART_EVENT`, `isTestEnvironment()` | Constants                                                                                                                                         |
+| Export                                                                                                                             | Purpose                                                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generateManifest({ root, options?, mode?, config?, dev?, cssAssets?, builtAt?, buildId?, persistIdentity? })`                     | Resolve, infer and validate the manifest without Vite → `{ manifest, input, config, routes, analysis, warnings }` (`MANIFEST_INVALID` on failure) |
+| `buildManifestInput(config, options?)`, `serializeManifest(manifest)`, `writeManifestCopy(config, manifest)`, `detectCommit(root)` | Pieces of manifest generation; the build also writes `.platform/manifest.json`                                                                    |
+| `resolvePlatformConfig({ root, options?, command?, mode?, persistIdentity? })`                                                     | The fully resolved `ResolvedPlatformConfig` (identity, prefix, shared requests, css, tecton, paths, runtime requirements, warnings)               |
+| `buildFederationConfig(config)`                                                                                                    | The `@module-federation/vite` options the plugin applies                                                                                          |
+| `scopeCss(css, { owner, ownerAttribute?, keyframesPrefix?, dropFontFaces? })`, `rewriteAnimationNames`                             | The build-time selector scoping ([CSS isolation](/docs/isolation/css-isolation)); idempotent                                                      |
+| `resolveIdentity`, `readIdentity`, `writeIdentity`                                                                                 | `.platform/identity.json` handling (`{ mfeId, createdAt }`)                                                                                       |
+| `loadMfeConfig(root)`, `findMfeConfigFile(root)`                                                                                   | Load `mfe.config.*` the way the plugin does                                                                                                       |
+| `deriveRoutes`, `listRouteFiles`, `analyzeRouteSource`, `routePathFromFile`, `joinRoutePath`                                       | Route metadata from the route files                                                                                                               |
+| `analyzeProjectSources`, `analyzeSourceFile`, `mergeAnalyses`, `finalizeCapabilities`, `listSourceFiles`                           | Capability and static-registration inference                                                                                                      |
+| `renderEntry(config)`, `writeGeneratedEntry(config)`, `GENERATED_BANNER`                                                           | The generated `.platform/entry.tsx`                                                                                                               |
+| `computeConfigHash`, `configFingerprint`                                                                                           | `dev.configHash` (restart diagnostics)                                                                                                            |
+| `renderRefreshPreamble`                                                                                                            | Dev endpoint helper                                                                                                                               |
+| `MFE_ID_DEFINE`, `ROUTE_PREFIX_DEFINE`, `DEV_MANIFEST_PATH`, `REFRESH_PREAMBLE_PATH`, `RESTART_EVENT`, `isTestEnvironment()`       | Constants                                                                                                                                         |
 
 ## Dev endpoints
 
@@ -119,7 +118,6 @@ Everything the plugin and the CLI do is exported for scripts and tests:
 | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `/platform-manifest.json`     | The dev manifest (`dev: { hmr: true, origin, refreshPreamble, configHash, restartRequired?, restartReason? }`), CORS `*`, no-store |
 | `/@platform/refresh-preamble` | ES module installing this remote's React Refresh runtime; hosts import it before loading a dev remote                              |
-| `/__platform/harness/`        | The local shell harness from `@platform/host/dist/harness` (`harness.dir` overrides it); a fallback page when the host is missing  |
 
 Manifest-affecting changes (`mfe.config.*`, `package.json` and the other config dependencies, `src/routeTree.gen.ts`) are watched: when the config hash changes, `dev.restartRequired` is set with a reason, a `DEV_RESTART_REQUIRED` warning is logged and a `platform:restart-required` websocket event is sent.
 

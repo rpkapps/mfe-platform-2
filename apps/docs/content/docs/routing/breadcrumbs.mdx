@@ -44,7 +44,7 @@ This is what the `asset-tracker` and `legacy-reports` fixtures do; the E2E suite
 For labels that depend on component state, `useBreadcrumb` overrides the current route's entry (`label`, `href`, `state`, `hidden`, or a plain string); pass `null` to fall back to the static data:
 
 ```tsx
-import { useBreadcrumb } from "@platform/react"
+import { useBreadcrumb } from "@platform/mfe-react"
 
 function AssetPage() {
   const { asset } = Route.useLoaderData()
@@ -71,8 +71,15 @@ function AssetPage() {
 
 ## Rendering in the shell
 
+<Callout type="info">
+  This component is the shell's own code, not one the platform ships. The reference
+  implementation lives in `apps/conformance-shell/src/components` and is built entirely on the
+  platform's headless API — copy it and restyle it. See
+  [`@platform/host`](/docs/reference/platform-host#headless-apis-for-a-shells-own-ui).
+</Callout>
+
 ```tsx
-import { Breadcrumbs } from "@platform/host/react"
+import { Breadcrumbs } from "@/components"
 
 ;<Breadcrumbs maxItems={5} announcePrefix="Location" />
 ```

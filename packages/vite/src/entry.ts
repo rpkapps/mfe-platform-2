@@ -22,7 +22,7 @@ export function renderEntry(config: ResolvedPlatformConfig): string {
   const lines = [GENERATED_BANNER, `import definition from "${userEntry}"`]
   if (config.tecton) {
     lines.push(
-      `import { withTecton } from "@platform/react/tecton"`,
+      `import { withTecton } from "@platform/mfe-react/tecton"`,
       "",
       "export default withTecton(definition)"
     )
@@ -38,7 +38,7 @@ export function assertEntryExists(config: ResolvedPlatformConfig): void {
   const rel = relative(config.root, config.entry).replace(/\\/g, "/")
   throw new PlatformError({
     code: "INTERNAL",
-    message: `The MFE bootstrap file "${rel}" does not exist. Every platform remote default-exports createMfe({ routeTree, widgets?, registrations? }) from ${rel} (from "@platform/react"); @platform/vite exposes it through the generated .platform/entry.tsx.`,
+    message: `The MFE bootstrap file "${rel}" does not exist. Every platform remote default-exports createMfe({ routeTree, widgets?, registrations? }) from ${rel} (from "@platform/mfe-react"); @platform/vite exposes it through the generated .platform/entry.tsx.`,
     owner: { mfeId: config.mfeId },
     source: rel,
     override: "mfe.config.ts → entry",

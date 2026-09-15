@@ -6,7 +6,7 @@ description: Everything the shell knows about the session, typed, delivered thro
 ## `usePlatform()`
 
 ```tsx
-import { usePlatform } from "@platform/react"
+import { usePlatform } from "@platform/mfe-react"
 
 function Header() {
   const platform = usePlatform()
@@ -66,7 +66,7 @@ The host owns a context store; each MFE root subscribes through its own React in
 Capabilities are the features a host grants a remote. The Vite plugin infers the request from SDK usage; the host approves by policy and exposes the approved set in the context, so MFEs can feature-detect:
 
 ```tsx
-import { useCapability } from "@platform/react"
+import { useCapability } from "@platform/mfe-react"
 
 function Toolbar() {
   const canNotify = useCapability("notifications")
@@ -97,4 +97,4 @@ const { notify } = useNotifications()
 notify({ title: "Asset saved", kind: "success" })
 ```
 
-Toasts render in the shell's `NotificationHost` (Tecton `Toaster`), outside every MFE root: the shell passes `notifications: createSonnerNotificationPort()` to `createPlatformHost`. Without a notification port `notify` is a no-op that records a warning diagnostic.
+Toasts render in the shell's own notification host, outside every MFE root: the shell implements a `NotificationPort` and passes it as `notifications` to `createPlatformHost` (`apps/conformance-shell/src/components/notifications.tsx` is a sonner adapter in 39 lines). Without a notification port `notify` is a no-op that records a warning diagnostic.

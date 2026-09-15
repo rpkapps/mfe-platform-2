@@ -6,7 +6,7 @@ description: Register command palette commands with a hook or a declarative comp
 ## The hook
 
 ```tsx
-import { useRegisterCommand } from "@platform/react"
+import { useRegisterCommand } from "@platform/mfe-react"
 
 function AssetCommands() {
   useRegisterCommand({
@@ -30,7 +30,7 @@ The registration lives as long as the component: it is added on mount and remove
 ## The component
 
 ```tsx
-import { CommandRegistration } from "@platform/react"
+import { CommandRegistration } from "@platform/mfe-react"
 
 ;<CommandRegistration definition={{ id: "export", label: "Export report", route: "/export" }} />
 ```

@@ -22,9 +22,9 @@ The declaration is an **allow-list**: only these keys reach the MFE, with `defau
 ## Type them
 
 ```ts title="src/platform.d.ts"
-import "@platform/react"
+import "@platform/mfe-react"
 
-declare module "@platform/react" {
+declare module "@platform/mfe-react" {
   interface Register {
     env: { API_BASE_URL: string; PAGE_SIZE: number; FEATURE_MAP: boolean }
     featureFlags: { "assets.bulk-edit": boolean }
@@ -37,7 +37,7 @@ The `Register` interface follows TanStack's pattern: augment it once and `useRun
 ## Read them
 
 ```tsx
-import { useRuntimeEnv } from "@platform/react"
+import { useRuntimeEnv } from "@platform/mfe-react"
 
 function AssetList() {
   const env = useRuntimeEnv()
@@ -52,12 +52,12 @@ In loaders: `context.platform.runtime.env.API_BASE_URL`. In command handlers and
 
 ## Where values come from
 
-| Source            | Example                                                                   |
-| ----------------- | ------------------------------------------------------------------------- |
-| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com`     |
-| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`          |
-| Local harness     | the env editor on the harness _Remotes_ page, or `mfe.config.ts` defaults |
-| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`              |
+| Source            | Example                                                               |
+| ----------------- | --------------------------------------------------------------------- |
+| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com` |
+| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`      |
+| Local development | `mfe.config.ts` defaults, or the shell's own `PLATFORM_*` variables   |
+| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`          |
 
 See [Runtime configuration](/docs/runtime-configuration).
 
