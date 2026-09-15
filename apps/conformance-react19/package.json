@@ -23,7 +23,8 @@
     "cn": "catalog:",
     "class-variance-authority": "catalog:",
     "react": "catalog:react19",
-    "react-dom": "catalog:react19"
+    "react-dom": "catalog:react19",
+    "@platform-internal/conformance": "workspace:*"
   },
   "devDependencies": {
     "@platform/cli": "workspace:*",

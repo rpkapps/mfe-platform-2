@@ -1,0 +1,5 @@
+{
+  "mfeId": "Broken Remote!",
+  "version": "not-a-version",
+  "entry": { "loader": "module-federation" }
+}

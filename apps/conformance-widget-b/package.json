@@ -18,7 +18,8 @@
     "@tanstack/react-router": "catalog:",
     "zod": "catalog:",
     "react": "catalog:react18",
-    "react-dom": "catalog:react18"
+    "react-dom": "catalog:react18",
+    "@platform-internal/conformance": "workspace:*"
   },
   "devDependencies": {
     "@platform/cli": "workspace:*",
