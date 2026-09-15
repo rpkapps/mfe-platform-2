@@ -30,7 +30,7 @@ fields: {
 }
 ```
 
-`platform` is the same typed view as `usePlatform()` minus anything that could reach shell internals or browser storage: providers get context, capabilities, runtime environment and telemetry, nothing else.
+`platform` is the same `PlatformContextValue` that `usePlatform()` returns (context, permissions, capabilities, runtime environment, telemetry, navigation); `state` holds the group's current values and `signal` aborts when they change or the field unmounts.
 
 ## Loading, errors and retry
 

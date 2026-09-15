@@ -7,55 +7,79 @@ description: The comprehensive suite belongs to the platform repository. An MFE 
 
 Consuming MFEs do not duplicate any of this.
 
-| Area                                                                                                                                                                                                                               | Where                                                                                        |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs                                                                                      | `internal/core` unit tests (Vitest)                                                          |
-| Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics                                                                                                                      | `packages/vite` unit tests + fixtures                                                        |
-| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                                         | `packages/react` unit tests (jsdom, React 18 and 19)                                         |
-| CLI: scaffold, `platform lint` on a fresh project, every lint rule                                                                                                                                                                 | `packages/cli` unit + fixture tests                                                          |
-| Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy                                                                                                           | `packages/host` unit tests                                                                   |
-| Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes)                                                                                                                 | `test/integration` (Vitest)                                                                  |
-| Browser behaviour: HMR, isolation, overlays and modal ordering, palette, settings, storage, cross-tab updates, context, guards, breadcrumbs, runtime config, overrides, failures, retries, devtools lazy loading, React Flow graph | `test/e2e` (Playwright, Windows and Linux CI) against the [conformance apps](/docs/examples) |
+| Area                                                                                                                                                                                                                    | Where                                                                                        |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs                                                                           | `internal/core` unit tests (Vitest)                                                          |
+| Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics                                                                                                           | `packages/vite` unit tests + fixtures                                                        |
+| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                              | `packages/react` unit tests (jsdom)                                                          |
+| CLI: scaffold, `platform validate`, every lint rule                                                                                                                                                                     | `packages/cli` unit + fixture tests                                                          |
+| Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy                                                                                                | `packages/host` unit tests                                                                   |
+| Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes)                                                                                                      | `test/integration` (Vitest)                                                                  |
+| Browser behaviour: smoke (isolated roots, native history, CSS scoping, runtime env), commands and shortcuts, shell history and breadcrumbs, guards and slice subscriptions, widgets and modal ordering, settings and storage, failure lab and overrides, devtools, HMR | `test/e2e` (Playwright) against the [conformance apps](/docs/examples)                   |
 
 Run it with `pnpm test`, `pnpm test:integration` and `pnpm e2e` (after `pnpm build:all`).
 
 ## What an MFE tests
 
-- **Unit**: components and hooks with `@platform/react/testing`.
-- **Integration**: routes and registrations rendered through `renderMfe` with a test bridge.
-- **E2E**: Playwright against the harness (`platform dev`), asserting the flows that matter to the product.
+- **Unit**: components, hooks and the mounted definition with `@platform/react/testing` (`src/__tests__/*.test.tsx`, jsdom).
+- **E2E**: Playwright against the harness started by `platform dev` (`e2e/*.spec.ts`), asserting the flows that matter to the product.
 
-`platform test` runs Vitest with the scaffolded configuration; `platform create` includes examples of all three.
+`platform test` runs Vitest with the scaffolded `vitest.config.ts` (`platform()` injects the MFE identity; no federation); `platform test --e2e` runs Playwright. The scaffold includes one example of each.
 
 ## `@platform/react/testing`
 
 ```ts
 import { createTestBridge, renderMfe } from "@platform/react/testing"
-import definition from "../src/mfe"
+import { within } from "@testing-library/react"
+
+import definition from "../mfe"
 
 const bridge = createTestBridge({
   mfeId: "asset-tracker",
   user: { id: "u1", displayName: "Ada" },
   permissionGroups: ["assets:read"],
-  env: { API_BASE_URL: "http://test", PAGE_SIZE: 10 },
-  capabilities: ["commands", "settings", "storage.local"],
-  navigation: "/asset-tracker/assets/pump-42", // initial location (memory navigation)
+  env: { API_BASE_URL: "https://api.example.test", PAGE_SIZE: 10 },
 })
+const mounted = renderMfe(definition, { bridge, path: "/asset-tracker/assets/pump-42" })
+await within(mounted.container).findByText("Pump 42")
 
-const app = renderMfe(definition, { bridge, path: "/assets/pump-42" })
-await screen.findByText("Pump 42")
+expect(mounted.container.querySelector('[data-mfe="asset-tracker"]')).not.toBeNull()
+expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain("say-hello")
 
-bridge.context.update({ permissionGroups: [] }) // guards re-run
-expect(bridge.registries.commands.list().map((c) => c.qualifiedId)).toContain(
-  "asset-tracker:new-asset"
-)
-expect(bridge.storage.keys("local")).toEqual(["platform:asset-tracker:local:dashboard"])
-app.unmount()
-expect(bridge.registries.commands.list()).toHaveLength(0)
+bridge.setContext({ permissionGroups: [] }) // shell context change: guards and loaders re-run
+mounted.navigate("/asset-tracker/assets") // through the memory navigation
+expect(mounted.location().pathname).toBe("/asset-tracker/assets")
+
+mounted.dispose()
+expect(bridge.registries.commands.list()).toEqual([])
 ```
 
-`createTestBridge` builds a full `HostBridge` with memory navigation, a memory storage backend, memory telemetry, real registries and a real overlay manager on the test document. `renderMfe` mounts through `definition.mount` (or `mountWidget` with `{ widget: { id, props } }`), exactly like the host.
+`createTestBridge` builds a complete `HostBridge` from the core in-memory implementations: memory navigation at `initialPath` (default: the route prefix), a memory storage backend with `emitExternal(scope, key, value)` to simulate another tab, a memory telemetry adapter (`bridge.telemetryEvents`), a diagnostics recorder (`bridge.diagnostics.events`), real registries, a real overlay manager, a settings value store (`bridge.settingsStore`) and a notification recorder (`bridge.notifications.items`; pass `notifications: false` to test the no-op fallback). `bridge.setContext(partial)` patches the shell context (user, groups, theme, project…), `bridge.setInstance(partial)` the instance-level part (capabilities, runtime env). Options: `mfeId`, `instanceId`, `widgetId`, `routePrefix` (`null` for widget-only bridges), `user`, `permissionGroups`, `env`, `sharedEnv`, `capabilities`, `navigation`, `initialPath`, `context`, `host`, `notifications`.
+
+`renderMfe(definition, { bridge?, path?, container? })` mounts through `definition.mount`, exactly like the host, and returns `{ container, bridge, handle, navigate, location, dispose }`. `path` is a shell path (with the prefix).
+
+## Widgets
+
+```ts
+const bridge = createTestBridge({ mfeId: "asset-tracker", widgetId: "asset-card", routePrefix: null })
+const container = document.body.appendChild(document.createElement("div"))
+const handle = definition.mountWidget({ container, bridge, widgetId: "asset-card", props: { assetId: "pump-42" } })
+handle.setProps({ assetId: "valve-7" })
+handle.dispose()
+```
+
+## Hooks in isolation
+
+```tsx
+import { renderHook } from "@testing-library/react"
+import { PlatformTestProvider } from "@platform/react/testing"
+
+const bridge = createTestBridge({ mfeId: "asset-tracker" })
+const { result } = renderHook(() => usePlatform((p) => p.user?.displayName), {
+  wrapper: ({ children }) => <PlatformTestProvider bridge={bridge}>{children}</PlatformTestProvider>,
+})
+```
 
 ## Testing settings and storage
 
-Stores and settings groups validate with the same code paths in tests: write an invalid envelope into `bridge.storage` and assert the recovered value and the diagnostic in `bridge.diagnostics.events`.
+Stores and settings validate with the same code paths in tests. Write a malformed value into `bridge.storage` (or `bridge.settingsStore`), mount, and assert the recovered value and the `storage.invalid` / `settings.invalid` diagnostic in `bridge.diagnostics.events`. A store can be read outside a mount with `store.bind({ bridge }).get()`.

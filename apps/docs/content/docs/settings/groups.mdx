@@ -51,17 +51,8 @@ Custom renderers see the same values as `controller.dependencies`.
 
 ## Reading values
 
-The hook returns the live, validated values of the group and a setter for programmatic changes:
-
-```tsx
-const { values, set, reset } = useDisplaySettings()
-values.density // "comfortable" | "compact"
-set("density", "compact")
-reset("density") // back to defaultValue
-```
-
-Values update in every instance of the MFE and across tabs (local storage).
+`useRegisterSettingsGroup` returns nothing: the shell settings host owns the current values (validated, persisted in local storage, shared by every instance of the MFE). Custom renderers receive them through the controller (`controller.value`, `controller.dependencies`), predicates and option providers through `state`. There is no SDK hook that reads a framework-managed value back into MFE code today; keep runtime-relevant preferences in a [`createPlatformStorage`](/docs/storage) store, or own the page with `managedBy: "mfe"`.
 
 ## Ordering and discoverability
 
-Groups declared statically (literal definitions in the source) are listed in the manifest (`settings[]`) with their fields' keys, labels, kinds and keywords, so the settings host can show the section and the palette can search it before the remote loads. Opening the section loads the remote and mounts the live group.
+Groups declared with literal definitions in the source are listed in the manifest (`settings[]`) with their fields' keys, labels, kinds and keywords, so the palette can search them before the remote loads. The settings host itself renders live registrations: the shell mounts the owning remotes headlessly on its settings page ([Lifecycle](/docs/settings#lifecycle)).

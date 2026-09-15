@@ -7,15 +7,16 @@ description: Register settings groups and fields from an MFE. The shell places, 
 
 Groups are the primary API. A group has a local key, a title and typed fields:
 
-```ts title="src/settings.ts"
+```ts title="src/lib/settings.ts"
 import { useRegisterSettingsGroup } from "@platform/react"
 import { z } from "zod"
 
 export function useDisplaySettings() {
-  return useRegisterSettingsGroup({
+  useRegisterSettingsGroup({
     key: "display",
     title: "Display",
     description: "How the asset list is rendered",
+    keywords: ["density", "columns"],
     fields: {
       density: {
         defaultValue: "comfortable",
@@ -25,14 +26,14 @@ export function useDisplaySettings() {
           { value: "compact", label: "Compact" },
         ],
       },
-      pageSize: { defaultValue: 25, min: 10, max: 100, step: 5 },
-      showArchived: { defaultValue: false, description: "Include archived assets" },
+      pageSize: { defaultValue: 25, schema: z.number().int().min(5).max(200), min: 5, max: 200, step: 5 },
+      showOffline: { defaultValue: true, description: "Include offline assets in lists" },
     },
   })
 }
 ```
 
-The hook returns the live values: `const { density } = useDisplaySettings().values`.
+Call the hook from a component that lives as long as the feature. The conformance MFE calls it from the root layout, so the group is live whenever the MFE is mounted — including the headless mounts the shell settings page uses (see [Lifecycle](#lifecycle)). The hook returns nothing; the shell owns the values.
 
 The declarative form is `<SettingsRegistration definition={…} />`, a thin wrapper.
 
@@ -109,7 +110,9 @@ See [Custom settings pages](/docs/settings/custom-pages).
 
 ## Persistence
 
-Framework-managed values are stored through the host's `SettingsValuePort` under `platform:<mfeId>:settings:<group>.<field>` as `{ v, value }` envelopes, validated on read and on commit. Values are shared by every instance of the MFE.
+Framework-managed values are stored through the host's settings value port in local storage under `platform:<mfeId>:settings:<mfeId>:<group>.<field>` (`platform:asset-tracker:settings:asset-tracker:display.pageSize`) as `{ v, value }` envelopes, validated on read and on commit. Values are shared by every instance of the MFE and survive reloads.
+
+The SDK has no hook that reads framework-managed values back into MFE code today: the shell renders and persists them (`readSettingsGroupValues` on the host side). Values your own code needs at runtime belong in a [`createPlatformStorage`](/docs/storage) store or an MFE-managed page.
 
 ## Invalid stored values
 
@@ -131,7 +134,7 @@ refreshSeconds: { defaultValue: 30, visibleWhen: (state) => state.autoRefresh ==
 
 ## Lifecycle
 
-Registrations are removed when the owning component unmounts; stale live entries are never retained. Static contributions in the manifest keep the group discoverable in the settings host and the palette before the remote loads. Two live instances of the same MFE registering the same group share it; the first registration wins and the second is a no-op.
+Registrations are removed when the owning component unmounts (and when the mount is disposed); stale live entries are never retained. Static contributions in the manifest keep the group discoverable in the palette before the remote loads, but the shell settings host renders **live** groups: a shell settings page mounts the owning remotes headlessly (`<MfeOutlet mfeId="asset-tracker" headless />`), which keeps their registrations live without breadcrumbs or visible output. That is why groups belong in the root layout rather than deep inside a route. Two live instances of the same MFE registering the same group share it; the first registration wins and the second is a no-op.
 
 ## Sub-pages
 

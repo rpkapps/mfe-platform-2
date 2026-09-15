@@ -1,37 +1,60 @@
 ---
 title: "@platform/vite"
-description: The platform() Vite plugin and the mfe.config.ts helper.
+description: The platform() Vite plugin, the mfe.config.ts helper and the programmatic API (manifest generation, config resolution, CSS scoping).
 ---
 
 ## `platform(options?)`
 
-```ts
+```ts title="vite.config.ts"
+import { defineConfig } from "vite"
 import { platform } from "@platform/vite"
 
-export default defineConfig({ plugins: [platform(options)] })
+export default defineConfig({ plugins: [platform()] })
 ```
 
-Returns an array of Vite plugins. `options` is `PlatformPluginOptions`: everything in [`MfeConfig`](#mfeconfig) plus `root`, `react` (`false | ReactPluginOptions`) and `tailwind` (`boolean | "auto"`). See [Vite configuration](/docs/getting-started/vite-configuration) for the composed integrations and the option table.
+Returns a `PluginOption[]` (a promise entry Vite flattens: `mfe.config.ts` is loaded asynchronously). `options` is `PlatformPluginOptions`: everything in [`MfeConfig`](#mfeconfig) plus the plugin-only keys below. The project root is `process.cwd()` unless `root` is passed; Vite's `root` must resolve to the same directory. See [Vite configuration](/docs/getting-started/vite-configuration) for the composed integrations.
+
+| Plugin-only option | Type                          | Default                                                                                                                     |
+| ------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `root`             | `string`                      | `process.cwd()`                                                                                                             |
+| `react`            | `false \| ReactPluginOptions` | `@vitejs/plugin-react` with defaults; `false` skips it                                                                      |
+| `tailwind`         | `boolean \| "auto"`           | `"auto"`: `@tailwindcss/vite` when `tailwindcss` resolves from the project                                                  |
+| `test`             | `boolean`                     | `true` when `process.env.VITEST` is set: only the React plugin, `resolve.dedupe` and the identity defines (no federation, router, Tailwind, CSS scoping or dev endpoints) |
+
+The same call works in `vitest.config.ts`:
+
+```ts title="vitest.config.ts"
+import { defineConfig } from "vitest/config"
+import { platform } from "@platform/vite"
+
+export default defineConfig({ plugins: [platform()], test: { environment: "jsdom" } })
+```
+
+Under Vitest and `vite --mode test` the plugin only injects `__PLATFORM_MFE_ID__` and `__PLATFORM_ROUTE_PREFIX__` (`createMfe()` reads the first) and dedupes `react`, `react-dom`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/history`, `@tanstack/react-store` and `@platform/react` to the project root.
+
+### Vite defaults applied
+
+`server.cors: true` (unless set), `server.origin` from a configured `server.port`, `build.target: "es2022"`, `build.cssCodeSplit: false`, and `build.rolldownOptions.input = { mfe: ".platform/entry.tsx" }` when the project has no `index.html` and no configured input. Turning `codeSplitting` off is warned about (route chunks and shared chunks would disappear).
 
 ## `defineMfeConfig(config)` — `@platform/vite/config`
 
-```ts
+```ts title="mfe.config.ts"
 import { defineMfeConfig } from "@platform/vite/config"
 
-export default defineMfeConfig({ routePrefix: "/assets" })
+export default defineMfeConfig({ routePrefix: "/assets", navigation: { title: "Assets" } })
 ```
 
-Identity function that types `mfe.config.ts` (`mfe.config.mts`, `.js`, `.mjs` are also found). The file must default-export an object.
+Identity function that types `mfe.config.ts` (`mfe.config.mts`, `.js`, `.mjs` are also found). The file must default-export an object. Precedence per key: plugin options → `mfe.config.ts` → persisted identity → inference from `package.json` and the source tree. Changing the file requires restarting `platform dev` ([restart diagnostics](/docs/local-development#restart-diagnostics)).
 
 ## `MfeConfig`
 
 ```ts
 interface MfeConfig {
-  mfeId?: string
-  routePrefix?: string
-  displayName?: string
-  description?: string
-  discoverable?: boolean
+  mfeId?: string // kebab-case; persisted in .platform/identity.json
+  routePrefix?: string // default `/${mfeId}`
+  displayName?: string // default navigation.title or the mfeId
+  description?: string // default package.json description
+  discoverable?: boolean // false hides the MFE from the App Finder
   navigation?: {
     title: string
     description?: string
@@ -40,7 +63,7 @@ interface MfeConfig {
     category?: string
     order?: number
   }
-  permissionGroups?: string[]
+  permissionGroups?: string[] // merged with route-level staticData.permissionGroups
   capabilities?: { add?: CapabilityId[]; remove?: CapabilityId[] }
   shared?: Record<
     string,
@@ -51,10 +74,10 @@ interface MfeConfig {
     { required?: boolean; description?: string; default?: string | number | boolean }
   >
   css?: { scope?: boolean; ownerAttribute?: string; foundation?: "shell" | "bundled" }
-  tecton?: boolean | "auto"
-  routesDirectory?: string
-  entry?: string
-  manifest?: { fileName?: string }
+  tecton?: boolean | "auto" // "auto": when @tecton/react is a dependency
+  routesDirectory?: string // default "src/routes"
+  entry?: string // default "src/mfe.tsx"
+  manifest?: { fileName?: string } // default "platform-manifest.json"
   federation?: (config: ModuleFederationOptions) => ModuleFederationOptions
   runtime?: {
     react?: string
@@ -62,27 +85,59 @@ interface MfeConfig {
     tanstackRouter?: string
     platformReact?: string
   }
-  harness?: { enabled?: boolean; dir?: string }
+  harness?: { enabled?: boolean; dir?: string } // default { enabled: true }, dir from @platform/host/dist/harness
 }
 ```
 
-Exported types: `MfeConfig`, `NavigationOptions`, `CapabilityOptions`, `EnvKeyOptions`, `CssOptions`, `ManifestOptions`, `RuntimeOverrides`, `HarnessOptions`, `SharedOptions`, `PlatformPluginOptions`.
+There is no `breadcrumbs` key: the breadcrumb root label comes from the root route's `staticData.breadcrumb` (then `displayName`), see [Breadcrumbs](/docs/routing/breadcrumbs).
+
+Exported types: `MfeConfig`, `NavigationOptions`, `CapabilityOptions`, `EnvKeyOptions`, `CssOptions`, `ManifestOptions`, `RuntimeOverrides`, `HarnessOptions`, `SharedOptions`, `ReactPluginOptions`, `ModuleFederationOptions`, `PlatformPluginOptions`.
+
+## Programmatic API
+
+Everything the plugin and the CLI do is exported for scripts and tests:
+
+| Export                                                                                           | Purpose                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generateManifest({ root, options?, mode?, config?, dev?, cssAssets?, builtAt?, buildId?, persistIdentity? })` | Resolve, infer and validate the manifest without Vite → `{ manifest, input, config, routes, analysis, warnings }` (`MANIFEST_INVALID` on failure) |
+| `buildManifestInput(config, options?)`, `serializeManifest(manifest)`, `writeManifestCopy(config, manifest)`, `detectCommit(root)` | Pieces of manifest generation; the build also writes `.platform/manifest.json`                                          |
+| `resolvePlatformConfig({ root, options?, command?, mode?, persistIdentity? })`                   | The fully resolved `ResolvedPlatformConfig` (identity, prefix, shared requests, css, tecton, paths, runtime requirements, warnings)             |
+| `buildFederationConfig(config)`                                                                  | The `@module-federation/vite` options the plugin applies                                                                                        |
+| `scopeCss(css, { owner, ownerAttribute?, keyframesPrefix?, dropFontFaces? })`, `rewriteAnimationNames` | The build-time selector scoping ([CSS isolation](/docs/isolation/css-isolation)); idempotent                                           |
+| `resolveIdentity`, `readIdentity`, `writeIdentity`                                               | `.platform/identity.json` handling (`{ mfeId, createdAt }`)                                                                                    |
+| `loadMfeConfig(root)`, `findMfeConfigFile(root)`                                                 | Load `mfe.config.*` the way the plugin does                                                                                                     |
+| `deriveRoutes`, `listRouteFiles`, `analyzeRouteSource`, `routePathFromFile`, `joinRoutePath`     | Route metadata from the route files                                                                                                             |
+| `analyzeProjectSources`, `analyzeSourceFile`, `mergeAnalyses`, `finalizeCapabilities`, `listSourceFiles` | Capability and static-registration inference                                                                                            |
+| `renderEntry(config)`, `writeGeneratedEntry(config)`, `GENERATED_BANNER`                         | The generated `.platform/entry.tsx`                                                                                                             |
+| `computeConfigHash`, `configFingerprint`                                                         | `dev.configHash` (restart diagnostics)                                                                                                          |
+| `renderRefreshPreamble`, `injectHarnessConfig`, `renderFallbackHarness`, `resolveHarnessDir`      | Dev endpoint helpers                                                                                                                            |
+| `MFE_ID_DEFINE`, `ROUTE_PREFIX_DEFINE`, `DEV_MANIFEST_PATH`, `REFRESH_PREAMBLE_PATH`, `HARNESS_PATH`, `RESTART_EVENT`, `isTestEnvironment()` | Constants                                                                                                           |
+
+## Dev endpoints
+
+| Path                          | Serves                                                                                                                              |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `/platform-manifest.json`     | The dev manifest (`dev: { hmr: true, origin, refreshPreamble, configHash, restartRequired?, restartReason? }`), CORS `*`, no-store  |
+| `/@platform/refresh-preamble` | ES module installing this remote's React Refresh runtime; hosts import it before loading a dev remote                               |
+| `/__platform/harness/`        | The local shell harness from `@platform/host/dist/harness` (`harness.dir` overrides it); a fallback page when the host is missing   |
+
+Manifest-affecting changes (`mfe.config.*`, `package.json` and the other config dependencies, `src/routeTree.gen.ts`) are watched: when the config hash changes, `dev.restartRequired` is set with a reason, a `DEV_RESTART_REQUIRED` warning is logged and a `platform:restart-required` websocket event is sent.
 
 ## Generated artefacts
 
-| Artefact        | Location                                                               |
-| --------------- | ---------------------------------------------------------------------- |
-| Route tree      | `src/routeTree.gen.ts`                                                 |
-| Identity        | `.platform/identity.json` (committed)                                  |
-| Entry           | `.platform/entry.tsx`                                                  |
-| Manifest        | `dist/platform-manifest.json` (build), `/platform-manifest.json` (dev) |
-| Loader manifest | `dist/mf-manifest.json`                                                |
-| Dev endpoints   | `/@platform/refresh-preamble`, `/__platform/harness/`                  |
+| Artefact        | Location                                                                          |
+| --------------- | --------------------------------------------------------------------------------- |
+| Route tree      | `src/routeTree.gen.ts` (only when `src/routes` exists)                            |
+| Identity        | `.platform/identity.json` (`{ mfeId, createdAt }`; committed)                     |
+| Entry           | `.platform/entry.tsx` (imports `src/mfe.tsx`, applies `withTecton` when enabled)  |
+| Manifest        | `dist/platform-manifest.json` (build) and `.platform/manifest.json` (copy); `/platform-manifest.json` (dev) |
+| Loader manifest | `dist/mf-manifest.json`, entry `remoteEntry.js`, exposed module `./mfe`           |
+
+`.platform/.gitignore` ignores everything but `identity.json`.
 
 ## Build environment
 
-| Variable            | Manifest field    |
-| ------------------- | ----------------- |
-| `PLATFORM_BUILD_ID` | `release.buildId` |
-| `PLATFORM_COMMIT`   | `release.commit`  |
-| `PLATFORM_CHANNEL`  | `release.channel` |
+| Variable                                                        | Manifest field                                          |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| `PLATFORM_BUILD_ID`                                             | `release.buildId` (default: hash of `mfeId@version@builtAt`) |
+| `GITHUB_SHA`, `CI_COMMIT_SHA`, `PLATFORM_COMMIT_SHA` or `git rev-parse HEAD` | `release.commit`                            |

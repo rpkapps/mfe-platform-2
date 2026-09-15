@@ -9,56 +9,55 @@ description: Run an MFE alone in the local shell harness, or through a real SSR 
 pnpm dev
 ```
 
-`platform dev` starts the Vite dev server for the remote and serves the **local shell harness** at `/__platform/harness/`. The harness is a self-contained shell (`@platform/host/harness`, built with Vite into `dist/harness/`) that mounts your remote from `/platform-manifest.json` with:
+`platform dev` starts the Vite dev server for the remote (default port 5173) and serves the **local shell harness** at `/__platform/harness/`. The harness is a self-contained shell (`@platform/host/harness`, built by `@platform/host` into `dist/harness/` and served by the `@platform/vite` dev plugin) that connects to `/platform-manifest.json` (or the URLs in `?manifest=`) with:
 
-- a realistic context: users with different permission groups, tenant, projects, jobs, locale, theme, feature flags,
-- the command palette, the settings host, help and release notes slots, breadcrumbs, notifications,
-- widget slots: mount any widget of the remote, several instances at once, with editable props,
-- overlays through the real overlay manager,
-- route guards, telemetry (console + memory adapter) and the runtime environment (`env` defaults from `mfe.config.ts`, editable in the panel),
-- **failure toggles**: unavailable remote, slow manifest, invalid manifest, missing capability, incompatible dependency, telemetry adapter throwing,
-- a _Remotes_ panel that lists connected local remotes and whether each runs in **HMR** or **production-artefact** mode.
+- a realistic context: a user with permission groups, tenant, project, job, locale, theme, feature flags,
+- **Remotes**: every connected remote with its manifest URL, an `HMR` badge for dev manifests, retry, and an editor for the allow-listed runtime env of each remote (applied through the runtime configuration),
+- **Widgets playground**: mount any widget of the remote, several instances at once, with editable props,
+- **Settings**, **Help** and **Release notes** pages backed by the real `SettingsHost`, `HelpSlot` and `ReleaseNotesSlot`,
+- the command palette, breadcrumbs, notifications, overlays through the real overlay manager and the developer tools (policy `always`),
+- **Failure lab**: manifest 404, dropped capabilities, denied permission groups, incompatible shared dependencies and unavailable remotes, switchable at runtime.
 
-The harness itself is a normal `createPlatformHost` user, so what works there works in the shell.
+The harness is a normal `createPlatformHost` user (`hostKind: "harness"`, environment `local`, manifest cache off, one retry), so what works there works in the shell. When `@platform/host` is not installed, the dev server shows a fallback page with the dev manifest instead; `harness.enabled: false` in `mfe.config.ts` (or `platform dev --no-harness`) turns the endpoint off.
 
 ## Mode 2: an SSR shell with an override
 
 Run your organisation's shell locally (or use a staging shell) and point it at your dev server:
 
 ```text
-https://shell.local:4100/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
+https://shell.local:4100/asset-tracker?platform.override.asset-tracker=http://localhost:5173/platform-manifest.json
 ```
 
-The override is kept in `localStorage["platform:manifest-overrides"]` for the session ([Manifest overrides](/docs/manifest-overrides)). The dev manifest carries `dev.hmr = true`, `dev.origin` and `dev.refreshPreamble`; the host imports the preamble before loading so React Refresh is installed for the remote's React instance, then loads the remote through the normal loader. Shell state (route, context, palette) is preserved while the remote updates. See the [staging recipe](/docs/recipes/local-override-against-staging).
+The override is kept in `localStorage["platform:manifest-overrides"]` ([Manifest overrides](/docs/manifest-overrides)). The dev manifest carries `dev.hmr = true`, `dev.origin`, `dev.refreshPreamble` and `dev.configHash`; the host imports the preamble before loading so React Refresh is installed for the remote's React instance, then loads the remote through the normal loader. Shell state (route, context, palette) is preserved while the remote updates. See the [staging recipe](/docs/recipes/local-override-against-staging).
 
-The monorepo's conformance shell runs both modes: `pnpm dev:conformance` starts the shell on 4110 and every fixture remote.
+The monorepo's conformance shell runs both modes: `pnpm dev:conformance` starts the shell on 4110 and every fixture remote in development mode.
 
 ## HMR
 
-- Component edits hot-swap inside the remote's React root; the shell and other remotes do not re-render.
-- React 18 and React 19 refresh runtimes are installed per React instance and never mixed.
-- CSS edits are re-scoped and swapped in place.
+- Component edits hot-swap inside the remote's React root; the shell and other remotes do not re-render (the E2E suite edits a React 19 route and a React 18 widget and checks that the shell counter and the other roots keep their state).
+- React 18 and React 19 refresh runtimes are installed per React instance (`/@platform/refresh-preamble`) and never mixed.
 - Widget instances refresh independently; state held in the shell (slot props, open panels) survives.
-- Remote caching is disabled for dev manifests (`dev.hmr = true`).
+- The dev manifest is never cached by the host (`dev.hmr = true`).
 
 ## Restart diagnostics
 
-Some inputs are read once at startup: `mfe.config.ts`, `package.json` dependency versions (shared requests), the federation configuration and the generated route tree structure. When one of them changes while `platform dev` runs:
+Some inputs are read once at startup: `mfe.config.ts` (and its imports), `package.json` (shared dependency requests, federation configuration) and the generated route tree. When one of them changes while `platform dev` runs:
 
-1. the dev server recomputes `dev.configHash` and sets `dev.restartRequired: true` with `dev.restartReason` (`mfe.config.ts changed`, `route tree regenerated`…),
-2. the host and the harness receive the updated manifest and show a **restart required** diagnostic (`DEV_RESTART_REQUIRED`) instead of a stale or partially updated remote,
-3. `platform dev` prints the same message.
+1. the dev server re-resolves the configuration; when the config hash differs it sets `dev.restartRequired: true` and `dev.restartReason` (`A manifest-affecting input changed (mfe.config.ts)`, `The generated route tree changed (src/routeTree.gen.ts)`) on the dev manifest,
+2. `platform dev` logs the `DEV_RESTART_REQUIRED` diagnostic and sends a `platform:restart-required` event over the Vite websocket,
+3. the host and the harness show the **restart required** state instead of a stale or partially updated remote.
 
 Restart the dev server; the diagnostic clears when the new manifest loads.
 
 ## HMR-capable versus production artefacts
 
-Only manifests produced by a development server carry a `dev` block. Production artefacts have none and are **never** shown as HMR-capable, even when served from `localhost` (`vite preview`). The harness _Remotes_ panel labels each remote `HMR` or `artefact`; an artefact next to a dev server of the same `mfeId` is a common source of "my change does not show" confusion, and the panel shows which one is loaded and from which URL.
+Only manifests produced by a development server carry a `dev` block. Production artefacts have none and are **never** shown as HMR-capable, even when served from `localhost` (`vite preview`). The harness _Remotes_ page shows an `HMR` badge only for dev manifests; an artefact next to a dev server of the same `mfeId` is a common source of "my change does not show" confusion, and the page shows which one is loaded and from which URL.
 
 ## Ports
 
-| App                                                       | Port                                      |
-| --------------------------------------------------------- | ----------------------------------------- |
-| Harness (inside the remote's dev server)                  | the remote's port, `/__platform/harness/` |
-| Conformance shell (prod build / dev)                      | 4100 / 4110                               |
-| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204                                 |
+| App                                                       | Port                                                              |
+| --------------------------------------------------------- | ----------------------------------------------------------------- |
+| Harness (inside the remote's dev server)                  | the remote's port (5173 by default), `/__platform/harness/`       |
+| Conformance shell (production build / dev)                | 4100 / 4110                                                       |
+| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite          |
+| Unavailable-remote fixture                                | 4999 (nothing listens)                                            |

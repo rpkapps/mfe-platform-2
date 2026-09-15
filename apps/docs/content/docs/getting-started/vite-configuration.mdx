@@ -27,10 +27,13 @@ export default defineConfig({
 | Shared dependency inference    | `package.json` dependencies → shared requests by version group                                                                                                         |
 | Generated entry                | `.platform/entry.tsx`: imports `src/mfe.tsx`, applies `withTecton`, exports the definition                                                                             |
 | `@module-federation/vite`      | `name: federationName(mfeId)`, `filename: "remoteEntry.js"`, `exposes: { "./mfe": ".platform/entry.tsx" }`, `shared` with share scopes, `manifest: true`, `dts: false` |
-| Dev endpoints                  | `/platform-manifest.json`, `/@platform/refresh-preamble`, `/__platform/harness/`                                                                                       |
+| Dev endpoints                  | `/platform-manifest.json`, `/@platform/refresh-preamble`, `/__platform/harness/` (the built harness from `@platform/host`, or a fallback page)                          |
 | Restart diagnostics            | Detects manifest-affecting changes and flags `dev.restartRequired`                                                                                                     |
+| Vite defaults                  | `server.cors: true`, `build.target: "es2022"`, `build.cssCodeSplit: false`, the generated entry as build input, `resolve.dedupe` for React, the router and the SDK       |
 
 You never write Module Federation configuration. `federation(config)` exists as an escape hatch for the rare case where the generated configuration needs a tweak.
+
+The same call goes into `vitest.config.ts`: under Vitest (`process.env.VITEST`, or `test: true`) `platform()` returns only the React plugin, `resolve.dedupe` and the `__PLATFORM_MFE_ID__` / `__PLATFORM_ROUTE_PREFIX__` defines, so `createMfe()` finds its id in unit tests without federation, router generation, Tailwind or CSS scoping.
 
 ## `mfe.config.ts`
 
@@ -83,11 +86,12 @@ All options are optional.
 
 Plugin-only options (not read from `mfe.config.ts`):
 
-| Option     | Type                          | Default                              |
-| ---------- | ----------------------------- | ------------------------------------ |
-| `root`     | `string`                      | `process.cwd()`                      |
-| `react`    | `false \| ReactPluginOptions` | `@vitejs/plugin-react` with defaults |
-| `tailwind` | `boolean \| "auto"`           | `"auto"`                             |
+| Option     | Type                          | Default                                                        |
+| ---------- | ----------------------------- | -------------------------------------------------------------- |
+| `root`     | `string`                      | `process.cwd()`; must equal Vite's `root`                      |
+| `react`    | `false \| ReactPluginOptions` | `@vitejs/plugin-react` with defaults                           |
+| `tailwind` | `boolean \| "auto"`           | `"auto"`                                                       |
+| `test`     | `boolean`                     | `true` under Vitest: identity defines only, see above          |
 
 ## What is inferred
 
@@ -95,12 +99,29 @@ Plugin-only options (not read from `mfe.config.ts`):
 - **Routes**: every file under `src/routes` → route metadata in the manifest (`path`, `fullPath`, `guarded`, `breadcrumb`, `navigation`, `permissionGroups` from `staticData`).
 - **Capabilities**: static analysis of `@platform/react` imports and calls. `createPlatformStorage({ scope: "session" })` requests `storage.session`, `useRegisterCommand` requests `commands`, and so on. `context`, `navigation`, `telemetry` and `overlays` are always granted.
 - **Shared dependencies**: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`, `react-aria-components` and `sonner` when they are dependencies, with the requested ranges from `package.json` and the installed versions as fallbacks.
-- **Registrations**: static `useRegisterCommand`, `useRegisterSettingsGroup`, `useRegisterHelp` and `useRegisterReleaseNotes` calls with literal definitions become manifest contributions, so the command palette and the settings host can list them before the remote is loaded.
-- **Release information**: `package.json` version plus `PLATFORM_BUILD_ID`, `PLATFORM_COMMIT` and `PLATFORM_CHANNEL` from the build environment.
-- **Tecton**: enabled when `@tecton/react` is a dependency; the CSS protocol and token set are recorded in `manifest.tecton`.
+- **Registrations**: `createMfe({ registrations })` entries are listed as static (`static: true`); `useRegisterCommand`, `useRegisterSettingsGroup`, `useRegisterHelp`, `useRegisterReleaseNotes` and `createWidget` calls with literal definitions are listed too, so the command palette and the settings host know about them before the remote is loaded. A widget that is not an inline `createWidget` call, or a definition built at runtime, is skipped with a warning.
+- **Release information**: `package.json` version, `PLATFORM_BUILD_ID` (default: a hash of `mfeId@version@builtAt`) and the commit from `GITHUB_SHA`, `CI_COMMIT_SHA`, `PLATFORM_COMMIT_SHA` or `git rev-parse HEAD`.
+- **Tecton**: enabled when `@tecton/react` is a dependency; its version, the CSS protocol and the foundation are recorded in `manifest.tecton`.
 
 Run `pnpm manifest` at any time to see the result of inference without building.
 
+## Typed routes
+
+The plugin generates `src/routeTree.gen.ts`; `createMfe({ routeTree })` builds a `MfeRouter<typeof routeTree>` from it. Register that router with TanStack once, in `src/platform.d.ts`, and every `Route.useLoaderData()`, `Route.useSearch()`, `Link to`, `params` and `redirect({ to })` in the MFE is checked against the route tree:
+
+```ts title="src/platform.d.ts"
+import type { MfeRouter } from "@platform/react"
+import type { routeTree } from "./routeTree.gen"
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: MfeRouter<typeof routeTree>
+  }
+}
+```
+
+The scaffold ships this file (together with the `Register` augmentation of `@platform/react` for `env` and `featureFlags`). Without it TanStack falls back to untyped routes; nothing breaks at runtime.
+
 ## Restart-requiring changes
 
-The plugin reads `mfe.config.ts`, `package.json` dependency versions, the federation configuration and the route tree at startup. When one of them changes while `platform dev` is running, the dev manifest gets `dev.restartRequired: true` with a reason, and the host or harness shows a restart diagnostic (`DEV_RESTART_REQUIRED`) instead of a stale remote. See [Local development](/docs/local-development#restart-diagnostics).
+The plugin reads `mfe.config.ts` (and the files it imports), `package.json` and the generated route tree at startup; shared dependency requests and the federation configuration derive from them. When one of them changes while `platform dev` is running, the plugin re-resolves the configuration, compares the config hash and, if it differs, sets `dev.restartRequired: true` with `dev.restartReason` on the dev manifest, logs a `DEV_RESTART_REQUIRED` warning and sends a `platform:restart-required` websocket event; the host or harness shows a restart diagnostic instead of a stale remote. See [Local development](/docs/local-development#restart-diagnostics).
