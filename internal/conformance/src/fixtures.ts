@@ -40,9 +40,31 @@ export interface FixtureUser {
 }
 
 export const USERS: Record<"admin" | "viewer" | "restricted", FixtureUser> = {
-  admin: { id: "u-admin", displayName: "Ada Lovelace", email: "ada@example.com", groups: ["viewer", "assets:read", "assets:write", "reports:read", "reports:export", "admin"] },
-  viewer: { id: "u-viewer", displayName: "Grace Hopper", email: "grace@example.com", groups: ["viewer", "assets:read", "reports:read"] },
-  restricted: { id: "u-restricted", displayName: "Guest User", email: "guest@example.com", groups: ["viewer"] },
+  admin: {
+    id: "u-admin",
+    displayName: "Ada Lovelace",
+    email: "ada@example.com",
+    groups: [
+      "viewer",
+      "assets:read",
+      "assets:write",
+      "reports:read",
+      "reports:export",
+      "admin",
+    ],
+  },
+  viewer: {
+    id: "u-viewer",
+    displayName: "Grace Hopper",
+    email: "grace@example.com",
+    groups: ["viewer", "assets:read", "reports:read"],
+  },
+  restricted: {
+    id: "u-restricted",
+    displayName: "Guest User",
+    email: "guest@example.com",
+    groups: ["viewer"],
+  },
 }
 
 export const TENANT = { id: "t-acme", name: "Acme Energy" }
@@ -55,7 +77,11 @@ export const JOBS = [
   { id: "j-1002", name: "Well 1002 survey", status: "planned" },
 ]
 
-export const FEATURE_FLAGS = { "assets.bulk-edit": true, "reports.beta-charts": false, "shell.new-nav": true }
+export const FEATURE_FLAGS = {
+  "assets.bulk-edit": true,
+  "reports.beta-charts": false,
+  "shell.new-nav": true,
+}
 
 export interface Asset {
   id: string
@@ -83,8 +109,15 @@ export const REPORTS: Report[] = [
 
 /** Runtime environment values the shell passes to each MFE (public by contract). */
 export const RUNTIME_ENV = {
-  [MFE_IDS.assetTracker]: { API_BASE_URL: "https://api.example.com/assets", PAGE_SIZE: 25, FEATURE_MAP: true },
-  [MFE_IDS.legacyReports]: { API_BASE_URL: "https://api.example.com/reports", EXPORT_FORMATS: "csv,xlsx" },
+  [MFE_IDS.assetTracker]: {
+    API_BASE_URL: "https://api.example.com/assets",
+    PAGE_SIZE: 25,
+    FEATURE_MAP: true,
+  },
+  [MFE_IDS.legacyReports]: {
+    API_BASE_URL: "https://api.example.com/reports",
+    EXPORT_FORMATS: "csv,xlsx",
+  },
 } as const
 
 /** Stable `data-testid` values shared by apps and tests. */

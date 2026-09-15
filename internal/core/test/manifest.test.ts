@@ -17,17 +17,30 @@ describe("manifest", () => {
     const result = validateManifest(minimal)
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.manifest).toMatchObject({ schemaVersion: 1, protocolVersion: "1.0", discoverable: true, enabled: true, routes: [], entry: { expose: "./mfe", type: "module" }, css: { ownerAttribute: "data-mfe", scoped: true } })
+      expect(result.manifest).toMatchObject({
+        schemaVersion: 1,
+        protocolVersion: "1.0",
+        discoverable: true,
+        enabled: true,
+        routes: [],
+        entry: { expose: "./mfe", type: "module" },
+        css: { ownerAttribute: "data-mfe", scoped: true },
+      })
       expect(manifestRoutePrefix(result.manifest)).toBe("/asset-tracker")
     }
   })
   it("reports issues with paths", () => {
     const result = validateManifest({ ...minimal, mfeId: "Bad", routePrefix: "nope" })
     expect(result.ok).toBe(false)
-    if (!result.ok) expect(result.issues.map((i) => i.path)).toEqual(expect.arrayContaining(["mfeId", "routePrefix"]))
+    if (!result.ok)
+      expect(result.issues.map((i) => i.path)).toEqual(
+        expect.arrayContaining(["mfeId", "routePrefix"])
+      )
   })
   it("resolves urls and protocol compatibility", () => {
-    expect(resolveRemoteUrl("https://cdn/x/platform-manifest.json", "./remoteEntry.js")).toBe("https://cdn/x/remoteEntry.js")
+    expect(resolveRemoteUrl("https://cdn/x/platform-manifest.json", "./remoteEntry.js")).toBe(
+      "https://cdn/x/remoteEntry.js"
+    )
     expect(isProtocolCompatible("1.0", "1.3")).toBe(true)
     expect(isProtocolCompatible("1.0", "2.0")).toBe(false)
   })

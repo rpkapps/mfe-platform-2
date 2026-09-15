@@ -44,7 +44,12 @@ export interface BreadcrumbStore extends ReadonlyStore<BreadcrumbState> {
 }
 
 export function createBreadcrumbStore(): BreadcrumbStore {
-  const store: Store<BreadcrumbState> = createStore<BreadcrumbState>({ shell: [], trails: {}, activeInstanceId: null, renderer: "shell" })
+  const store: Store<BreadcrumbState> = createStore<BreadcrumbState>({
+    shell: [],
+    trails: {},
+    activeInstanceId: null,
+    renderer: "shell",
+  })
   const current = () => {
     const state = store.getState()
     const active = state.activeInstanceId ? state.trails[state.activeInstanceId] : undefined
@@ -55,13 +60,22 @@ export function createBreadcrumbStore(): BreadcrumbStore {
     subscribe: store.subscribe,
     select: store.select,
     setShell: (entries) => store.patch({ shell: entries }),
-    publish: (trail) => store.setState((state) => ({ ...state, trails: { ...state.trails, [trail.owner.instanceId]: trail } })),
+    publish: (trail) =>
+      store.setState((state) => ({
+        ...state,
+        trails: { ...state.trails, [trail.owner.instanceId]: trail },
+      })),
     clear: (instanceId) =>
       store.setState((state) => {
         if (!(instanceId in state.trails)) return state
         const trails = { ...state.trails }
         delete trails[instanceId]
-        return { ...state, trails, activeInstanceId: state.activeInstanceId === instanceId ? null : state.activeInstanceId }
+        return {
+          ...state,
+          trails,
+          activeInstanceId:
+            state.activeInstanceId === instanceId ? null : state.activeInstanceId,
+        }
       }),
     setActive: (instanceId) => store.patch({ activeInstanceId: instanceId }),
     setRenderer: (renderer) => store.patch({ renderer }),
@@ -70,7 +84,11 @@ export function createBreadcrumbStore(): BreadcrumbStore {
 }
 
 /** Truncate a trail for display: keep the first, the last `keepTail` and collapse the middle. */
-export function truncateBreadcrumbs(entries: BreadcrumbEntry[], max = 5, keepTail = 2): (BreadcrumbEntry | { key: "…"; ellipsis: true; collapsed: BreadcrumbEntry[] })[] {
+export function truncateBreadcrumbs(
+  entries: BreadcrumbEntry[],
+  max = 5,
+  keepTail = 2
+): (BreadcrumbEntry | { key: "…"; ellipsis: true; collapsed: BreadcrumbEntry[] })[] {
   const visible = entries.filter((entry) => !entry.hidden)
   if (visible.length <= max) return visible
   const head = visible.slice(0, 1)
@@ -83,6 +101,12 @@ export function truncateBreadcrumbs(entries: BreadcrumbEntry[], max = 5, keepTai
 export function announceBreadcrumbs(entries: BreadcrumbEntry[]): string {
   return entries
     .filter((entry) => !entry.hidden)
-    .map((entry) => (entry.state === "ready" ? (entry.label ?? "Untitled") : entry.state === "loading" ? `${entry.label ?? "…"} (loading)` : `${entry.label ?? "Unavailable"} (unavailable)`))
+    .map((entry) =>
+      entry.state === "ready"
+        ? (entry.label ?? "Untitled")
+        : entry.state === "loading"
+          ? `${entry.label ?? "…"} (loading)`
+          : `${entry.label ?? "Unavailable"} (unavailable)`
+    )
     .join(", ")
 }

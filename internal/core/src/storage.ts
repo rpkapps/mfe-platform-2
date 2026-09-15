@@ -15,18 +15,36 @@ export interface StorageBackend {
   set(scope: StorageScope, key: string, value: string): void
   remove(scope: StorageScope, key: string): void
   /** Notified on changes made through this backend (same tab) and by other tabs where supported. */
-  subscribe(scope: StorageScope, key: string, listener: (value: string | null, origin: "same-tab" | "cross-tab") => void): () => void
+  subscribe(
+    scope: StorageScope,
+    key: string,
+    listener: (value: string | null, origin: "same-tab" | "cross-tab") => void
+  ): () => void
   /** List keys with a prefix (devtools). */
   keys(scope: StorageScope, prefix?: string): string[]
   readonly available: { local: boolean; session: boolean }
 }
 
-export function createMemoryStorageBackend(): StorageBackend & { emitExternal(scope: StorageScope, key: string, value: string | null): void } {
-  const stores: Record<StorageScope, Map<string, string>> = { local: new Map(), session: new Map() }
-  const listeners = new Map<string, Set<(value: string | null, origin: "same-tab" | "cross-tab") => void>>()
+export function createMemoryStorageBackend(): StorageBackend & {
+  emitExternal(scope: StorageScope, key: string, value: string | null): void
+} {
+  const stores: Record<StorageScope, Map<string, string>> = {
+    local: new Map(),
+    session: new Map(),
+  }
+  const listeners = new Map<
+    string,
+    Set<(value: string | null, origin: "same-tab" | "cross-tab") => void>
+  >()
   const id = (scope: StorageScope, key: string) => `${scope}:${key}`
-  const emit = (scope: StorageScope, key: string, value: string | null, origin: "same-tab" | "cross-tab") => {
-    for (const listener of Array.from(listeners.get(id(scope, key)) ?? [])) listener(value, origin)
+  const emit = (
+    scope: StorageScope,
+    key: string,
+    value: string | null,
+    origin: "same-tab" | "cross-tab"
+  ) => {
+    for (const listener of Array.from(listeners.get(id(scope, key)) ?? []))
+      listener(value, origin)
   }
   return {
     available: { local: true, session: true },
@@ -47,7 +65,8 @@ export function createMemoryStorageBackend(): StorageBackend & { emitExternal(sc
         set.delete(listener)
       }
     },
-    keys: (scope, prefix = "") => Array.from(stores[scope].keys()).filter((key) => key.startsWith(prefix)),
+    keys: (scope, prefix = "") =>
+      Array.from(stores[scope].keys()).filter((key) => key.startsWith(prefix)),
     emitExternal(scope, key, value) {
       if (value === null) stores[scope].delete(key)
       else stores[scope].set(key, value)
@@ -73,16 +92,27 @@ function probe(storage: Storage | undefined): boolean {
  * one `storage` event listener for cross-tab updates. Falls back to memory per
  * scope when a storage area is blocked. Nothing on `window` is patched.
  */
-export function createBrowserStorageBackend(win: Window = window): StorageBackend & { dispose(): void } {
+export function createBrowserStorageBackend(
+  win: Window = window
+): StorageBackend & { dispose(): void } {
   const memory = createMemoryStorageBackend()
   const areas: Record<StorageScope, Storage | null> = {
     local: probe(safeStorage(() => win.localStorage)) ? win.localStorage : null,
     session: probe(safeStorage(() => win.sessionStorage)) ? win.sessionStorage : null,
   }
-  const listeners = new Map<string, Set<(value: string | null, origin: "same-tab" | "cross-tab") => void>>()
+  const listeners = new Map<
+    string,
+    Set<(value: string | null, origin: "same-tab" | "cross-tab") => void>
+  >()
   const id = (scope: StorageScope, key: string) => `${scope}:${key}`
-  const emit = (scope: StorageScope, key: string, value: string | null, origin: "same-tab" | "cross-tab") => {
-    for (const listener of Array.from(listeners.get(id(scope, key)) ?? [])) listener(value, origin)
+  const emit = (
+    scope: StorageScope,
+    key: string,
+    value: string | null,
+    origin: "same-tab" | "cross-tab"
+  ) => {
+    for (const listener of Array.from(listeners.get(id(scope, key)) ?? []))
+      listener(value, origin)
   }
   const onStorage = (event: StorageEvent) => {
     if (event.storageArea !== areas.local || !event.key) return
@@ -107,7 +137,12 @@ export function createBrowserStorageBackend(win: Window = window): StorageBacken
         try {
           store.setItem(key, value)
         } catch (error) {
-          throw new PlatformError({ code: "STORAGE_UNAVAILABLE", message: `Could not write "${key}" to ${scope} storage.`, source: key, cause: error })
+          throw new PlatformError({
+            code: "STORAGE_UNAVAILABLE",
+            message: `Could not write "${key}" to ${scope} storage.`,
+            source: key,
+            cause: error,
+          })
         }
       } else memory.set(scope, key, value)
       emit(scope, key, value, "same-tab")
@@ -189,24 +224,37 @@ export interface StorageStore<TValue> extends ReadonlyStore<TValue> {
   get(): TValue
   set(value: TValue | ((previous: TValue) => TValue)): void
   /** Update one key of an object value. */
-  setKey<K extends keyof TValue>(key: K, value: TValue[K] | ((previous: TValue[K]) => TValue[K])): void
+  setKey<K extends keyof TValue>(
+    key: K,
+    value: TValue[K] | ((previous: TValue[K]) => TValue[K])
+  ): void
   reset(): void
   /** Last validation problem, cleared on the next valid read/write. */
   readonly lastError: StorageDiagnostic | null
   dispose(): void
 }
 
-export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>): StorageStore<TValue> {
+export function createStorageStore<TValue>(
+  options: StorageStoreOptions<TValue>
+): StorageStore<TValue> {
   const { scope, backend, defaults } = options
   const version = options.version ?? 1
-  const namespacedKey = namespaceKey({ mfeId: options.owner.mfeId, instanceId: options.owner.instanceScoped ? options.owner.instanceId : undefined, key: `${scope}:${options.key}` })
+  const namespacedKey = namespaceKey({
+    mfeId: options.owner.mfeId,
+    instanceId: options.owner.instanceScoped ? options.owner.instanceId : undefined,
+    key: `${scope}:${options.key}`,
+  })
   const owner = { mfeId: options.owner.mfeId, instanceId: options.owner.instanceId }
   let lastError: StorageDiagnostic | null = null
 
-  const validate = (value: unknown): { ok: true; value: TValue } | { ok: false; message: string } => {
+  const validate = (
+    value: unknown
+  ): { ok: true; value: TValue } | { ok: false; message: string } => {
     if (!options.schema) return { ok: true, value: value as TValue }
     const result = validateSync(options.schema, value)
-    return result.ok ? { ok: true, value: result.value as TValue } : { ok: false, message: formatIssues(result.issues) }
+    return result.ok
+      ? { ok: true, value: result.value as TValue }
+      : { ok: false, message: formatIssues(result.issues) }
   }
   const report = (diagnostic: StorageDiagnostic) => {
     lastError = diagnostic
@@ -218,9 +266,17 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
     let envelope: StoredEnvelope
     try {
       envelope = JSON.parse(raw) as StoredEnvelope
-      if (!envelope || typeof envelope !== "object" || !("data" in envelope)) throw new Error("not an envelope")
+      if (!envelope || typeof envelope !== "object" || !("data" in envelope))
+        throw new Error("not an envelope")
     } catch (error) {
-      report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `malformed JSON: ${error instanceof Error ? error.message : String(error)}`, recovered: "defaults", owner })
+      report({
+        code: "STORAGE_INVALID",
+        key: namespacedKey,
+        scope,
+        message: `malformed JSON: ${error instanceof Error ? error.message : String(error)}`,
+        recovered: "defaults",
+        owner,
+      })
       return defaults
     }
     if (envelope.v !== version) {
@@ -233,15 +289,36 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
               lastError = null
               return check.value
             }
-            report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `migration from v${envelope.v} produced an invalid value: ${check.message}`, recovered: "defaults", owner })
+            report({
+              code: "STORAGE_INVALID",
+              key: namespacedKey,
+              scope,
+              message: `migration from v${envelope.v} produced an invalid value: ${check.message}`,
+              recovered: "defaults",
+              owner,
+            })
             return defaults
           }
         } catch (error) {
-          report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `migration from v${envelope.v} failed: ${error instanceof Error ? error.message : String(error)}`, recovered: "defaults", owner })
+          report({
+            code: "STORAGE_INVALID",
+            key: namespacedKey,
+            scope,
+            message: `migration from v${envelope.v} failed: ${error instanceof Error ? error.message : String(error)}`,
+            recovered: "defaults",
+            owner,
+          })
           return defaults
         }
       }
-      report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `stored version v${envelope.v} does not match v${version} and no migration applies`, recovered: "defaults", owner })
+      report({
+        code: "STORAGE_INVALID",
+        key: namespacedKey,
+        scope,
+        message: `stored version v${envelope.v} does not match v${version} and no migration applies`,
+        recovered: "defaults",
+        owner,
+      })
       return defaults
     }
     const check = validate(envelope.data)
@@ -255,7 +332,14 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
         if (migrated !== undefined) {
           const recheck = validate(migrated)
           if (recheck.ok) {
-            report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `stored value was invalid (${check.message}); migrated`, recovered: "migrated", owner })
+            report({
+              code: "STORAGE_INVALID",
+              key: namespacedKey,
+              scope,
+              message: `stored value was invalid (${check.message}); migrated`,
+              recovered: "migrated",
+              owner,
+            })
             return recheck.value
           }
         }
@@ -263,7 +347,14 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
         // fall through to defaults
       }
     }
-    report({ code: "STORAGE_INVALID", key: namespacedKey, scope, message: `stored value is invalid: ${check.message}`, recovered: "defaults", owner })
+    report({
+      code: "STORAGE_INVALID",
+      key: namespacedKey,
+      scope,
+      message: `stored value is invalid: ${check.message}`,
+      recovered: "defaults",
+      owner,
+    })
     return defaults
   }
 
@@ -275,7 +366,12 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
   const write = (value: TValue) => {
     const check = validate(value)
     if (!check.ok) {
-      throw new PlatformError({ code: "STORAGE_INVALID", message: `Value for "${options.key}" fails its schema: ${check.message}`, owner, source: namespacedKey })
+      throw new PlatformError({
+        code: "STORAGE_INVALID",
+        message: `Value for "${options.key}" fails its schema: ${check.message}`,
+        owner,
+        source: namespacedKey,
+      })
     }
     const envelope: StoredEnvelope = { v: version, data: check.value, updatedAt: Date.now() }
     backend.set(scope, namespacedKey, JSON.stringify(envelope))
@@ -290,12 +386,18 @@ export function createStorageStore<TValue>(options: StorageStoreOptions<TValue>)
     select: store.select,
     get: store.getState,
     set(value) {
-      const next = typeof value === "function" ? (value as (previous: TValue) => TValue)(store.getState()) : value
+      const next =
+        typeof value === "function"
+          ? (value as (previous: TValue) => TValue)(store.getState())
+          : value
       write(next)
     },
     setKey(key, value) {
       const previous = store.getState()
-      const nextValue = typeof value === "function" ? (value as (p: TValue[typeof key]) => TValue[typeof key])(previous[key]) : value
+      const nextValue =
+        typeof value === "function"
+          ? (value as (p: TValue[typeof key]) => TValue[typeof key])(previous[key])
+          : value
       write({ ...(previous as object), [key]: nextValue } as TValue)
     },
     reset() {

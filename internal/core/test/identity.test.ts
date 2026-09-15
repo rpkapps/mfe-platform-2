@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { assertRoutePrefix, federationName, inferMfeId, inferRoutePrefix, isValidMfeId, namespaceKey, parseNamespacedKey, qualifyId } from "../src/identity"
+import {
+  assertRoutePrefix,
+  federationName,
+  inferMfeId,
+  inferRoutePrefix,
+  isValidMfeId,
+  namespaceKey,
+  parseNamespacedKey,
+  qualifyId,
+} from "../src/identity"
 
 describe("identity", () => {
   it("infers mfeId from package names", () => {
@@ -20,7 +29,13 @@ describe("identity", () => {
   it("namespaces keys and ids", () => {
     const key = namespaceKey({ mfeId: "asset-tracker", key: "local:dashboard" })
     expect(key).toBe("platform:asset-tracker:local:dashboard")
-    expect(parseNamespacedKey(key)).toEqual({ mfeId: "asset-tracker", instanceId: "local", key: "dashboard" })
-    expect(qualifyId("asset-tracker", "open", "asset-tracker#1")).toBe("asset-tracker:open@asset-tracker#1")
+    expect(parseNamespacedKey(key)).toEqual({
+      mfeId: "asset-tracker",
+      instanceId: "local",
+      key: "dashboard",
+    })
+    expect(qualifyId("asset-tracker", "open", "asset-tracker#1")).toBe(
+      "asset-tracker:open@asset-tracker#1"
+    )
   })
 })

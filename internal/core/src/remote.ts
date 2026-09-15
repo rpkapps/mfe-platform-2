@@ -53,7 +53,12 @@ export interface HostBridge {
 }
 
 export interface NotificationPort {
-  notify(notification: { title: string; description?: string; kind?: "info" | "success" | "warning" | "error"; durationMs?: number }): void
+  notify(notification: {
+    title: string
+    description?: string
+    kind?: "info" | "success" | "warning" | "error"
+    durationMs?: number
+  }): void
 }
 
 export interface SettingsValuePort {
@@ -101,27 +106,68 @@ export interface RemoteDefinition {
   mountWidget(options: WidgetMountOptions): WidgetHandle
   /** Static registrations available without mounting (commands that navigate, help links). */
   readonly registrations?: {
-    commands?: { id: string; label: string; description?: string; group?: string; keywords?: string[]; shortcut?: string; route?: string; permissionGroups?: string[] }[]
-    help?: { id: string; title: string; description?: string; keywords?: string[]; href?: string; route?: string }[]
-    releaseNotes?: { id: string; version: string; title: string; date?: string; summary?: string; href?: string }[]
+    commands?: {
+      id: string
+      label: string
+      description?: string
+      group?: string
+      keywords?: string[]
+      shortcut?: string
+      route?: string
+      permissionGroups?: string[]
+    }[]
+    help?: {
+      id: string
+      title: string
+      description?: string
+      keywords?: string[]
+      href?: string
+      route?: string
+    }[]
+    releaseNotes?: {
+      id: string
+      version: string
+      title: string
+      date?: string
+      summary?: string
+      href?: string
+    }[]
   }
 }
 
 export function isRemoteDefinition(value: unknown): value is RemoteDefinition {
-  return typeof value === "object" && value !== null && (value as RemoteDefinition).kind === "platform-remote" && typeof (value as RemoteDefinition).mount === "function"
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as RemoteDefinition).kind === "platform-remote" &&
+    typeof (value as RemoteDefinition).mount === "function"
+  )
 }
 
 /** Loader abstraction: Module Federation today, anything tomorrow. */
 export interface RemoteLoader {
   readonly name: string
   /** Register/refresh the remote in the loader from its manifest. */
-  register(manifest: MfeManifest, options: { manifestUrl: string; dev?: boolean }): Promise<void>
+  register(
+    manifest: MfeManifest,
+    options: { manifestUrl: string; dev?: boolean }
+  ): Promise<void>
   /** Load the exposed definition module. */
-  load(manifest: MfeManifest, options: { manifestUrl: string; signal?: AbortSignal }): Promise<RemoteDefinition>
+  load(
+    manifest: MfeManifest,
+    options: { manifestUrl: string; signal?: AbortSignal }
+  ): Promise<RemoteDefinition>
   /** Preload the entry without evaluating the definition. */
   preload?(manifest: MfeManifest, options: { manifestUrl: string }): Promise<void>
   /** Shared resolution report for diagnostics. */
-  sharedReport?(mfeId: string): { name: string; version?: string; scope: string; outcome: "shared" | "bundled"; from?: string; reason: string }[]
+  sharedReport?(mfeId: string): {
+    name: string
+    version?: string
+    scope: string
+    outcome: "shared" | "bundled"
+    from?: string
+    reason: string
+  }[]
   /** Drop caches so the next load fetches again (dev, retry). */
   invalidate?(mfeId: string): void
 }

@@ -7,12 +7,12 @@ pnpm dlx @platform/cli create my-mfe   # scaffold a complete MFE
 cd my-mfe && pnpm install && pnpm dev  # local shell harness with HMR
 ```
 
-| Package | What it is |
-| --- | --- |
-| `@platform/react` | MFE SDK: `createMfe`, `createWidget`, `usePlatform`, storage, commands, settings, help, release notes, breadcrumbs, telemetry |
-| `@platform/vite` | One Vite plugin: TanStack Router file routes, code splitting, manifest, CSS scoping, dependency sharing, Module Federation |
-| `@platform/cli` | `platform create / dev / build / manifest / validate / lint / test` and the shareable ESLint config (`@platform/cli/eslint`) |
-| `@platform/host` | Shell runtime: remote loading, version-group sharing, mounting, command palette, settings host, breadcrumbs, overlays, runtime configuration, devtools, harness, Docker entrypoint |
+| Package           | What it is                                                                                                                                                                         |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@platform/react` | MFE SDK: `createMfe`, `createWidget`, `usePlatform`, storage, commands, settings, help, release notes, breadcrumbs, telemetry                                                      |
+| `@platform/vite`  | One Vite plugin: TanStack Router file routes, code splitting, manifest, CSS scoping, dependency sharing, Module Federation                                                         |
+| `@platform/cli`   | `platform create / dev / build / manifest / validate / lint / test` and the shareable ESLint config (`@platform/cli/eslint`)                                                       |
+| `@platform/host`  | Shell runtime: remote loading, version-group sharing, mounting, command palette, settings host, breadcrumbs, overlays, runtime configuration, devtools, harness, Docker entrypoint |
 
 ## Repository
 

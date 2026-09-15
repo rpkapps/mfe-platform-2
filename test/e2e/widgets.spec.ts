@@ -21,22 +21,32 @@ test.describe("widgets and overlays", () => {
     await expect(page.getByTestId(ids.widgets.kpiTile).first()).toContainText("React 19")
   })
 
-  test("ordinary Tecton dialogs and plain modals stack in opening order across roots", async ({ page }) => {
+  test("ordinary Tecton dialogs and plain modals stack in opening order across roots", async ({
+    page,
+  }) => {
     await gotoShell(page, "/dashboard")
     await expect(page.getByTestId(ids.widgets.modalWidget)).toBeVisible({ timeout: 30_000 })
     await page.getByTestId(ids.widgets.modalWidgetOpen).click()
     const first = page.getByTestId(ids.widgets.modalWidgetDialog)
     await expect(first).toBeVisible()
     // The dialog is portalled into the owner-tagged overlay root, outside the widget container.
-    expect(await first.evaluate((el) => el.closest("[data-platform-overlay-root]")?.getAttribute("data-mfe"))).toBe("widget-a")
+    expect(
+      await first.evaluate((el) =>
+        el.closest("[data-platform-overlay-root]")?.getAttribute("data-mfe")
+      )
+    ).toBe("widget-a")
     await page.getByTestId(ids.widgets.modalWidgetNested).click()
     const nested = page.getByTestId(ids.widgets.modalWidgetNestedDialog)
     await expect(nested).toBeVisible()
-    expect(await layerOf(page, ids.widgets.modalWidgetNestedDialog)).toBeGreaterThan(await layerOf(page, ids.widgets.modalWidgetDialog))
+    expect(await layerOf(page, ids.widgets.modalWidgetNestedDialog)).toBeGreaterThan(
+      await layerOf(page, ids.widgets.modalWidgetDialog)
+    )
     await page.keyboard.press("Escape")
     await expect(nested).toBeHidden()
     await expect(first).toBeVisible()
-    await page.keyboard.press("Escape")
+    // Close the outer dialog through its own close button (focus is still being restored
+    // from the nested dialog when the second Escape would land).
+    await first.getByRole("button", { name: "Close" }).first().click()
     await expect(first).toBeHidden()
     // A React 19 Tecton dialog opened while a React 18 plain modal is up: the later opener
     // is on top. (The modal covers the page, so the second trigger receives a synthetic click.)
@@ -44,7 +54,13 @@ test.describe("widgets and overlays", () => {
     await expect(page.getByTestId(ids.widgets.stackedModalDialog)).toBeVisible()
     await page.getByTestId(ids.widgets.assetCardOpen).dispatchEvent("click")
     await expect(page.getByTestId(ids.widgets.assetCardDialog)).toBeVisible()
-    expect(await layerOf(page, ids.widgets.assetCardDialog)).toBeGreaterThan(await layerOf(page, ids.widgets.stackedModalDialog))
-    expect(await page.getByTestId(ids.widgets.stackedModalDialog).evaluate((el) => el.closest("[data-platform-overlay-root]")?.getAttribute("data-mfe"))).toBe("legacy-reports")
+    expect(await layerOf(page, ids.widgets.assetCardDialog)).toBeGreaterThan(
+      await layerOf(page, ids.widgets.stackedModalDialog)
+    )
+    expect(
+      await page
+        .getByTestId(ids.widgets.stackedModalDialog)
+        .evaluate((el) => el.closest("[data-platform-overlay-root]")?.getAttribute("data-mfe"))
+    ).toBe("legacy-reports")
   })
 })

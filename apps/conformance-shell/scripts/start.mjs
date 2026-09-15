@@ -13,5 +13,9 @@ const generated = spawnSync(process.execPath, [entrypoint, "--out", out], { stdi
 if (generated.status !== 0) process.exit(generated.status ?? 1)
 const vite = join(app, "..", "..", "node_modules", "vite", "bin", "vite.js")
 const port = process.env.PORT ?? "4100"
-const server = spawn(process.execPath, [vite, "preview", "--port", port, "--strictPort", "--host", process.env.HOST ?? "0.0.0.0"], { cwd: app, stdio: "inherit", env: { ...process.env, PLATFORM_CONFIG_PATH: out } })
+const server = spawn(
+  process.execPath,
+  [vite, "preview", "--port", port, "--strictPort", "--host", process.env.HOST ?? "0.0.0.0"],
+  { cwd: app, stdio: "inherit", env: { ...process.env, PLATFORM_CONFIG_PATH: out } }
+)
 server.on("exit", (code) => process.exit(code ?? 0))

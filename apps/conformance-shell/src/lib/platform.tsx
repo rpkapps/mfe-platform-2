@@ -19,14 +19,25 @@ export type UserKey = keyof typeof USERS
 
 export const memoryTelemetry = createMemoryTelemetryAdapter({ limit: 200 })
 
-export function createShellHost({ runtimeConfig, router }: { runtimeConfig: RuntimeConfig; router: AnyRouter }): PlatformHost {
+export function createShellHost({
+  runtimeConfig,
+  router,
+}: {
+  runtimeConfig: RuntimeConfig
+  router: AnyRouter
+}): PlatformHost {
   const user = USERS.admin
   return createPlatformHost({
     runtimeConfig,
     registry,
     navigation: createTanStackShellNavigation(router),
     context: {
-      user: { id: user.id, displayName: user.displayName, email: user.email, sessionId: "session-conformance" },
+      user: {
+        id: user.id,
+        displayName: user.displayName,
+        email: user.email,
+        sessionId: "session-conformance",
+      },
       permissionGroups: user.groups,
       tenant: TENANT,
       project: PROJECTS[0]!,
@@ -40,7 +51,10 @@ export function createShellHost({ runtimeConfig, router }: { runtimeConfig: Runt
       release: runtimeConfig.release,
     },
     notifications: createSonnerNotificationPort(),
-    telemetry: composeTelemetryAdapters(memoryTelemetry, createConsoleTelemetryAdapter("[shell telemetry]")),
+    telemetry: composeTelemetryAdapters(
+      memoryTelemetry,
+      createConsoleTelemetryAdapter("[shell telemetry]")
+    ),
     policy: { permissionGroups: "all", preflight: true },
     devtools: runtimeConfig.devtools,
     hostKind: "shell",
@@ -49,7 +63,15 @@ export function createShellHost({ runtimeConfig, router }: { runtimeConfig: Runt
 
 export function switchUser(host: PlatformHost, key: UserKey) {
   const user = USERS[key]
-  host.context.patch({ user: { id: user.id, displayName: user.displayName, email: user.email, sessionId: "session-conformance" }, permissionGroups: user.groups })
+  host.context.patch({
+    user: {
+      id: user.id,
+      displayName: user.displayName,
+      email: user.email,
+      sessionId: "session-conformance",
+    },
+    permissionGroups: user.groups,
+  })
 }
 
 const HostContext = React.createContext<PlatformHost | null>(null)
@@ -62,7 +84,15 @@ export function useShellHost(): PlatformHost | null {
  * Creates the platform host once on the client. The server renders the chrome
  * only; remotes never render on the server.
  */
-export function ShellPlatform({ runtimeConfig, router, children }: { runtimeConfig: RuntimeConfig; router: AnyRouter; children: React.ReactNode }) {
+export function ShellPlatform({
+  runtimeConfig,
+  router,
+  children,
+}: {
+  runtimeConfig: RuntimeConfig
+  router: AnyRouter
+  children: React.ReactNode
+}) {
   const [host, setHost] = React.useState<PlatformHost | null>(null)
   React.useEffect(() => {
     let disposed = false
@@ -76,7 +106,6 @@ export function ShellPlatform({ runtimeConfig, router, children }: { runtimeConf
       disposed = true
       created?.dispose()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   if (!host) return <HostContext.Provider value={null}>{children}</HostContext.Provider>
   return (

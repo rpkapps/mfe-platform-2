@@ -14,7 +14,6 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const shellOnWindows = process.platform === "win32"
 
 declare global {
-  // eslint-disable-next-line no-var
   var __platformE2E: { servers: { close(): void }[]; children: ChildProcess[] } | undefined
 }
 
@@ -36,7 +35,9 @@ export default async function globalSetup() {
   for (const [dir, port] of remotes) {
     const full = join(root, dir)
     if (!existsSync(join(full, "platform-manifest.json"))) {
-      throw new Error(`${dir}/platform-manifest.json is missing — run \`pnpm build:all\` before \`pnpm e2e\`.`)
+      throw new Error(
+        `${dir}/platform-manifest.json is missing — run \`pnpm build:all\` before \`pnpm e2e\`.`
+      )
     }
     state.servers.push((await serveStatic(full, port)) as { close(): void })
   }
@@ -46,12 +47,35 @@ export default async function globalSetup() {
   const configPath = join(shellDir, "dist", "client", "platform-config.json")
   mkdirSync(dirname(configPath), { recursive: true })
   const entrypoint = join(root, "packages/host/dist/entrypoint.js")
-  const generated = spawnSync(process.execPath, [entrypoint, "--out", configPath, "--known", "asset-tracker,legacy-reports,widget-a,widget-b,unavailable-remote,disabled-remote"], { env, encoding: "utf8" })
-  if (generated.status !== 0) throw new Error(`entrypoint failed: ${generated.stdout}\n${generated.stderr}`)
-  if (!existsSync(join(shellDir, "dist", "server", "server.js"))) throw new Error("apps/conformance-shell/dist/server/server.js is missing — run `pnpm build:all` first.")
+  const generated = spawnSync(
+    process.execPath,
+    [
+      entrypoint,
+      "--out",
+      configPath,
+      "--known",
+      "asset-tracker,legacy-reports,widget-a,widget-b,unavailable-remote,disabled-remote",
+    ],
+    { env, encoding: "utf8" }
+  )
+  if (generated.status !== 0)
+    throw new Error(`entrypoint failed: ${generated.stdout}\n${generated.stderr}`)
+  if (!existsSync(join(shellDir, "dist", "server", "server.js")))
+    throw new Error(
+      "apps/conformance-shell/dist/server/server.js is missing — run `pnpm build:all` first."
+    )
   // The built SSR shell is served by `vite preview` (the same handler a Node adapter would host).
   const viteBin = join(root, "node_modules", "vite", "bin", "vite.js")
-  const child = spawn(process.execPath, [viteBin, "preview", "--port", "4100", "--strictPort", "--host", "127.0.0.1"], { cwd: shellDir, env: { ...env, PLATFORM_CONFIG_PATH: configPath }, stdio: "pipe", shell: shellOnWindows })
+  const child = spawn(
+    process.execPath,
+    [viteBin, "preview", "--port", "4100", "--strictPort", "--host", "127.0.0.1"],
+    {
+      cwd: shellDir,
+      env: { ...env, PLATFORM_CONFIG_PATH: configPath },
+      stdio: "pipe",
+      shell: shellOnWindows,
+    }
+  )
   child.stdout?.on("data", (chunk) => process.stdout.write(`[shell] ${chunk}`))
   child.stderr?.on("data", (chunk) => process.stderr.write(`[shell] ${chunk}`))
   state.children.push(child)

@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test"
 import { gotoShell, ids, waitForAssetTracker } from "./helpers"
 
 test.describe("shell-owned history", () => {
-  test("MFE navigation, back, forward and deep links go through the shell", async ({ page }) => {
+  test("MFE navigation, back, forward and deep links go through the shell", async ({
+    page,
+  }) => {
     await gotoShell(page, "/asset-tracker")
     await waitForAssetTracker(page)
     await page.getByTestId(ids.shell.counter).click()

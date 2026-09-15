@@ -20,7 +20,12 @@ const apps = [
 ]
 
 const children = apps.map(([filter, script]) => {
-  const child = spawn("pnpm", ["--filter", filter, script], { cwd: root, env, stdio: "inherit", shell })
+  const child = spawn("pnpm", ["--filter", filter, script], {
+    cwd: root,
+    env,
+    stdio: "inherit",
+    shell,
+  })
   child.on("exit", (code) => {
     if (code && code !== 0) console.error(`${filter} exited with ${code}`)
   })

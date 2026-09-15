@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test"
 import { gotoShell, ids, waitForAssetTracker } from "./helpers"
 
 test.describe("native TanStack guards and platform context", () => {
-  test("guards use permission groups from the platform context and re-run on context changes", async ({ page }) => {
+  test("guards use permission groups from the platform context and re-run on context changes", async ({
+    page,
+  }) => {
     await gotoShell(page, "/asset-tracker/assets/pump-42")
     await waitForAssetTracker(page)
     await expect(page.getByTestId(ids.assetTracker.assetTitle)).toHaveText("Pump 42")

@@ -15,3 +15,4 @@ playwright-report
 test-results
 packages/cli/templates/**/routeTree.gen.ts
 CHANGELOG.md
+internal/core/schemas/

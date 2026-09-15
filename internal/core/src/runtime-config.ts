@@ -32,20 +32,41 @@ export const devtoolsPolicySchema = z.object({
 
 export const runtimeConfigSchema = z.object({
   $schema: z.string().optional(),
-  schemaVersion: z.literal(RUNTIME_CONFIG_SCHEMA_VERSION).default(RUNTIME_CONFIG_SCHEMA_VERSION),
+  schemaVersion: z
+    .literal(RUNTIME_CONFIG_SCHEMA_VERSION)
+    .default(RUNTIME_CONFIG_SCHEMA_VERSION),
   generatedAt: z.string().optional(),
   /** Where the document came from (`entrypoint`, `inline`, `fetch`, `static`, `test`). */
   source: z.string().optional(),
   environment: z.string().default("production"),
-  release: z.object({ version: z.string().optional(), buildId: z.string().optional(), commit: z.string().optional() }).default({}),
+  release: z
+    .object({
+      version: z.string().optional(),
+      buildId: z.string().optional(),
+      commit: z.string().optional(),
+    })
+    .default({}),
   /** Public values every MFE receives (`platform.runtime.shared`). */
   shared: z.record(z.string(), runtimeEnvValueSchema).default({}),
   mfes: z.record(mfeIdSchema, mfeRuntimeConfigSchema).default({}),
-  devtools: devtoolsPolicySchema.default({ policy: "flag", environments: ["development", "local", "test", "staging"] }),
+  devtools: devtoolsPolicySchema.default({
+    policy: "flag",
+    environments: ["development", "local", "test", "staging"],
+  }),
   /** Cache policy for manifest fetches. */
-  cache: z.object({ manifestMaxAgeSeconds: z.number().int().nonnegative().default(60), bustOnRetry: z.boolean().default(true) }).default({ manifestMaxAgeSeconds: 60, bustOnRetry: true }),
+  cache: z
+    .object({
+      manifestMaxAgeSeconds: z.number().int().nonnegative().default(60),
+      bustOnRetry: z.boolean().default(true),
+    })
+    .default({ manifestMaxAgeSeconds: 60, bustOnRetry: true }),
   /** Manifest fetch retry policy. */
-  retry: z.object({ attempts: z.number().int().min(0).default(2), backoffMs: z.number().int().nonnegative().default(500) }).default({ attempts: 2, backoffMs: 500 }),
+  retry: z
+    .object({
+      attempts: z.number().int().min(0).default(2),
+      backoffMs: z.number().int().nonnegative().default(500),
+    })
+    .default({ attempts: 2, backoffMs: 500 }),
   /** Origins that may serve remotes in addition to same-origin and manifest-declared origins. */
   allowedOrigins: z.array(z.string()).default([]),
 })
@@ -62,7 +83,8 @@ export function parseRuntimeConfig(input: unknown, source?: string): RuntimeConf
       code: "RUNTIME_CONFIG_INVALID",
       message: `Runtime configuration is invalid: ${result.error.issues.map((issue) => `${issue.path.map(String).join(".") || "<root>"}: ${issue.message}`).join("; ")}`,
       source,
-      override: "PLATFORM_* environment variables at container start, or the inline configuration document",
+      override:
+        "PLATFORM_* environment variables at container start, or the inline configuration document",
     })
   }
   return source && !result.data.source ? { ...result.data, source } : result.data
@@ -72,7 +94,17 @@ export function parseRuntimeConfig(input: unknown, source?: string): RuntimeConf
 export const RUNTIME_ENV_PREFIX = "PLATFORM_"
 
 /** Substrings that mark a value as sensitive; such variables are refused, never emitted. */
-export const SENSITIVE_KEY_PATTERNS = [/SECRET/i, /PASSWORD/i, /PASSWD/i, /TOKEN/i, /PRIVATE/i, /CREDENTIAL/i, /API_KEY/i, /APIKEY/i, /_KEY$/i]
+export const SENSITIVE_KEY_PATTERNS = [
+  /SECRET/i,
+  /PASSWORD/i,
+  /PASSWD/i,
+  /TOKEN/i,
+  /PRIVATE/i,
+  /CREDENTIAL/i,
+  /API_KEY/i,
+  /APIKEY/i,
+  /_KEY$/i,
+]
 
 export function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERNS.some((pattern) => pattern.test(key))
@@ -125,13 +157,24 @@ export interface GenerateRuntimeConfigResult {
  *
  * Variables whose names look sensitive are refused and reported.
  */
-export function generateRuntimeConfig(options: GenerateRuntimeConfigOptions): GenerateRuntimeConfigResult {
+export function generateRuntimeConfig(
+  options: GenerateRuntimeConfigOptions
+): GenerateRuntimeConfigResult {
   const base = runtimeConfigSchema.parse(options.base ?? {})
-  const config: RuntimeConfig = { ...base, shared: { ...base.shared }, mfes: Object.fromEntries(Object.entries(base.mfes).map(([id, mfe]) => [id, { ...mfe, env: { ...mfe.env } }])) }
+  const config: RuntimeConfig = {
+    ...base,
+    shared: { ...base.shared },
+    mfes: Object.fromEntries(
+      Object.entries(base.mfes).map(([id, mfe]) => [id, { ...mfe, env: { ...mfe.env } }])
+    ),
+  }
   const refused: string[] = []
   const sources: Record<string, string> = {}
   const known = [...(options.knownMfeIds ?? []), ...Object.keys(base.mfes)]
-  const resolveMfe = (segment: string, rest: string[]): { mfeId: string; rest: string[] } | null => {
+  const resolveMfe = (
+    segment: string,
+    rest: string[]
+  ): { mfeId: string; rest: string[] } | null => {
     // Prefer a known id that matches the longest prefix of the segments.
     const segments = [segment, ...rest]
     for (let length = segments.length; length >= 1; length -= 1) {
@@ -166,7 +209,10 @@ export function generateRuntimeConfig(options: GenerateRuntimeConfigOptions): Ge
       config.release.commit = value
       sources["release.commit"] = name
     } else if (key === "ALLOWED_ORIGINS") {
-      config.allowedOrigins = value.split(",").map((origin) => origin.trim()).filter(Boolean)
+      config.allowedOrigins = value
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
       sources.allowedOrigins = name
     } else if (key === "DEVTOOLS_POLICY") {
       const parsed = devtoolsPolicySchema.shape.policy.safeParse(value)
@@ -209,7 +255,10 @@ export function generateRuntimeConfig(options: GenerateRuntimeConfigOptions): Ge
           sources[`mfes.${mfeId}.preload`] = name
         }
       } else if (property === "ALLOWED_ORIGINS") {
-        mfe.allowedOrigins = value.split(",").map((origin) => origin.trim()).filter(Boolean)
+        mfe.allowedOrigins = value
+          .split(",")
+          .map((origin) => origin.trim())
+          .filter(Boolean)
         sources[`mfes.${mfeId}.allowedOrigins`] = name
       } else if (property.startsWith("ENV_")) {
         const envKey = property.slice("ENV_".length)
@@ -231,7 +280,11 @@ export interface MfeRuntimeView {
   env: Record<string, RuntimeEnvValue>
 }
 
-export function runtimeViewFor(config: RuntimeConfig, mfeId: string, declaredKeys?: Record<string, { default?: RuntimeEnvValue }>): MfeRuntimeView {
+export function runtimeViewFor(
+  config: RuntimeConfig,
+  mfeId: string,
+  declaredKeys?: Record<string, { default?: RuntimeEnvValue }>
+): MfeRuntimeView {
   const own = config.mfes[mfeId]?.env ?? {}
   const env: Record<string, RuntimeEnvValue> = {}
   if (declaredKeys) {
@@ -243,15 +296,25 @@ export function runtimeViewFor(config: RuntimeConfig, mfeId: string, declaredKey
   } else {
     Object.assign(env, own)
   }
-  return { environment: config.environment, release: config.release, shared: { ...config.shared }, env }
+  return {
+    environment: config.environment,
+    release: config.release,
+    shared: { ...config.shared },
+    env,
+  }
 }
 
 /** Redacted copy for devtools: values are kept (they are public by contract) but the structure is frozen and sensitive-looking keys are masked defensively. */
 export function redactRuntimeConfig(config: RuntimeConfig): RuntimeConfig {
-  const mask = (record: Record<string, RuntimeEnvValue>) => Object.fromEntries(Object.entries(record).map(([key, value]) => [key, isSensitiveKey(key) ? "•••" : value]))
+  const mask = (record: Record<string, RuntimeEnvValue>) =>
+    Object.fromEntries(
+      Object.entries(record).map(([key, value]) => [key, isSensitiveKey(key) ? "•••" : value])
+    )
   return {
     ...config,
     shared: mask(config.shared),
-    mfes: Object.fromEntries(Object.entries(config.mfes).map(([id, mfe]) => [id, { ...mfe, env: mask(mfe.env) }])),
+    mfes: Object.fromEntries(
+      Object.entries(config.mfes).map(([id, mfe]) => [id, { ...mfe, env: mask(mfe.env) }])
+    ),
   }
 }

@@ -28,7 +28,10 @@ function bundles(dir: string): string[] {
     .map((file) => join(dir, file))
 }
 
-const targets = [...bundles(join(root, "packages/react/dist")), ...bundles(join(root, "packages/host/dist"))]
+const targets = [
+  ...bundles(join(root, "packages/react/dist")),
+  ...bundles(join(root, "packages/host/dist")),
+]
 
 describe.skipIf(targets.length === 0)("built bundles never patch History or Storage", () => {
   for (const file of targets) {

@@ -1,6 +1,13 @@
 import { PlatformError } from "../errors"
 import { isValidLocalId } from "../identity"
-import { formatIssues, inferKind, isStandardSchema, validateSync, type AnySchema, type InferredKind } from "../standard-schema"
+import {
+  formatIssues,
+  inferKind,
+  isStandardSchema,
+  validateSync,
+  type AnySchema,
+  type InferredKind,
+} from "../standard-schema"
 import { createEmitter, type Emitter } from "../store"
 import type { RegistrationOwner } from "./commands"
 
@@ -22,7 +29,11 @@ export interface AsyncOptionsContext<TState = Record<string, unknown>> {
   platform: unknown
 }
 
-export type OptionsProvider<TValue = unknown, TState = Record<string, unknown>> = SettingsOption<TValue>[] | ((context: AsyncOptionsContext<TState>) => Promise<SettingsOption<TValue>[]> | SettingsOption<TValue>[])
+export type OptionsProvider<TValue = unknown, TState = Record<string, unknown>> =
+  | SettingsOption<TValue>[]
+  | ((
+      context: AsyncOptionsContext<TState>
+    ) => Promise<SettingsOption<TValue>[]> | SettingsOption<TValue>[])
 
 export type Predicate<TState = Record<string, unknown>> = (state: TState) => boolean
 
@@ -55,7 +66,12 @@ export interface SettingsFieldDefinition<TValue = unknown, TState = Record<strin
   placeholder?: string
 }
 
-export interface SettingsGroupDefinition<TFields extends Record<string, SettingsFieldDefinition<any, any>> = Record<string, SettingsFieldDefinition>> {
+export interface SettingsGroupDefinition<
+  TFields extends Record<string, SettingsFieldDefinition<any, any>> = Record<
+    string,
+    SettingsFieldDefinition
+  >,
+> {
   /** Local key, namespaced by the platform. */
   key: string
   title?: string
@@ -99,7 +115,10 @@ export interface SettingsRegistryEvents extends Record<string, unknown> {
 
 /** `displayDensity` → `Display density`; `api_base_url` → `Api base url`. */
 export function humanizeKey(key: string): string {
-  const spaced = key.replace(/[-_.]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim()
+  const spaced = key
+    .replace(/[-_.]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .trim()
   return spaced.charAt(0).toUpperCase() + spaced.slice(1).toLowerCase()
 }
 
@@ -108,36 +127,77 @@ export function inferFieldKind(field: SettingsFieldDefinition): InferredKind {
   return inferKind(field.defaultValue, field.options !== undefined)
 }
 
-export function validateSettingsGroup(definition: SettingsGroupDefinition, owner: RegistrationOwner): void {
+export function validateSettingsGroup(
+  definition: SettingsGroupDefinition,
+  owner: RegistrationOwner
+): void {
   if (!isValidLocalId(definition.key)) {
-    throw new PlatformError({ code: "SETTINGS_INVALID", message: `Settings group key "${definition.key}" is not a local kebab-case key.`, owner, source: definition.key })
+    throw new PlatformError({
+      code: "SETTINGS_INVALID",
+      message: `Settings group key "${definition.key}" is not a local kebab-case key.`,
+      owner,
+      source: definition.key,
+    })
   }
   if (definition.managedBy === "mfe" && !definition.route) {
-    throw new PlatformError({ code: "SETTINGS_INVALID", message: `Settings group "${definition.key}" is managed by the MFE and needs a \`route\`.`, owner, source: definition.key })
+    throw new PlatformError({
+      code: "SETTINGS_INVALID",
+      message: `Settings group "${definition.key}" is managed by the MFE and needs a \`route\`.`,
+      owner,
+      source: definition.key,
+    })
   }
   for (const [key, field] of Object.entries(definition.fields ?? {})) {
     if (!field || typeof field !== "object") {
-      throw new PlatformError({ code: "SETTINGS_INVALID", message: `Field "${key}" of group "${definition.key}" is not a field definition.`, owner, source: `${definition.key}.${key}` })
+      throw new PlatformError({
+        code: "SETTINGS_INVALID",
+        message: `Field "${key}" of group "${definition.key}" is not a field definition.`,
+        owner,
+        source: `${definition.key}.${key}`,
+      })
     }
     if (!("defaultValue" in field)) {
-      throw new PlatformError({ code: "SETTINGS_INVALID", message: `Field "${key}" of group "${definition.key}" needs \`defaultValue\`.`, owner, source: `${definition.key}.${key}` })
+      throw new PlatformError({
+        code: "SETTINGS_INVALID",
+        message: `Field "${key}" of group "${definition.key}" needs \`defaultValue\`.`,
+        owner,
+        source: `${definition.key}.${key}`,
+      })
     }
     if ("value" in field) {
-      throw new PlatformError({ code: "SETTINGS_INVALID", message: `Field "${key}" of group "${definition.key}" uses \`value\`; use \`defaultValue\` — the framework owns the current value.`, owner, source: `${definition.key}.${key}` })
+      throw new PlatformError({
+        code: "SETTINGS_INVALID",
+        message: `Field "${key}" of group "${definition.key}" uses \`value\`; use \`defaultValue\` — the framework owns the current value.`,
+        owner,
+        source: `${definition.key}.${key}`,
+      })
     }
     if (field.schema !== undefined && !isStandardSchema(field.schema)) {
-      throw new PlatformError({ code: "SETTINGS_INVALID", message: `Field "${key}" of group "${definition.key}" has a schema that is not Standard Schema compatible.`, owner, source: `${definition.key}.${key}` })
+      throw new PlatformError({
+        code: "SETTINGS_INVALID",
+        message: `Field "${key}" of group "${definition.key}" has a schema that is not Standard Schema compatible.`,
+        owner,
+        source: `${definition.key}.${key}`,
+      })
     }
     if (field.schema) {
       const result = validateSync(field.schema, field.defaultValue)
       if (!result.ok) {
-        throw new PlatformError({ code: "SETTINGS_INVALID", message: `Default value of "${definition.key}.${key}" fails its schema: ${formatIssues(result.issues)}`, owner, source: `${definition.key}.${key}` })
+        throw new PlatformError({
+          code: "SETTINGS_INVALID",
+          message: `Default value of "${definition.key}.${key}" fails its schema: ${formatIssues(result.issues)}`,
+          owner,
+          source: `${definition.key}.${key}`,
+        })
       }
     }
   }
 }
 
-export function describeFields(mfeId: string, definition: SettingsGroupDefinition): SettingsFieldMeta[] {
+export function describeFields(
+  mfeId: string,
+  definition: SettingsGroupDefinition
+): SettingsFieldMeta[] {
   return Object.entries(definition.fields ?? {}).map(([key, field]) => ({
     qualifiedKey: `${mfeId}:${definition.key}.${key}`,
     groupKey: definition.key,
@@ -174,7 +234,13 @@ export function createSettingsRegistry(): SettingsRegistry {
         // Two live mounts of the same MFE (e.g. widgets) may register the same group; the first one wins, the second is a no-op.
         return () => {}
       }
-      const registered: RegisteredSettingsGroup = { qualifiedKey, definition, owner, fields: describeFields(owner.mfeId, definition), registeredAt: Date.now() }
+      const registered: RegisteredSettingsGroup = {
+        qualifiedKey,
+        definition,
+        owner,
+        fields: describeFields(owner.mfeId, definition),
+        registeredAt: Date.now(),
+      }
       groups.set(qualifiedKey, registered)
       emitChange()
       return () => {
@@ -186,7 +252,8 @@ export function createSettingsRegistry(): SettingsRegistry {
     list: () => Array.from(groups.values()),
     get: (qualifiedKey) => groups.get(qualifiedKey),
     clearOwner(instanceId) {
-      for (const [key, group] of Array.from(groups.entries())) if (group.owner.instanceId === instanceId) groups.delete(key)
+      for (const [key, group] of Array.from(groups.entries()))
+        if (group.owner.instanceId === instanceId) groups.delete(key)
       emitChange()
     },
   }
@@ -198,7 +265,9 @@ export interface StoredSettingsValue {
   value: unknown
 }
 
-export type FieldValidationState = { valid: true } | { valid: false; message: string; recovered: "default" | "migrated" | "none" }
+export type FieldValidationState =
+  | { valid: true }
+  | { valid: false; message: string; recovered: "default" | "migrated" | "none" }
 
 export interface ResolvedFieldValue<TValue = unknown> {
   value: TValue
@@ -213,38 +282,79 @@ export interface ResolvedFieldValue<TValue = unknown> {
  * reset to the default with a recoverable validation state. Errors are
  * isolated to the field.
  */
-export function resolveFieldValue<TValue>(field: SettingsFieldDefinition<TValue, any>, stored: StoredSettingsValue | undefined): ResolvedFieldValue<TValue> {
-  if (stored === undefined) return { value: field.defaultValue, validation: { valid: true }, origin: "default" }
-  const validate = (value: unknown): { ok: true; value: TValue } | { ok: false; message: string } => {
+export function resolveFieldValue<TValue>(
+  field: SettingsFieldDefinition<TValue, any>,
+  stored: StoredSettingsValue | undefined
+): ResolvedFieldValue<TValue> {
+  if (stored === undefined)
+    return { value: field.defaultValue, validation: { valid: true }, origin: "default" }
+  const validate = (
+    value: unknown
+  ): { ok: true; value: TValue } | { ok: false; message: string } => {
     if (!field.schema) return { ok: true, value: value as TValue }
     const result = validateSync(field.schema, value)
-    return result.ok ? { ok: true, value: result.value as TValue } : { ok: false, message: formatIssues(result.issues) }
+    return result.ok
+      ? { ok: true, value: result.value as TValue }
+      : { ok: false, message: formatIssues(result.issues) }
   }
   const versionMismatch = field.version !== undefined && stored.v !== field.version
   if (!versionMismatch) {
     const direct = validate(stored.value)
     if (direct.ok) return { value: direct.value, validation: { valid: true }, origin: "stored" }
-    if (!field.migrate) return { value: field.defaultValue, validation: { valid: false, message: direct.message, recovered: "default" }, origin: "default" }
+    if (!field.migrate)
+      return {
+        value: field.defaultValue,
+        validation: { valid: false, message: direct.message, recovered: "default" },
+        origin: "default",
+      }
   }
   if (field.migrate) {
     try {
       const migrated = field.migrate(stored.value, stored.v)
       if (migrated !== undefined) {
         const check = validate(migrated)
-        if (check.ok) return { value: check.value, validation: { valid: true }, origin: "migrated" }
-        return { value: field.defaultValue, validation: { valid: false, message: `migration produced an invalid value: ${check.message}`, recovered: "default" }, origin: "default" }
+        if (check.ok)
+          return { value: check.value, validation: { valid: true }, origin: "migrated" }
+        return {
+          value: field.defaultValue,
+          validation: {
+            valid: false,
+            message: `migration produced an invalid value: ${check.message}`,
+            recovered: "default",
+          },
+          origin: "default",
+        }
       }
     } catch (error) {
-      return { value: field.defaultValue, validation: { valid: false, message: `migration failed: ${error instanceof Error ? error.message : String(error)}`, recovered: "default" }, origin: "default" }
+      return {
+        value: field.defaultValue,
+        validation: {
+          valid: false,
+          message: `migration failed: ${error instanceof Error ? error.message : String(error)}`,
+          recovered: "default",
+        },
+        origin: "default",
+      }
     }
   }
-  const message = versionMismatch ? `stored version ${String(stored.v)} does not match ${String(field.version)}` : "stored value is invalid"
-  return { value: field.defaultValue, validation: { valid: false, message, recovered: "default" }, origin: "default" }
+  const message = versionMismatch
+    ? `stored version ${String(stored.v)} does not match ${String(field.version)}`
+    : "stored value is invalid"
+  return {
+    value: field.defaultValue,
+    validation: { valid: false, message, recovered: "default" },
+    origin: "default",
+  }
 }
 
 /** Validate a value the user wants to commit. */
-export function validateCommit<TValue>(field: SettingsFieldDefinition<TValue, any>, value: unknown): { ok: true; value: TValue } | { ok: false; message: string } {
+export function validateCommit<TValue>(
+  field: SettingsFieldDefinition<TValue, any>,
+  value: unknown
+): { ok: true; value: TValue } | { ok: false; message: string } {
   if (!field.schema) return { ok: true, value: value as TValue }
   const result = validateSync(field.schema, value)
-  return result.ok ? { ok: true, value: result.value as TValue } : { ok: false, message: formatIssues(result.issues) }
+  return result.ok
+    ? { ok: true, value: result.value as TValue }
+    : { ok: false, message: formatIssues(result.issues) }
 }

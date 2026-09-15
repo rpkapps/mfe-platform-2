@@ -37,7 +37,8 @@ export async function enableDevtools(page: Page) {
  */
 export async function historySignature(page: Page) {
   return page.evaluate(() => {
-    const source = (fn: unknown) => (typeof fn === "function" ? Function.prototype.toString.call(fn) : String(fn))
+    const source = (fn: unknown) =>
+      typeof fn === "function" ? Function.prototype.toString.call(fn) : String(fn)
     return {
       pushState: source(window.history.pushState),
       replaceState: source(window.history.replaceState),
@@ -45,13 +46,24 @@ export async function historySignature(page: Page) {
       sessionSet: source(window.sessionStorage.setItem),
       storageProto: source(Storage.prototype.setItem),
       historyOwn: Object.getOwnPropertyDescriptor(window, "history")?.set === undefined,
-      storageNative: source(Storage.prototype.setItem).includes("[native code]") && source(window.localStorage.setItem).includes("[native code]"),
+      storageNative:
+        source(Storage.prototype.setItem).includes("[native code]") &&
+        source(window.localStorage.setItem).includes("[native code]"),
     }
   })
 }
 
-/** z-index of the closest overlay layer wrapper for an element. */
+/** z-index of the closest overlay layer wrapper for an element (layers are tagged asynchronously). */
 export async function layerOf(page: Page, testId: string): Promise<number> {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const layer = await readLayer(page, testId)
+    if (layer >= 0) return layer
+    await page.waitForTimeout(100)
+  }
+  return readLayer(page, testId)
+}
+
+async function readLayer(page: Page, testId: string): Promise<number> {
   return page.evaluate((id) => {
     const element = document.querySelector(`[data-testid="${id}"]`)
     if (!element) return -1

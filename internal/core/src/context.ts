@@ -102,13 +102,18 @@ export function createPermissionHelpers(groups: readonly string[]): PermissionHe
 
 export type ShellContextStore = Store<ShellContextState>
 
-export function createShellContextStore(initial: Partial<ShellContextState> = {}): ShellContextStore {
+export function createShellContextStore(
+  initial: Partial<ShellContextState> = {}
+): ShellContextStore {
   const store = createStore<ShellContextState>({ ...DEFAULT_SHELL_CONTEXT, ...initial })
   const originalSetState = store.setState
   // Every change bumps the revision so dependent loaders can invalidate.
   store.setState = (next) => {
     originalSetState((previous) => {
-      const value = typeof next === "function" ? (next as (p: ShellContextState) => ShellContextState)(previous) : next
+      const value =
+        typeof next === "function"
+          ? (next as (p: ShellContextState) => ShellContextState)(previous)
+          : next
       if (value === previous) return previous
       return { ...value, revision: previous.revision + 1 }
     })
@@ -137,7 +142,12 @@ export interface InstanceContextInput {
 }
 
 /** Derive an instance-scoped read-only store from the shell store; memoised so unrelated shell changes keep referential stability per slice. */
-export function createInstanceContextStore(shell: ReadonlyStore<ShellContextState>, input: InstanceContextInput): ReadonlyStore<InstanceContextState> & { update(input: Partial<InstanceContextInput>): void } {
+export function createInstanceContextStore(
+  shell: ReadonlyStore<ShellContextState>,
+  input: InstanceContextInput
+): ReadonlyStore<InstanceContextState> & {
+  update(input: Partial<InstanceContextInput>): void
+} {
   let current = input
   let cached: InstanceContextState | null = null
   let cachedShell: ShellContextState | null = null
@@ -154,7 +164,9 @@ export function createInstanceContextStore(shell: ReadonlyStore<ShellContextStat
     for (const listener of Array.from(listeners)) listener()
   }
   shell.subscribe(notify)
-  const store: ReadonlyStore<InstanceContextState> & { update(input: Partial<InstanceContextInput>): void } = {
+  const store: ReadonlyStore<InstanceContextState> & {
+    update(input: Partial<InstanceContextInput>): void
+  } = {
     getState: compute,
     subscribe(listener) {
       listeners.add(listener)

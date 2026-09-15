@@ -3,7 +3,9 @@ import { expect, test } from "@playwright/test"
 import { enableDevtools, gotoShell, ids } from "./helpers"
 
 test.describe("developer tools", () => {
-  test("load only with the flag, as a separate chunk, and show shared resolution", async ({ page }) => {
+  test("load only with the flag, as a separate chunk, and show shared resolution", async ({
+    page,
+  }) => {
     const requests: string[] = []
     page.on("request", (request) => requests.push(request.url()))
     await gotoShell(page, "/dashboard")

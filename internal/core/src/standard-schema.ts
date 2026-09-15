@@ -5,17 +5,24 @@ export type { StandardSchemaV1 }
 /** Any Standard Schema (Zod 4, Valibot, ArkType…). */
 export type AnySchema<TOutput = unknown, TInput = unknown> = StandardSchemaV1<TInput, TOutput>
 
-export type SchemaOutput<TSchema> = TSchema extends StandardSchemaV1<unknown, infer TOutput> ? TOutput : never
+export type SchemaOutput<TSchema> =
+  TSchema extends StandardSchemaV1<unknown, infer TOutput> ? TOutput : never
 
 export interface ValidationIssue {
   message: string
   path: (string | number)[]
 }
 
-export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] }
+export type ValidationResult<T> =
+  { ok: true; value: T } | { ok: false; issues: ValidationIssue[] }
 
 export function isStandardSchema(value: unknown): value is StandardSchemaV1 {
-  return typeof value === "object" && value !== null && "~standard" in value && typeof (value as StandardSchemaV1)["~standard"].validate === "function"
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "~standard" in value &&
+    typeof (value as StandardSchemaV1)["~standard"].validate === "function"
+  )
 }
 
 /**
@@ -23,17 +30,32 @@ export function isStandardSchema(value: unknown): value is StandardSchemaV1 {
  * an explicit issue: platform validation happens on reads and writes and must
  * not suspend.
  */
-export function validateSync<TSchema extends StandardSchemaV1>(schema: TSchema, value: unknown): ValidationResult<StandardSchemaV1.InferOutput<TSchema>> {
+export function validateSync<TSchema extends StandardSchemaV1>(
+  schema: TSchema,
+  value: unknown
+): ValidationResult<StandardSchemaV1.InferOutput<TSchema>> {
   const result = schema["~standard"].validate(value)
   if (result instanceof Promise) {
-    return { ok: false, issues: [{ message: "Asynchronous schemas are not supported for platform validation.", path: [] }] }
+    return {
+      ok: false,
+      issues: [
+        {
+          message: "Asynchronous schemas are not supported for platform validation.",
+          path: [],
+        },
+      ],
+    }
   }
   if (result.issues) {
     return {
       ok: false,
       issues: result.issues.map((issue) => ({
         message: issue.message,
-        path: (issue.path ?? []).map((segment) => (typeof segment === "object" && segment !== null && "key" in segment ? (segment.key as string | number) : (segment as string | number))),
+        path: (issue.path ?? []).map((segment) =>
+          typeof segment === "object" && segment !== null && "key" in segment
+            ? (segment.key as string | number)
+            : (segment as string | number)
+        ),
       })),
     }
   }
@@ -41,7 +63,11 @@ export function validateSync<TSchema extends StandardSchemaV1>(schema: TSchema, 
 }
 
 export function formatIssues(issues: ValidationIssue[]): string {
-  return issues.map((issue) => (issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message)).join("; ")
+  return issues
+    .map((issue) =>
+      issue.path.length ? `${issue.path.join(".")}: ${issue.message}` : issue.message
+    )
+    .join("; ")
 }
 
 /** Infer a control kind from a value and options, used by settings inference and devtools. */

@@ -10,7 +10,7 @@
     "dev": "pnpm --filter docs dev",
     "dev:conformance": "node scripts/dev-conformance.mjs",
     "typecheck": "pnpm -r run typecheck",
-    "lint": "eslint .",
+    "lint": "eslint . && pnpm -r --filter \"./apps/conformance-react*\" --filter \"./apps/conformance-widget*\" run lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

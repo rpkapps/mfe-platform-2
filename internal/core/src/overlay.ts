@@ -71,7 +71,10 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
   const baseZIndex = options.baseZIndex ?? 1000
   const overlaySelector = options.overlaySelector ?? ":scope > *"
   const listeners = new Set<() => void>()
-  const roots = new Map<HTMLElement, { owner: OverlayOwner; contained: boolean; observer: MutationObserver | null }>()
+  const roots = new Map<
+    HTMLElement,
+    { owner: OverlayOwner; contained: boolean; observer: MutationObserver | null }
+  >()
   const layers = new Map<Element, OverlayLayer>()
   let nextLayerId = 1
   const notify = () => {
@@ -79,7 +82,9 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
   }
   const relayer = () => {
     // Deterministic: order of opening; later overlays stack higher.
-    const ordered = Array.from(layers.values()).sort((a, b) => a.openedAt - b.openedAt || a.id - b.id)
+    const ordered = Array.from(layers.values()).sort(
+      (a, b) => a.openedAt - b.openedAt || a.id - b.id
+    )
     ordered.forEach((layer, index) => {
       layer.zIndex = baseZIndex + index * 10
       if (layer.element instanceof HTMLElement) {
@@ -96,15 +101,34 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
       if (root.contains(element) && !present.has(element)) {
         layers.delete(element)
         changed = true
-        options.diagnostics?.emit({ type: "overlay.closed", layer: layer.id, mfeId: owner.mfeId, instanceId: owner.instanceId, widgetId: owner.widgetId })
+        options.diagnostics?.emit({
+          type: "overlay.closed",
+          layer: layer.id,
+          mfeId: owner.mfeId,
+          instanceId: owner.instanceId,
+          widgetId: owner.widgetId,
+        })
       }
     }
     for (const element of present) {
       if (!layers.has(element)) {
-        const layer: OverlayLayer = { id: nextLayerId++, owner, element, zIndex: 0, openedAt: Date.now() }
+        const layer: OverlayLayer = {
+          id: nextLayerId++,
+          owner,
+          element,
+          zIndex: 0,
+          openedAt: Date.now(),
+        }
         layers.set(element, layer)
         changed = true
-        options.diagnostics?.emit({ type: "overlay.opened", layer: layer.id, ownerAttribute: `${ownerAttribute}="${owner.mfeId}"`, mfeId: owner.mfeId, instanceId: owner.instanceId, widgetId: owner.widgetId })
+        options.diagnostics?.emit({
+          type: "overlay.opened",
+          layer: layer.id,
+          ownerAttribute: `${ownerAttribute}="${owner.mfeId}"`,
+          mfeId: owner.mfeId,
+          instanceId: owner.instanceId,
+          widgetId: owner.widgetId,
+        })
       }
     }
     if (changed) {
@@ -127,7 +151,10 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
       element.style.zIndex = String(baseZIndex)
       const parent = contained ? (container ?? doc.body) : doc.body
       parent.append(element)
-      const observer = typeof MutationObserver !== "undefined" ? new MutationObserver(() => sync(element, owner)) : null
+      const observer =
+        typeof MutationObserver !== "undefined"
+          ? new MutationObserver(() => sync(element, owner))
+          : null
       observer?.observe(element, { childList: true })
       roots.set(element, { owner, contained, observer })
       notify()
@@ -136,7 +163,8 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
         owner,
         dispose() {
           observer?.disconnect()
-          for (const [layerElement] of Array.from(layers.entries())) if (element.contains(layerElement)) layers.delete(layerElement)
+          for (const [layerElement] of Array.from(layers.entries()))
+            if (element.contains(layerElement)) layers.delete(layerElement)
           roots.delete(element)
           element.remove()
           relayer()
@@ -145,7 +173,11 @@ export function createOverlayManager(options: OverlayManagerOptions = {}): Overl
         },
       }
     },
-    getState: () => ({ roots: Array.from(roots.values()).map(({ owner, contained }) => ({ owner, contained })), layers: Array.from(layers.values()), top: Math.max(baseZIndex, ...Array.from(layers.values()).map((layer) => layer.zIndex)) }),
+    getState: () => ({
+      roots: Array.from(roots.values()).map(({ owner, contained }) => ({ owner, contained })),
+      layers: Array.from(layers.values()),
+      top: Math.max(baseZIndex, ...Array.from(layers.values()).map((layer) => layer.zIndex)),
+    }),
     subscribe(listener) {
       listeners.add(listener)
       return () => {

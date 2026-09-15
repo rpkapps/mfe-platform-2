@@ -11,9 +11,18 @@ import { MANIFEST_SCHEMA_VERSION, PLATFORM_PROTOCOL_VERSION } from "./protocol"
  * loader (Module Federation is one implementation of `entry.loader`).
  */
 
-export const mfeIdSchema = z.string().regex(MFE_ID_RE, "mfeId must be kebab-case (e.g. asset-tracker)")
-export const routePrefixSchema = z.string().refine((value) => value === "/" || ROUTE_PREFIX_RE.test(value), "route prefix must start with `/`, use lowercase segments and have no trailing slash")
-export const localIdSchema = z.string().regex(/^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$/, "ids are local, lowercase and kebab-case")
+export const mfeIdSchema = z
+  .string()
+  .regex(MFE_ID_RE, "mfeId must be kebab-case (e.g. asset-tracker)")
+export const routePrefixSchema = z
+  .string()
+  .refine(
+    (value) => value === "/" || ROUTE_PREFIX_RE.test(value),
+    "route prefix must start with `/`, use lowercase segments and have no trailing slash"
+  )
+export const localIdSchema = z
+  .string()
+  .regex(/^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$/, "ids are local, lowercase and kebab-case")
 
 export const releaseInfoSchema = z.object({
   version: z.string(),
@@ -32,9 +41,27 @@ export const routeMetadataSchema = z.object({
   /** Whether the route declares `beforeLoad` (a native guard). */
   guarded: z.boolean().default(false),
   /** Static breadcrumb label when declared through `staticData.breadcrumb`. */
-  breadcrumb: z.union([z.string(), z.object({ label: z.string().optional(), dynamic: z.boolean().optional(), hidden: z.boolean().optional() })]).optional(),
+  breadcrumb: z
+    .union([
+      z.string(),
+      z.object({
+        label: z.string().optional(),
+        dynamic: z.boolean().optional(),
+        hidden: z.boolean().optional(),
+      }),
+    ])
+    .optional(),
   /** Route-level navigation metadata (`staticData.navigation`). */
-  navigation: z.object({ title: z.string(), description: z.string().optional(), keywords: z.array(z.string()).optional(), icon: z.string().optional(), order: z.number().optional(), hidden: z.boolean().optional() }).optional(),
+  navigation: z
+    .object({
+      title: z.string(),
+      description: z.string().optional(),
+      keywords: z.array(z.string()).optional(),
+      icon: z.string().optional(),
+      order: z.number().optional(),
+      hidden: z.boolean().optional(),
+    })
+    .optional(),
   /** Permission groups declared through `staticData.permissionGroups`. */
   permissionGroups: z.array(z.string()).optional(),
 })
@@ -110,16 +137,32 @@ export const sharedRequestSchema = z.object({
   /** `false` when the package is bundled locally on purpose (`shared: { pkg: false }`). */
   shared: z.boolean().default(true),
   /** Why the package is shared or bundled (`inferred`, `configured`, `source-package`, `disabled`). */
-  reason: z.enum(["inferred", "configured", "source-package", "disabled", "pinned"]).default("inferred"),
+  reason: z
+    .enum(["inferred", "configured", "source-package", "disabled", "pinned"])
+    .default("inferred"),
   /** Packages that must resolve from the same provider (`react` ↔ `react-dom`). */
   pairedWith: z.array(z.string()).optional(),
 })
 
 export const runtimeRequirementsSchema = z.object({
-  react: z.object({ requiredVersion: z.string(), major: z.number().int(), builtWith: z.string().optional() }),
-  reactDom: z.object({ requiredVersion: z.string(), major: z.number().int(), builtWith: z.string().optional() }).optional(),
-  tanstackRouter: z.object({ requiredVersion: z.string(), builtWith: z.string().optional() }).optional(),
-  platformReact: z.object({ requiredVersion: z.string(), builtWith: z.string().optional() }).optional(),
+  react: z.object({
+    requiredVersion: z.string(),
+    major: z.number().int(),
+    builtWith: z.string().optional(),
+  }),
+  reactDom: z
+    .object({
+      requiredVersion: z.string(),
+      major: z.number().int(),
+      builtWith: z.string().optional(),
+    })
+    .optional(),
+  tanstackRouter: z
+    .object({ requiredVersion: z.string(), builtWith: z.string().optional() })
+    .optional(),
+  platformReact: z
+    .object({ requiredVersion: z.string(), builtWith: z.string().optional() })
+    .optional(),
 })
 
 export const tectonRequirementsSchema = z.object({
@@ -143,16 +186,18 @@ export const cssRequirementsSchema = z.object({
 
 export const runtimeEnvDeclarationSchema = z.object({
   /** Keys the MFE expects from its runtime configuration (allow-list). */
-  keys: z.record(
-    z.string(),
-    z.object({
-      required: z.boolean().default(false),
-      description: z.string().optional(),
-      /** All runtime env values are public by definition; `sensitive` values are refused by the entrypoint. */
-      public: z.literal(true).default(true),
-      default: z.union([z.string(), z.number(), z.boolean()]).optional(),
-    })
-  ).default({}),
+  keys: z
+    .record(
+      z.string(),
+      z.object({
+        required: z.boolean().default(false),
+        description: z.string().optional(),
+        /** All runtime env values are public by definition; `sensitive` values are refused by the entrypoint. */
+        public: z.literal(true).default(true),
+        default: z.union([z.string(), z.number(), z.boolean()]).optional(),
+      })
+    )
+    .default({}),
 })
 
 export const remoteEntrySchema = z.object({
@@ -208,7 +253,16 @@ export const mfeManifestSchema = z.object({
   remote: remoteLocationSchema.default({ baseUrl: "./", preload: "none" }),
   routePrefix: routePrefixSchema.optional(),
   routes: z.array(routeMetadataSchema).default([]),
-  navigation: z.object({ title: z.string(), description: z.string().optional(), icon: z.string().optional(), keywords: z.array(z.string()).optional(), category: z.string().optional(), order: z.number().optional() }).optional(),
+  navigation: z
+    .object({
+      title: z.string(),
+      description: z.string().optional(),
+      icon: z.string().optional(),
+      keywords: z.array(z.string()).optional(),
+      category: z.string().optional(),
+      order: z.number().optional(),
+    })
+    .optional(),
   discoverable: z.boolean().default(true),
   enabled: z.boolean().default(true),
   loadPolicy: z.enum(["lazy", "preload", "eager"]).default("lazy"),
@@ -219,7 +273,12 @@ export const mfeManifestSchema = z.object({
   help: z.array(helpContributionSchema).default([]),
   releaseNotes: z.array(releaseNoteContributionSchema).default([]),
   widgets: z.array(widgetContributionSchema).default([]),
-  breadcrumbs: z.object({ rootLabel: z.string().optional(), renderer: z.enum(["shell", "mfe"]).default("shell") }).default({ renderer: "shell" }),
+  breadcrumbs: z
+    .object({
+      rootLabel: z.string().optional(),
+      renderer: z.enum(["shell", "mfe"]).default("shell"),
+    })
+    .default({ renderer: "shell" }),
   shared: z.array(sharedRequestSchema).default([]),
   runtime: runtimeRequirementsSchema,
   tecton: tectonRequirementsSchema.default({ enabled: false, foundation: "shell" }),
@@ -243,12 +302,20 @@ export type ReleaseInfo = z.infer<typeof releaseInfoSchema>
 export type RemoteEntry = z.infer<typeof remoteEntrySchema>
 export type DevInfo = z.infer<typeof devInfoSchema>
 
-export type ManifestValidation = { ok: true; manifest: MfeManifest } | { ok: false; issues: { path: string; message: string }[] }
+export type ManifestValidation =
+  | { ok: true; manifest: MfeManifest }
+  | { ok: false; issues: { path: string; message: string }[] }
 
 export function validateManifest(input: unknown): ManifestValidation {
   const result = mfeManifestSchema.safeParse(input)
   if (result.success) return { ok: true, manifest: result.data }
-  return { ok: false, issues: result.error.issues.map((issue) => ({ path: issue.path.map(String).join("."), message: issue.message })) }
+  return {
+    ok: false,
+    issues: result.error.issues.map((issue) => ({
+      path: issue.path.map(String).join("."),
+      message: issue.message,
+    })),
+  }
 }
 
 /** Resolve a manifest-relative URL against the manifest's own URL. */
@@ -261,6 +328,8 @@ export function resolveRemoteUrl(manifestUrl: string, relative: string): string 
 }
 
 /** Effective route prefix: `manifest.routePrefix` or `/${mfeId}`. */
-export function manifestRoutePrefix(manifest: Pick<MfeManifest, "mfeId" | "routePrefix">): string {
+export function manifestRoutePrefix(
+  manifest: Pick<MfeManifest, "mfeId" | "routePrefix">
+): string {
   return manifest.routePrefix ?? `/${manifest.mfeId}`
 }

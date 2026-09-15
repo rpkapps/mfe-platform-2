@@ -4,6 +4,10 @@
   "mfeId": "incompatible-remote",
   "version": "1.0.0",
   "release": { "version": "1.0.0" },
-  "entry": { "loader": "module-federation", "name": "mfe_incompatible_remote", "file": "remoteEntry.js" },
+  "entry": {
+    "loader": "module-federation",
+    "name": "mfe_incompatible_remote",
+    "file": "remoteEntry.js"
+  },
   "runtime": { "react": { "requiredVersion": "^19.0.0", "major": 19 } }
 }

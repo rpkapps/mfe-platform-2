@@ -2,7 +2,14 @@
 // PLATFORM_* variables a Docker entrypoint would receive. Used by the E2E
 // global setup and by `pnpm dev:conformance`.
 export function conformanceEnv({ mode = "production", ports } = {}) {
-  const p = { assetTracker: 4201, legacyReports: 4202, widgetA: 4203, widgetB: 4204, unavailable: 4999, ...ports }
+  const p = {
+    assetTracker: 4201,
+    legacyReports: 4202,
+    widgetA: 4203,
+    widgetB: 4204,
+    unavailable: 4999,
+    ...ports,
+  }
   const manifest = (port) => `http://127.0.0.1:${port}/platform-manifest.json`
   return {
     PLATFORM_ENVIRONMENT: mode === "production" ? "test" : "development",

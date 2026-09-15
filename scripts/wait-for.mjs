@@ -11,5 +11,7 @@ export async function waitFor(url, { timeoutMs = 60_000, intervalMs = 250 } = {}
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs))
   }
-  throw new Error(`timed out waiting for ${url}: ${lastError instanceof Error ? lastError.message : "no response"}`)
+  throw new Error(
+    `timed out waiting for ${url}: ${lastError instanceof Error ? lastError.message : "no response"}`
+  )
 }

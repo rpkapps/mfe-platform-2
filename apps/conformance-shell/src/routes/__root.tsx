@@ -1,11 +1,33 @@
 import * as React from "react"
-import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouter, useRouterState } from "@tanstack/react-router"
+import {
+  createRootRoute,
+  HeadContent,
+  Link,
+  Outlet,
+  Scripts,
+  useRouter,
+  useRouterState,
+} from "@tanstack/react-router"
 import { ThemeProvider, useTheme } from "next-themes"
 import { RouterProvider as AriaRouterProvider } from "react-aria-components"
-import { Breadcrumbs, CommandPalette, NotificationHost, PlatformDevtools, ShellOverlayProvider } from "@platform/host/react"
+import {
+  Breadcrumbs,
+  CommandPalette,
+  NotificationHost,
+  PlatformDevtools,
+  ShellOverlayProvider,
+} from "@platform/host/react"
 import { TEST_IDS, PROJECTS } from "@platform-internal/conformance"
 
-import { AppShell, AppShellBody, AppShellBrand, AppShellHeader, AppShellHeaderActions, AppShellMain, AppShellNav } from "@tecton/react/tecton/app-shell"
+import {
+  AppShell,
+  AppShellBody,
+  AppShellBrand,
+  AppShellHeader,
+  AppShellHeaderActions,
+  AppShellMain,
+  AppShellNav,
+} from "@tecton/react/tecton/app-shell"
 import { Button } from "@tecton/react/components/button"
 
 import { getRuntimeConfig } from "@/lib/runtime-config"
@@ -17,7 +39,12 @@ const ids = TEST_IDS.shell
 export const Route = createRootRoute({
   loader: () => getRuntimeConfig(),
   head: () => ({
-    meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Conformance Shell" }, { name: "color-scheme", content: "dark light" }],
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Conformance Shell" },
+      { name: "color-scheme", content: "dark light" },
+    ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
   shellComponent: RootDocument,
@@ -33,7 +60,10 @@ export const Route = createRootRoute({
 function AriaRouter({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   return (
-    <AriaRouterProvider navigate={(to) => void router.navigate({ to })} useHref={(to) => router.buildLocation({ to }).href}>
+    <AriaRouterProvider
+      navigate={(to) => void router.navigate({ to })}
+      useHref={(to) => router.buildLocation({ to }).href}
+    >
       {children}
     </AriaRouterProvider>
   )
@@ -45,8 +75,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="min-h-svh bg-background font-sans text-foreground antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
+      <body className="bg-background text-foreground min-h-svh font-sans antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
           <AriaRouter>{children}</AriaRouter>
         </ThemeProvider>
         <Scripts />
@@ -98,25 +133,43 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
         </AppShellBrand>
         <AppShellNav>
           {nav.map((item) => (
-            <Link key={item.to} to={item.to} className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground data-[status=active]:text-foreground" activeOptions={{ exact: item.to === "/" }}>
+            <Link
+              key={item.to}
+              to={item.to}
+              className="text-foreground/70 hover:bg-muted hover:text-foreground data-[status=active]:text-foreground rounded-md px-2 py-1 text-sm"
+              activeOptions={{ exact: item.to === "/" }}
+            >
               {item.title}
             </Link>
           ))}
-          <Link to="/$" params={{ _splat: "asset-tracker" }} className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
+          <Link
+            to="/$"
+            params={{ _splat: "asset-tracker" }}
+            className="text-foreground/70 hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-sm"
+          >
             Asset Tracker
           </Link>
-          <Link to="/$" params={{ _splat: "legacy/reports" }} className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
+          <Link
+            to="/$"
+            params={{ _splat: "legacy/reports" }}
+            className="text-foreground/70 hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-sm"
+          >
             Legacy Reports
           </Link>
         </AppShellNav>
         <AppShellHeaderActions>
-          <Button size="sm" variant="outline" data-testid={ids.counter} onPress={() => setCounter((value) => value + 1)}>
+          <Button
+            size="sm"
+            variant="outline"
+            data-testid={ids.counter}
+            onPress={() => setCounter((value) => value + 1)}
+          >
             Shell {counter}
           </Button>
           <select
             aria-label="Current user"
             data-testid={ids.userSwitch}
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            className="border-input bg-background h-8 rounded-md border px-2 text-sm"
             value={userKey}
             onChange={(event) => {
               const key = event.target.value as UserKey
@@ -131,7 +184,7 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
           <select
             aria-label="Project"
             data-testid={ids.projectSwitch}
-            className="h-8 rounded-md border border-input bg-background px-2 text-sm"
+            className="border-input bg-background h-8 rounded-md border px-2 text-sm"
             value={projectIndex}
             onChange={(event) => {
               const index = Number(event.target.value)
@@ -145,10 +198,15 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
               </option>
             ))}
           </select>
-          <Button size="sm" variant="ghost" data-testid={ids.themeToggle} onPress={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}>
+          <Button
+            size="sm"
+            variant="ghost"
+            data-testid={ids.themeToggle}
+            onPress={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+          >
             Theme: {resolvedTheme ?? "dark"}
           </Button>
-          <span data-testid={ids.userName} className="text-sm text-muted-foreground">
+          <span data-testid={ids.userName} className="text-muted-foreground text-sm">
             {host?.context.getState().user?.displayName ?? "…"}
           </span>
           {host ? <CommandPalette /> : null}

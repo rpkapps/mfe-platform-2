@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { announceBreadcrumbs, createBreadcrumbStore, truncateBreadcrumbs } from "../src/breadcrumbs"
-import { createInstanceContextStore, createPermissionHelpers, createShellContextStore } from "../src/context"
+import {
+  announceBreadcrumbs,
+  createBreadcrumbStore,
+  truncateBreadcrumbs,
+} from "../src/breadcrumbs"
+import {
+  createInstanceContextStore,
+  createPermissionHelpers,
+  createShellContextStore,
+} from "../src/context"
 import { createOverlayManager } from "../src/overlay"
 import { createMemoryNavigation, isUnderPrefix, parseHref } from "../src/navigation"
 import { createStore, shallowEqual } from "../src/store"
@@ -20,8 +28,16 @@ describe("stores and context", () => {
     expect(shallowEqual([1], [1, 2])).toBe(false)
   })
   it("shell context bumps revisions and derives instance views", () => {
-    const shell = createShellContextStore({ user: { id: "u1", displayName: "Ada" }, permissionGroups: ["viewer"] })
-    const instance = createInstanceContextStore(shell, { mfeId: "a", instanceId: "a#1", capabilities: ["context"], runtime: { environment: "test", env: { K: 1 }, shared: {} } })
+    const shell = createShellContextStore({
+      user: { id: "u1", displayName: "Ada" },
+      permissionGroups: ["viewer"],
+    })
+    const instance = createInstanceContextStore(shell, {
+      mfeId: "a",
+      instanceId: "a#1",
+      capabilities: ["context"],
+      runtime: { environment: "test", env: { K: 1 }, shared: {} },
+    })
     const nameListener = vi.fn()
     instance.select((s) => s.user?.displayName, nameListener)
     shell.patch({ theme: "dark" })
@@ -29,7 +45,11 @@ describe("stores and context", () => {
     expect(shell.getState().revision).toBe(1)
     shell.patch({ user: { id: "u1", displayName: "Ada L." } })
     expect(nameListener).toHaveBeenCalledWith("Ada L.")
-    expect(instance.getState()).toMatchObject({ mfeId: "a", runtime: { env: { K: 1 } }, theme: "dark" })
+    expect(instance.getState()).toMatchObject({
+      mfeId: "a",
+      runtime: { env: { K: 1 } },
+      theme: "dark",
+    })
     const helpers = createPermissionHelpers(["viewer", "editor"])
     expect(helpers.hasGroup("viewer")).toBe(true)
     expect(helpers.hasAnyGroup(["admin", "editor"])).toBe(true)
@@ -41,14 +61,23 @@ describe("breadcrumbs", () => {
   it("combines shell entries with the active trail, truncates and announces", () => {
     const store = createBreadcrumbStore()
     store.setShell([{ key: "home", label: "Home", href: "/", state: "ready", kind: "shell" }])
-    store.publish({ owner: { mfeId: "a", instanceId: "a#1" }, updatedAt: 1, entries: [
-      { key: "root", label: "Assets", href: "/assets", state: "ready", kind: "mfe-root" },
-      { key: "x", label: "Pump 42", state: "loading", kind: "route" },
-    ] })
+    store.publish({
+      owner: { mfeId: "a", instanceId: "a#1" },
+      updatedAt: 1,
+      entries: [
+        { key: "root", label: "Assets", href: "/assets", state: "ready", kind: "mfe-root" },
+        { key: "x", label: "Pump 42", state: "loading", kind: "route" },
+      ],
+    })
     store.setActive("a#1")
     expect(store.current().map((e) => e.label)).toEqual(["Home", "Assets", "Pump 42"])
     expect(announceBreadcrumbs(store.current())).toBe("Home, Assets, Pump 42 (loading)")
-    const many = Array.from({ length: 8 }, (_, i) => ({ key: String(i), label: `L${i}`, state: "ready" as const, kind: "route" as const }))
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      key: String(i),
+      label: `L${i}`,
+      state: "ready" as const,
+      kind: "route" as const,
+    }))
     const truncated = truncateBreadcrumbs(many, 5, 2)
     expect(truncated).toHaveLength(4)
     expect((truncated[1] as { ellipsis: boolean }).ellipsis).toBe(true)
@@ -105,11 +134,23 @@ describe("telemetry", () => {
     const adapter = createMemoryTelemetryAdapter()
     const telemetry = createTelemetry({ adapter, context: { mfeId: "a", instanceId: "a#1" } })
     telemetry.child({ route: "/x" }).track("clicked", { n: 1 })
-    expect(adapter.events[0]).toMatchObject({ kind: "track", name: "clicked", attributes: { mfeId: "a", route: "/x", n: 1 } })
+    expect(adapter.events[0]).toMatchObject({
+      kind: "track",
+      name: "clicked",
+      attributes: { mfeId: "a", route: "/x", n: 1 },
+    })
     const span = telemetry.span("load")
     span.end({ ok: true })
     expect(adapter.events[1]).toMatchObject({ kind: "span", name: "load" })
-    const failing = createTelemetry({ adapter: { track: () => { throw new Error("boom") }, error: () => {} }, onAdapterError: vi.fn() })
+    const failing = createTelemetry({
+      adapter: {
+        track: () => {
+          throw new Error("boom")
+        },
+        error: () => {},
+      },
+      onAdapterError: vi.fn(),
+    })
     expect(() => failing.track("x")).not.toThrow()
   })
 })

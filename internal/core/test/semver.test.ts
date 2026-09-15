@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest"
 
-import { compareVersions, isValidRange, maxSatisfying, minVersion, parseVersion, rangeMajor, satisfies } from "../src/semver"
+import {
+  compareVersions,
+  isValidRange,
+  maxSatisfying,
+  minVersion,
+  parseVersion,
+  rangeMajor,
+  satisfies,
+} from "../src/semver"
 
 describe("semver", () => {
   it("parses versions", () => {
-    expect(parseVersion("18.3.1")).toMatchObject({ major: 18, minor: 3, patch: 1, prerelease: [] })
+    expect(parseVersion("18.3.1")).toMatchObject({
+      major: 18,
+      minor: 3,
+      patch: 1,
+      prerelease: [],
+    })
     expect(parseVersion("v19.0.0-rc.1")).toMatchObject({ major: 19, prerelease: ["rc", 1] })
     expect(parseVersion("1.2")).toBeNull()
   })

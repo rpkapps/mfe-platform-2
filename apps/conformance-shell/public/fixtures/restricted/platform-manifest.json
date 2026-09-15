@@ -4,7 +4,11 @@
   "mfeId": "restricted-remote",
   "version": "1.0.0",
   "release": { "version": "1.0.0" },
-  "entry": { "loader": "module-federation", "name": "mfe_restricted_remote", "file": "remoteEntry.js" },
+  "entry": {
+    "loader": "module-federation",
+    "name": "mfe_restricted_remote",
+    "file": "remoteEntry.js"
+  },
   "permissionGroups": ["superadmin"],
   "runtime": { "react": { "requiredVersion": "^19.0.0", "major": 19 } }
 }

@@ -21,7 +21,9 @@ export function parseVersion(input: string): ParsedVersion | null {
     major: Number(match[1]),
     minor: Number(match[2]),
     patch: Number(match[3]),
-    prerelease: match[4] ? match[4].split(".").map((id) => (/^\d+$/.test(id) ? Number(id) : id)) : [],
+    prerelease: match[4]
+      ? match[4].split(".").map((id) => (/^\d+$/.test(id) ? Number(id) : id))
+      : [],
     raw: input.trim(),
   }
 }
@@ -64,16 +66,26 @@ function makeVersion(major: number, minor: number, patch: number): ParsedVersion
   return { major, minor, patch, prerelease: [], raw: `${major}.${minor}.${patch}` }
 }
 
-function partial(input: string): { major: number | null; minor: number | null; patch: number | null; prerelease: (string | number)[] } | null {
+function partial(input: string): {
+  major: number | null
+  minor: number | null
+  patch: number | null
+  prerelease: (string | number)[]
+} | null {
   const trimmed = input.trim().replace(/^v/, "")
-  const match = /^(\d+|x|X|\*)?(?:\.(\d+|x|X|\*))?(?:\.(\d+|x|X|\*))?(?:-([0-9A-Za-z.-]+))?$/.exec(trimmed)
-  if (!match || trimmed === "") return trimmed === "" ? { major: null, minor: null, patch: null, prerelease: [] } : null
-  const num = (value: string | undefined) => (value === undefined || /^[xX*]$/.test(value) ? null : Number(value))
+  const match =
+    /^(\d+|x|X|\*)?(?:\.(\d+|x|X|\*))?(?:\.(\d+|x|X|\*))?(?:-([0-9A-Za-z.-]+))?$/.exec(trimmed)
+  if (!match || trimmed === "")
+    return trimmed === "" ? { major: null, minor: null, patch: null, prerelease: [] } : null
+  const num = (value: string | undefined) =>
+    value === undefined || /^[xX*]$/.test(value) ? null : Number(value)
   return {
     major: num(match[1]),
     minor: num(match[2]),
     patch: num(match[3]),
-    prerelease: match[4] ? match[4].split(".").map((id) => (/^\d+$/.test(id) ? Number(id) : id)) : [],
+    prerelease: match[4]
+      ? match[4].split(".").map((id) => (/^\d+$/.test(id) ? Number(id) : id))
+      : [],
   }
 }
 
@@ -88,17 +100,45 @@ function comparatorsFor(token: string): Comparator[] | null {
   const { major, minor, patch, prerelease } = part
   if (major === null) return []
   const exact = minor !== null && patch !== null
-  const low: ParsedVersion = { major, minor: minor ?? 0, patch: patch ?? 0, prerelease, raw: "" }
+  const low: ParsedVersion = {
+    major,
+    minor: minor ?? 0,
+    patch: patch ?? 0,
+    prerelease,
+    raw: "",
+  }
   switch (operator) {
     case "^": {
-      if (major > 0) return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major + 1, 0, 0) }]
-      if (minor === null) return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major + 1, 0, 0) }]
-      if (minor > 0 || patch === null) return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(0, minor + 1, 0) }]
-      return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(0, minor, patch + 1) }]
+      if (major > 0)
+        return [
+          { operator: ">=", version: low },
+          { operator: "<", version: makeVersion(major + 1, 0, 0) },
+        ]
+      if (minor === null)
+        return [
+          { operator: ">=", version: low },
+          { operator: "<", version: makeVersion(major + 1, 0, 0) },
+        ]
+      if (minor > 0 || patch === null)
+        return [
+          { operator: ">=", version: low },
+          { operator: "<", version: makeVersion(0, minor + 1, 0) },
+        ]
+      return [
+        { operator: ">=", version: low },
+        { operator: "<", version: makeVersion(0, minor, patch + 1) },
+      ]
     }
     case "~": {
-      if (minor === null) return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major + 1, 0, 0) }]
-      return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major, minor + 1, 0) }]
+      if (minor === null)
+        return [
+          { operator: ">=", version: low },
+          { operator: "<", version: makeVersion(major + 1, 0, 0) },
+        ]
+      return [
+        { operator: ">=", version: low },
+        { operator: "<", version: makeVersion(major, minor + 1, 0) },
+      ]
     }
     case ">=":
       return [{ operator: ">=", version: low }]
@@ -114,8 +154,15 @@ function comparatorsFor(token: string): Comparator[] | null {
       return [{ operator: "<", version: makeVersion(major, minor + 1, 0) }]
     default: {
       if (exact) return [{ operator: "=", version: low }]
-      if (minor === null) return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major + 1, 0, 0) }]
-      return [{ operator: ">=", version: low }, { operator: "<", version: makeVersion(major, minor + 1, 0) }]
+      if (minor === null)
+        return [
+          { operator: ">=", version: low },
+          { operator: "<", version: makeVersion(major + 1, 0, 0) },
+        ]
+      return [
+        { operator: ">=", version: low },
+        { operator: "<", version: makeVersion(major, minor + 1, 0) },
+      ]
     }
   }
 }
@@ -131,7 +178,18 @@ function parseRangeSet(range: string): Comparator[] | null {
         ? [{ operator: "<", version: makeVersion(upperPart.major + 1, 0, 0) }]
         : upperPart.patch === null
           ? [{ operator: "<", version: makeVersion(upperPart.major, upperPart.minor + 1, 0) }]
-          : [{ operator: "<=", version: { major: upperPart.major, minor: upperPart.minor, patch: upperPart.patch, prerelease: upperPart.prerelease, raw: "" } }]
+          : [
+              {
+                operator: "<=",
+                version: {
+                  major: upperPart.major,
+                  minor: upperPart.minor,
+                  patch: upperPart.patch,
+                  prerelease: upperPart.prerelease,
+                  raw: "",
+                },
+              },
+            ]
     return [...lower, ...upper]
   }
   const tokens = range.trim().split(/\s+/).filter(Boolean)
@@ -174,7 +232,11 @@ export function satisfies(version: string, range: string): boolean {
     if (!comparators) return false
     if (parsed.prerelease.length > 0) {
       const allowed = comparators.some(
-        (c) => c.version.prerelease.length > 0 && c.version.major === parsed.major && c.version.minor === parsed.minor && c.version.patch === parsed.patch
+        (c) =>
+          c.version.prerelease.length > 0 &&
+          c.version.major === parsed.major &&
+          c.version.minor === parsed.minor &&
+          c.version.patch === parsed.patch
       )
       if (!allowed) return false
     }
@@ -197,7 +259,9 @@ export function rangeMajor(range: string): number | null {
   const first = range.split("||")[0] ?? ""
   const comparators = parseRangeSet(first)
   if (!comparators) return null
-  const lower = comparators.filter((c) => c.operator === ">=" || c.operator === ">" || c.operator === "=")
+  const lower = comparators.filter(
+    (c) => c.operator === ">=" || c.operator === ">" || c.operator === "="
+  )
   if (lower.length === 0) return null
   return Math.min(...lower.map((c) => c.version.major))
 }
@@ -207,9 +271,13 @@ export function minVersion(range: string): string | null {
   const first = range.split("||")[0] ?? ""
   const comparators = parseRangeSet(first)
   if (!comparators) return null
-  const lower = comparators.filter((c) => c.operator === ">=" || c.operator === "=" || c.operator === ">")
+  const lower = comparators.filter(
+    (c) => c.operator === ">=" || c.operator === "=" || c.operator === ">"
+  )
   if (lower.length === 0) return "0.0.0"
   const lowest = lower.reduce((a, b) => (compareVersions(a.version, b.version) <= 0 ? a : b))
   const { major, minor, patch } = lowest.version
-  return lowest.operator === ">" ? `${major}.${minor}.${patch + 1}` : `${major}.${minor}.${patch}`
+  return lowest.operator === ">"
+    ? `${major}.${minor}.${patch + 1}`
+    : `${major}.${minor}.${patch}`
 }

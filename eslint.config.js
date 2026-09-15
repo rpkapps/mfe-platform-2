@@ -8,7 +8,27 @@ import tseslint from "typescript-eslint"
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/node_modules/**", "**/.output/**", "**/.tanstack/**", "**/routeTree.gen.ts", "**/*.gen.ts", "**/.platform/**", "**/coverage/**", "**/playwright-report/**", "**/test-results/**", "packages/cli/templates/**", "apps/docs/.source/**", "apps/docs/public/**"],
+    // The conformance MFEs and the scaffold template are linted with the platform config
+    // (`platform lint`, see the root lint script); the root config covers everything else.
+    ignores: [
+      "apps/conformance-react19/**",
+      "apps/conformance-react18/**",
+      "apps/conformance-widget-a/**",
+      "apps/conformance-widget-b/**",
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.output/**",
+      "**/.tanstack/**",
+      "**/routeTree.gen.ts",
+      "**/*.gen.ts",
+      "**/.platform/**",
+      "**/coverage/**",
+      "**/playwright-report/**",
+      "**/test-results/**",
+      "packages/cli/templates/**",
+      "apps/docs/.source/**",
+      "apps/docs/public/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -16,7 +36,10 @@ export default tseslint.config(
     languageOptions: { globals: { ...globals.browser, ...globals.node, ...globals.es2022 } },
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-namespace": "off",
       "no-empty": ["error", { allowEmptyCatch: true }],

@@ -14,5 +14,9 @@ const names = Object.keys(PUBLISHED_SCHEMAS)
 for (const name of names) {
   writeFileSync(join(out, `${name}.json`), JSON.stringify(toJsonSchema(name), null, 2) + "\n")
 }
-writeFileSync(join(out, "index.json"), JSON.stringify({ schemas: names.map((name) => ({ name, file: `${name}.json` })) }, null, 2) + "\n")
+writeFileSync(
+  join(out, "index.json"),
+  JSON.stringify({ schemas: names.map((name) => ({ name, file: `${name}.json` })) }, null, 2) +
+    "\n"
+)
 console.log(`wrote ${names.length} schemas to ${out}`)

@@ -16,13 +16,13 @@ export const Route = createFileRoute("/$")({
 function MfeRoute() {
   const host = useShellHost()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
-  if (!host) return <p className="text-sm text-muted-foreground">Starting platform…</p>
+  if (!host) return <p className="text-muted-foreground text-sm">Starting platform…</p>
   const match = mfeRouteHelpers({ host }).matchMfeForPath(pathname)
   if (!match) {
     return (
       <main data-testid={TEST_IDS.shell.outletState} data-state="not-found" className="p-2">
         <h1 className="text-xl font-medium">404</h1>
-        <p className="text-sm text-muted-foreground">No MFE owns {pathname}.</p>
+        <p className="text-muted-foreground text-sm">No MFE owns {pathname}.</p>
       </main>
     )
   }

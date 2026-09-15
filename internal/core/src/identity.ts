@@ -9,14 +9,21 @@ export function isValidMfeId(value: string): boolean {
 
 export function assertMfeId(value: string, source?: string): string {
   if (!isValidMfeId(value)) {
-    throw new PlatformError({ code: "MFE_ID_INVALID", message: `"${value}" is not a valid mfeId.`, source, override: "mfe.config.ts → mfeId" })
+    throw new PlatformError({
+      code: "MFE_ID_INVALID",
+      message: `"${value}" is not a valid mfeId.`,
+      source,
+      override: "mfe.config.ts → mfeId",
+    })
   }
   return value
 }
 
 /** Infer the default `mfeId` from a package name: `@acme/asset-tracker` → `asset-tracker`. */
 export function inferMfeId(packageName: string): string {
-  const base = packageName.includes("/") ? packageName.slice(packageName.lastIndexOf("/") + 1) : packageName
+  const base = packageName.includes("/")
+    ? packageName.slice(packageName.lastIndexOf("/") + 1)
+    : packageName
   const id = base
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -30,7 +37,8 @@ export function federationName(mfeId: string): string {
   return `mfe_${mfeId.replace(/-/g, "_")}`
 }
 
-export const ROUTE_PREFIX_RE = /^\/(?:[a-z0-9]+(?:[-_.][a-z0-9]+)*)(?:\/[a-z0-9]+(?:[-_.][a-z0-9]+)*)*$/
+export const ROUTE_PREFIX_RE =
+  /^\/(?:[a-z0-9]+(?:[-_.][a-z0-9]+)*)(?:\/[a-z0-9]+(?:[-_.][a-z0-9]+)*)*$/
 
 export function isValidRoutePrefix(value: string): boolean {
   return value === "/" || ROUTE_PREFIX_RE.test(value)

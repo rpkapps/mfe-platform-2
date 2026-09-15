@@ -60,7 +60,13 @@ export interface SurfaceRegistry<TDefinition extends { id: string }, TRegistered
   clearOwner(instanceId: string): void
 }
 
-function createSurfaceRegistry<TDefinition extends { id: string; title: string }, TRegistered extends { qualifiedId: string; owner: RegistrationOwner }>(kind: string, make: (qualifiedId: string, definition: TDefinition, owner: RegistrationOwner) => TRegistered): SurfaceRegistry<TDefinition, TRegistered> {
+function createSurfaceRegistry<
+  TDefinition extends { id: string; title: string },
+  TRegistered extends { qualifiedId: string; owner: RegistrationOwner },
+>(
+  kind: string,
+  make: (qualifiedId: string, definition: TDefinition, owner: RegistrationOwner) => TRegistered
+): SurfaceRegistry<TDefinition, TRegistered> {
   const entries = new Map<string, TRegistered>()
   const events = createEmitter<SurfaceRegistryEvents<TRegistered>>()
   const emitChange = () => events.emit("change", { entries: Array.from(entries.values()) })
@@ -68,10 +74,20 @@ function createSurfaceRegistry<TDefinition extends { id: string; title: string }
     events,
     register(definition, owner) {
       if (!isValidLocalId(definition.id)) {
-        throw new PlatformError({ code: "COMMAND_INVALID", message: `${kind} id "${definition.id}" is not a local kebab-case id.`, owner, source: definition.id })
+        throw new PlatformError({
+          code: "COMMAND_INVALID",
+          message: `${kind} id "${definition.id}" is not a local kebab-case id.`,
+          owner,
+          source: definition.id,
+        })
       }
       if (!definition.title) {
-        throw new PlatformError({ code: "COMMAND_INVALID", message: `${kind} "${definition.id}" needs a title.`, owner, source: definition.id })
+        throw new PlatformError({
+          code: "COMMAND_INVALID",
+          message: `${kind} "${definition.id}" needs a title.`,
+          owner,
+          source: definition.id,
+        })
       }
       const qualifiedId = qualifyId(owner.mfeId, definition.id)
       const registered = make(qualifiedId, definition, owner)
@@ -85,7 +101,8 @@ function createSurfaceRegistry<TDefinition extends { id: string; title: string }
     },
     list: () => Array.from(entries.values()),
     clearOwner(instanceId) {
-      for (const [id, entry] of Array.from(entries.entries())) if (entry.owner.instanceId === instanceId) entries.delete(id)
+      for (const [id, entry] of Array.from(entries.entries()))
+        if (entry.owner.instanceId === instanceId) entries.delete(id)
       emitChange()
     },
   }
@@ -95,9 +112,15 @@ export type HelpRegistry = SurfaceRegistry<HelpEntryDefinition, RegisteredHelpEn
 export type ReleaseNotesRegistry = SurfaceRegistry<ReleaseNoteDefinition, RegisteredReleaseNote>
 
 export function createHelpRegistry(): HelpRegistry {
-  return createSurfaceRegistry<HelpEntryDefinition, RegisteredHelpEntry>("Help entry", (qualifiedId, definition, owner) => ({ qualifiedId, definition, owner }))
+  return createSurfaceRegistry<HelpEntryDefinition, RegisteredHelpEntry>(
+    "Help entry",
+    (qualifiedId, definition, owner) => ({ qualifiedId, definition, owner })
+  )
 }
 
 export function createReleaseNotesRegistry(): ReleaseNotesRegistry {
-  return createSurfaceRegistry<ReleaseNoteDefinition, RegisteredReleaseNote>("Release note", (qualifiedId, definition, owner) => ({ qualifiedId, definition, owner }))
+  return createSurfaceRegistry<ReleaseNoteDefinition, RegisteredReleaseNote>(
+    "Release note",
+    (qualifiedId, definition, owner) => ({ qualifiedId, definition, owner })
+  )
 }

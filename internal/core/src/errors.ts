@@ -7,35 +7,122 @@ import { DOCS_BASE_URL } from "./protocol"
  * tools render these fields directly.
  */
 export const ERROR_CODES = {
-  MANIFEST_FETCH_FAILED: { docs: "/failure-handling#manifest-loading", hint: "Check the manifest URL, the remote deployment and the allowed origins. Override the URL with a manifest override." },
-  MANIFEST_INVALID: { docs: "/manifests#validation", hint: "Rebuild the remote with a compatible @platform/vite; run `platform validate` in the remote project." },
-  MANIFEST_ORIGIN_DENIED: { docs: "/manifest-overrides#origin-validation", hint: "Add the origin to `allowedOrigins` in the host configuration or use a same-origin manifest URL." },
-  PROTOCOL_INCOMPATIBLE: { docs: "/module-federation#protocol-compatibility", hint: "Upgrade the remote's @platform/react and @platform/vite, or the host's @platform/host, so the protocol majors match." },
-  REMOTE_LOAD_FAILED: { docs: "/failure-handling#remote-loading", hint: "Check that the remote entry is reachable and served with CORS headers; the host retries with cache busting." },
-  REMOTE_DISABLED: { docs: "/runtime-configuration#per-mfe-enablement", hint: "Enable the MFE in the runtime configuration (`mfes.<mfeId>.enabled`)." },
-  REMOTE_UNKNOWN: { docs: "/manifest-overrides#registry", hint: "Register the MFE in the host registry or the runtime configuration." },
-  DEPENDENCY_INCOMPATIBLE: { docs: "/dependency-sharing#incompatible-fallback", hint: "The remote bundles its own copy; check the shared dependency diagnostics and the `shared` overrides in mfe.config.ts." },
-  MOUNT_FAILED: { docs: "/failure-handling#mounting", hint: "The remote threw while mounting; see the remote's error boundary and telemetry." },
-  WIDGET_UNKNOWN: { docs: "/widgets#registration", hint: "Export the widget from `createMfe({ widgets })` and rebuild the remote." },
-  WIDGET_MOUNT_FAILED: { docs: "/widgets#failure-isolation", hint: "The widget threw while mounting; other widgets keep running." },
-  PERMISSION_DENIED: { docs: "/permission-groups#preflight", hint: "The current user lacks a permission group the manifest requires; backend authorization still applies." },
-  CAPABILITY_UNAVAILABLE: { docs: "/platform-context#capabilities", hint: "The host does not approve this capability; feature-detect with `usePlatform((p) => p.capabilities)`." },
-  SHORTCUT_CONFLICT: { docs: "/commands#shortcut-conflicts", hint: "Choose another shortcut; the second registration is rejected, the first one keeps the shortcut." },
-  COMMAND_INVALID: { docs: "/commands#definition", hint: "Command ids are local, kebab-case and unique within the MFE." },
-  COMMAND_FAILED: { docs: "/commands#failure-states", hint: "The handler threw or rejected; the palette shows the error and the shell keeps running." },
-  SETTINGS_INVALID: { docs: "/settings#definition", hint: "Every field needs `defaultValue`; keys are unique within the group." },
-  SETTINGS_VALUE_INVALID: { docs: "/settings#invalid-stored-values", hint: "The stored value failed the schema and no migration fixed it; the field was reset to its default." },
-  STORAGE_INVALID: { docs: "/storage#malformed-data", hint: "The stored value failed the schema and no migration fixed it; defaults were applied." },
-  STORAGE_UNAVAILABLE: { docs: "/storage#unavailable", hint: "Browser storage is blocked; the store falls back to memory for this session." },
-  RUNTIME_CONFIG_INVALID: { docs: "/runtime-configuration#validation", hint: "Fix the runtime configuration document before the platform starts; the entrypoint validates it." },
-  RUNTIME_CONFIG_FETCH_FAILED: { docs: "/runtime-configuration#loading", hint: "Serve `/platform-config.json` from the same origin or inline it in the SSR document." },
-  ROUTE_PREFIX_INVALID: { docs: "/route-prefixes", hint: "Route prefixes start with `/`, contain only lowercase segments and have no trailing slash." },
-  MFE_ID_INVALID: { docs: "/manifests#mfe-id", hint: "`mfeId` is kebab-case (`asset-tracker`); it is inferred from the package name and persisted in `.platform/identity.json`." },
-  DEV_RESTART_REQUIRED: { docs: "/local-development#restart-diagnostics", hint: "Restart the development server: manifests, shared dependency versions, federation configuration and generated route trees are read at startup." },
-  TELEMETRY_FAILED: { docs: "/telemetry#failure-isolation", hint: "The telemetry adapter threw; events are dropped and the MFE keeps running." },
-  DEVTOOLS_UNAVAILABLE: { docs: "/developer-tools#enabling", hint: "Enable `platform:devtools` in localStorage and check the host devtools policy." },
-  OVERLAY_FAILED: { docs: "/overlays", hint: "The overlay root could not be created; overlays fall back to document.body." },
-  INTERNAL: { docs: "/troubleshooting", hint: "Unexpected failure; the diagnostic carries the original error." },
+  MANIFEST_FETCH_FAILED: {
+    docs: "/failure-handling#manifest-loading",
+    hint: "Check the manifest URL, the remote deployment and the allowed origins. Override the URL with a manifest override.",
+  },
+  MANIFEST_INVALID: {
+    docs: "/manifests#validation",
+    hint: "Rebuild the remote with a compatible @platform/vite; run `platform validate` in the remote project.",
+  },
+  MANIFEST_ORIGIN_DENIED: {
+    docs: "/manifest-overrides#origin-validation",
+    hint: "Add the origin to `allowedOrigins` in the host configuration or use a same-origin manifest URL.",
+  },
+  PROTOCOL_INCOMPATIBLE: {
+    docs: "/module-federation#protocol-compatibility",
+    hint: "Upgrade the remote's @platform/react and @platform/vite, or the host's @platform/host, so the protocol majors match.",
+  },
+  REMOTE_LOAD_FAILED: {
+    docs: "/failure-handling#remote-loading",
+    hint: "Check that the remote entry is reachable and served with CORS headers; the host retries with cache busting.",
+  },
+  REMOTE_DISABLED: {
+    docs: "/runtime-configuration#per-mfe-enablement",
+    hint: "Enable the MFE in the runtime configuration (`mfes.<mfeId>.enabled`).",
+  },
+  REMOTE_UNKNOWN: {
+    docs: "/manifest-overrides#registry",
+    hint: "Register the MFE in the host registry or the runtime configuration.",
+  },
+  DEPENDENCY_INCOMPATIBLE: {
+    docs: "/dependency-sharing#incompatible-fallback",
+    hint: "The remote bundles its own copy; check the shared dependency diagnostics and the `shared` overrides in mfe.config.ts.",
+  },
+  MOUNT_FAILED: {
+    docs: "/failure-handling#mounting",
+    hint: "The remote threw while mounting; see the remote's error boundary and telemetry.",
+  },
+  WIDGET_UNKNOWN: {
+    docs: "/widgets#registration",
+    hint: "Export the widget from `createMfe({ widgets })` and rebuild the remote.",
+  },
+  WIDGET_MOUNT_FAILED: {
+    docs: "/widgets#failure-isolation",
+    hint: "The widget threw while mounting; other widgets keep running.",
+  },
+  PERMISSION_DENIED: {
+    docs: "/permission-groups#preflight",
+    hint: "The current user lacks a permission group the manifest requires; backend authorization still applies.",
+  },
+  CAPABILITY_UNAVAILABLE: {
+    docs: "/platform-context#capabilities",
+    hint: "The host does not approve this capability; feature-detect with `usePlatform((p) => p.capabilities)`.",
+  },
+  SHORTCUT_CONFLICT: {
+    docs: "/commands#shortcut-conflicts",
+    hint: "Choose another shortcut; the second registration is rejected, the first one keeps the shortcut.",
+  },
+  COMMAND_INVALID: {
+    docs: "/commands#definition",
+    hint: "Command ids are local, kebab-case and unique within the MFE.",
+  },
+  COMMAND_FAILED: {
+    docs: "/commands#failure-states",
+    hint: "The handler threw or rejected; the palette shows the error and the shell keeps running.",
+  },
+  SETTINGS_INVALID: {
+    docs: "/settings#definition",
+    hint: "Every field needs `defaultValue`; keys are unique within the group.",
+  },
+  SETTINGS_VALUE_INVALID: {
+    docs: "/settings#invalid-stored-values",
+    hint: "The stored value failed the schema and no migration fixed it; the field was reset to its default.",
+  },
+  STORAGE_INVALID: {
+    docs: "/storage#malformed-data",
+    hint: "The stored value failed the schema and no migration fixed it; defaults were applied.",
+  },
+  STORAGE_UNAVAILABLE: {
+    docs: "/storage#unavailable",
+    hint: "Browser storage is blocked; the store falls back to memory for this session.",
+  },
+  RUNTIME_CONFIG_INVALID: {
+    docs: "/runtime-configuration#validation",
+    hint: "Fix the runtime configuration document before the platform starts; the entrypoint validates it.",
+  },
+  RUNTIME_CONFIG_FETCH_FAILED: {
+    docs: "/runtime-configuration#loading",
+    hint: "Serve `/platform-config.json` from the same origin or inline it in the SSR document.",
+  },
+  ROUTE_PREFIX_INVALID: {
+    docs: "/route-prefixes",
+    hint: "Route prefixes start with `/`, contain only lowercase segments and have no trailing slash.",
+  },
+  MFE_ID_INVALID: {
+    docs: "/manifests#mfe-id",
+    hint: "`mfeId` is kebab-case (`asset-tracker`); it is inferred from the package name and persisted in `.platform/identity.json`.",
+  },
+  DEV_RESTART_REQUIRED: {
+    docs: "/local-development#restart-diagnostics",
+    hint: "Restart the development server: manifests, shared dependency versions, federation configuration and generated route trees are read at startup.",
+  },
+  TELEMETRY_FAILED: {
+    docs: "/telemetry#failure-isolation",
+    hint: "The telemetry adapter threw; events are dropped and the MFE keeps running.",
+  },
+  DEVTOOLS_UNAVAILABLE: {
+    docs: "/developer-tools#enabling",
+    hint: "Enable `platform:devtools` in localStorage and check the host devtools policy.",
+  },
+  OVERLAY_FAILED: {
+    docs: "/overlays",
+    hint: "The overlay root could not be created; overlays fall back to document.body.",
+  },
+  INTERNAL: {
+    docs: "/troubleshooting",
+    hint: "Unexpected failure; the diagnostic carries the original error.",
+  },
 } as const
 
 export type PlatformErrorCode = keyof typeof ERROR_CODES
@@ -141,11 +228,20 @@ export function describeCause(cause: unknown): string | undefined {
 }
 
 export function isPlatformError(value: unknown): value is PlatformError {
-  return value instanceof PlatformError || (typeof value === "object" && value !== null && (value as { name?: unknown }).name === "PlatformError" && "code" in value)
+  return (
+    value instanceof PlatformError ||
+    (typeof value === "object" &&
+      value !== null &&
+      (value as { name?: unknown }).name === "PlatformError" &&
+      "code" in value)
+  )
 }
 
 /** Wrap any thrown value in a PlatformError without losing an existing one. */
-export function toPlatformError(value: unknown, fallback: Omit<PlatformErrorOptions, "cause" | "message"> & { message?: string }): PlatformError {
+export function toPlatformError(
+  value: unknown,
+  fallback: Omit<PlatformErrorOptions, "cause" | "message"> & { message?: string }
+): PlatformError {
   if (isPlatformError(value)) return value
   const message = fallback.message ?? (value instanceof Error ? value.message : String(value))
   return new PlatformError({ ...fallback, message, cause: value })

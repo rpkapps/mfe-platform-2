@@ -5,7 +5,17 @@ import { defineConfig } from "vitest/config"
 // runtime boundaries, run against built packages).
 export default defineConfig({
   test: {
-    projects: ["internal/*/vitest.config.ts", "packages/*/vitest.config.ts", "apps/conformance-react19/vitest.config.ts", "apps/conformance-react18/vitest.config.ts", "test/integration/vitest.config.ts"],
-    coverage: { provider: "v8", reporter: ["text", "lcov"], include: ["internal/*/src/**", "packages/*/src/**"] },
+    projects: [
+      "internal/*/vitest.config.ts",
+      "packages/*/vitest.config.ts",
+      "apps/conformance-react19/vitest.config.ts",
+      "apps/conformance-react18/vitest.config.ts",
+      "test/integration/vitest.config.ts",
+    ],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "lcov"],
+      include: ["internal/*/src/**", "packages/*/src/**"],
+    },
   },
 })

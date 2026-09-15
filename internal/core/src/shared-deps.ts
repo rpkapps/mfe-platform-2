@@ -1,4 +1,11 @@
-import { compareVersions, maxSatisfying, minVersion, parseVersion, rangeMajor, satisfies } from "./semver"
+import {
+  compareVersions,
+  maxSatisfying,
+  minVersion,
+  parseVersion,
+  rangeMajor,
+  satisfies,
+} from "./semver"
 import type { SharedRequest } from "./manifest"
 
 /**
@@ -36,7 +43,15 @@ export const REACT_BOUND_PACKAGES = new Set([
  * inside a remote, and Tecton is a source package compiled by each consumer.
  * Configure `shared` in mfe.config.ts to opt a package in.
  */
-export const DEFAULT_SHARED_PACKAGES = ["react", "react-dom", "@tanstack/react-router", "@tanstack/history", "@platform/react", "@tecton/react", "zod"] as const
+export const DEFAULT_SHARED_PACKAGES = [
+  "react",
+  "react-dom",
+  "@tanstack/react-router",
+  "@tanstack/history",
+  "@platform/react",
+  "@tecton/react",
+  "zod",
+] as const
 
 /** Source packages (TSX, compiled by the consumer) cannot be shared as built modules. */
 export const SOURCE_PACKAGES = new Set(["@tecton/react"])
@@ -50,10 +65,15 @@ export const PAIRED_PACKAGES: Record<string, string[]> = {
 }
 
 export function shareScopeFor(name: string, reactMajor: number): string {
-  return REACT_BOUND_PACKAGES.has(name) || name.startsWith("react-dom/") || name.startsWith("react/") ? `react${reactMajor}` : "default"
+  return REACT_BOUND_PACKAGES.has(name) ||
+    name.startsWith("react-dom/") ||
+    name.startsWith("react/")
+    ? `react${reactMajor}`
+    : "default"
 }
 
-export type SharedOverride = boolean | { version?: string; bundle?: boolean; singleton?: boolean; scope?: string }
+export type SharedOverride =
+  boolean | { version?: string; bundle?: boolean; singleton?: boolean; scope?: string }
 
 export interface InferSharedOptions {
   dependencies: Record<string, string>
@@ -75,40 +95,101 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
   const { dependencies, installed = {}, overrides = {}, extra = [] } = options
   const warnings: string[] = []
   const reactRange = dependencies.react
-  const reactMajor = reactRange ? (rangeMajor(reactRange) ?? parseVersion(installed.react ?? "")?.major ?? 19) : parseVersion(installed.react ?? "")?.major ?? 19
-  const candidates = new Set<string>([...DEFAULT_SHARED_PACKAGES, ...extra, ...Object.keys(overrides).filter((name) => overrides[name] !== false)])
+  const reactMajor = reactRange
+    ? (rangeMajor(reactRange) ?? parseVersion(installed.react ?? "")?.major ?? 19)
+    : (parseVersion(installed.react ?? "")?.major ?? 19)
+  const candidates = new Set<string>([
+    ...DEFAULT_SHARED_PACKAGES,
+    ...extra,
+    ...Object.keys(overrides).filter((name) => overrides[name] !== false),
+  ])
   const requests: SharedRequest[] = []
   for (const name of candidates) {
     const override = overrides[name]
-    const range = dependencies[name] ?? (typeof override === "object" ? override.version : undefined)
+    const range =
+      dependencies[name] ?? (typeof override === "object" ? override.version : undefined)
     if (!range) {
-      if (override !== undefined && override !== false) warnings.push(`"${name}" is configured as shared but is not a dependency of the project.`)
+      if (override !== undefined && override !== false)
+        warnings.push(
+          `"${name}" is configured as shared but is not a dependency of the project.`
+        )
       continue
     }
-    if (range.startsWith("workspace:") || range.startsWith("catalog:") || range.startsWith("github:") || range.startsWith("git+") || range.startsWith("file:") || range.startsWith("link:")) {
+    if (
+      range.startsWith("workspace:") ||
+      range.startsWith("catalog:") ||
+      range.startsWith("github:") ||
+      range.startsWith("git+") ||
+      range.startsWith("file:") ||
+      range.startsWith("link:")
+    ) {
       const installedVersion = installed[name]
       if (!installedVersion) {
-        requests.push({ name, requiredVersion: "*", version: undefined, scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "source-package" })
+        requests.push({
+          name,
+          requiredVersion: "*",
+          version: undefined,
+          scope: shareScopeFor(name, reactMajor),
+          singleton: false,
+          shared: false,
+          reason: "source-package",
+        })
         continue
       }
     }
     if (override === false || (typeof override === "object" && override.bundle)) {
-      requests.push({ name, requiredVersion: range, version: installed[name], scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "disabled", pairedWith: PAIRED_PACKAGES[name] })
+      requests.push({
+        name,
+        requiredVersion: range,
+        version: installed[name],
+        scope: shareScopeFor(name, reactMajor),
+        singleton: false,
+        shared: false,
+        reason: "disabled",
+        pairedWith: PAIRED_PACKAGES[name],
+      })
       continue
     }
-    if (SOURCE_PACKAGES.has(name) && !(typeof override === "object" && override.singleton !== undefined)) {
-      requests.push({ name, requiredVersion: range, version: installed[name], scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "source-package" })
+    if (
+      SOURCE_PACKAGES.has(name) &&
+      !(typeof override === "object" && override.singleton !== undefined)
+    ) {
+      requests.push({
+        name,
+        requiredVersion: range,
+        version: installed[name],
+        scope: shareScopeFor(name, reactMajor),
+        singleton: false,
+        shared: false,
+        reason: "source-package",
+      })
       continue
     }
-    const requiredVersion = typeof override === "object" && override.version ? override.version : /^(workspace:|catalog:|link:|file:)/.test(range) ? `^${installed[name] ?? "0.0.0"}` : range
+    const requiredVersion =
+      typeof override === "object" && override.version
+        ? override.version
+        : /^(workspace:|catalog:|link:|file:)/.test(range)
+          ? `^${installed[name] ?? "0.0.0"}`
+          : range
     requests.push({
       name,
       requiredVersion,
       version: installed[name],
-      scope: typeof override === "object" && override.scope ? override.scope : shareScopeFor(name, reactMajor),
-      singleton: typeof override === "object" && override.singleton !== undefined ? override.singleton : false,
+      scope:
+        typeof override === "object" && override.scope
+          ? override.scope
+          : shareScopeFor(name, reactMajor),
+      singleton:
+        typeof override === "object" && override.singleton !== undefined
+          ? override.singleton
+          : false,
       shared: true,
-      reason: override === undefined ? "inferred" : typeof override === "object" && override.version ? "pinned" : "configured",
+      reason:
+        override === undefined
+          ? "inferred"
+          : typeof override === "object" && override.version
+            ? "pinned"
+            : "configured",
       pairedWith: PAIRED_PACKAGES[name],
     })
   }
@@ -123,9 +204,16 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
   }
   if (dependencies.react && dependencies["react-dom"]) {
     const domMajor = rangeMajor(dependencies["react-dom"])
-    if (domMajor !== null && domMajor !== reactMajor) warnings.push(`react (${dependencies.react}) and react-dom (${dependencies["react-dom"]}) request different majors; they must be a coordinated pair.`)
+    if (domMajor !== null && domMajor !== reactMajor)
+      warnings.push(
+        `react (${dependencies.react}) and react-dom (${dependencies["react-dom"]}) request different majors; they must be a coordinated pair.`
+      )
   }
-  return { requests: requests.sort((a, b) => a.name.localeCompare(b.name)), reactMajor, warnings }
+  return {
+    requests: requests.sort((a, b) => a.name.localeCompare(b.name)),
+    reactMajor,
+    warnings,
+  }
 }
 
 /** A version available in a share scope, with who provides it. */
@@ -168,18 +256,57 @@ export function negotiateShared(options: NegotiateOptions): ShareResolution[] {
   const pick = (request: SharedRequest): ShareResolution => {
     const group = request.scope
     if (!request.shared) {
-      return { name: request.name, scope: request.scope, requiredVersion: request.requiredVersion, outcome: "bundled", version: request.version, reason: request.reason === "source-package" ? "source package is compiled per remote" : "sharing disabled by configuration", group }
+      return {
+        name: request.name,
+        scope: request.scope,
+        requiredVersion: request.requiredVersion,
+        outcome: "bundled",
+        version: request.version,
+        reason:
+          request.reason === "source-package"
+            ? "source package is compiled per remote"
+            : "sharing disabled by configuration",
+        group,
+      }
     }
-    const candidates = options.providers.filter((provider) => provider.name === request.name && provider.scope === request.scope && satisfies(provider.version, request.requiredVersion))
+    const candidates = options.providers.filter(
+      (provider) =>
+        provider.name === request.name &&
+        provider.scope === request.scope &&
+        satisfies(provider.version, request.requiredVersion)
+    )
     if (candidates.length === 0) {
-      const wrongScope = options.providers.filter((provider) => provider.name === request.name && provider.scope !== request.scope)
-      const reason = wrongScope.length ? `no provider in scope "${request.scope}" (available in ${wrongScope.map((p) => `${p.scope}@${p.version}`).join(", ")}); bundled copy used` : `no provider satisfies ${request.requiredVersion}; bundled copy used`
-      return { name: request.name, scope: request.scope, requiredVersion: request.requiredVersion, outcome: "bundled", version: request.version, reason, group }
+      const wrongScope = options.providers.filter(
+        (provider) => provider.name === request.name && provider.scope !== request.scope
+      )
+      const reason = wrongScope.length
+        ? `no provider in scope "${request.scope}" (available in ${wrongScope.map((p) => `${p.scope}@${p.version}`).join(", ")}); bundled copy used`
+        : `no provider satisfies ${request.requiredVersion}; bundled copy used`
+      return {
+        name: request.name,
+        scope: request.scope,
+        requiredVersion: request.requiredVersion,
+        outcome: "bundled",
+        version: request.version,
+        reason,
+        group,
+      }
     }
     const loaded = candidates.filter((candidate) => candidate.loaded)
     const pool = loaded.length ? loaded : candidates
     const best = pool.reduce((a, b) => (compareVersions(a.version, b.version) >= 0 ? a : b))
-    return { name: request.name, scope: request.scope, requiredVersion: request.requiredVersion, outcome: "shared", provider: best, version: best.version, reason: loaded.length ? "already-loaded provider reused (loaded-first)" : "highest compatible provider", group }
+    return {
+      name: request.name,
+      scope: request.scope,
+      requiredVersion: request.requiredVersion,
+      outcome: "shared",
+      provider: best,
+      version: best.version,
+      reason: loaded.length
+        ? "already-loaded provider reused (loaded-first)"
+        : "highest compatible provider",
+      group,
+    }
   }
   for (const request of options.requests) resolutions.set(request.name, pick(request))
   // Coordinate pairs.
@@ -188,11 +315,20 @@ export function negotiateShared(options: NegotiateOptions): ShareResolution[] {
       const mine = resolutions.get(request.name)
       const theirs = resolutions.get(partner)
       if (!mine || !theirs) continue
-      if (mine.outcome !== theirs.outcome || (mine.provider && theirs.provider && mine.provider.from !== theirs.provider.from)) {
+      if (
+        mine.outcome !== theirs.outcome ||
+        (mine.provider && theirs.provider && mine.provider.from !== theirs.provider.from)
+      ) {
         for (const name of [request.name, partner]) {
           const current = resolutions.get(name)!
           const own = options.requests.find((r) => r.name === name)
-          resolutions.set(name, { ...current, outcome: "bundled", provider: undefined, version: own?.version, reason: `${request.name} and ${partner} must come from one provider; bundled pair used` })
+          resolutions.set(name, {
+            ...current,
+            outcome: "bundled",
+            provider: undefined,
+            version: own?.version,
+            reason: `${request.name} and ${partner} must come from one provider; bundled pair used`,
+          })
         }
       }
     }

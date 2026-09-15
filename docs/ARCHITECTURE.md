@@ -4,17 +4,17 @@ This document is the contract every package in this repository implements. Read 
 
 ## Packages
 
-| Package | Role | Runtime |
-| --- | --- | --- |
-| `@platform-internal/core` | Loader-neutral contracts: manifest, runtime config, registrations, context, storage, telemetry, navigation, shared-dependency negotiation, overlay manager, diagnostics, errors | none (bundled into the public packages) |
-| `@platform-internal/module-federation` | Module Federation 2 `RemoteLoader` for the host (`@module-federation/runtime`) | browser |
-| `@platform-internal/diagnostics` | Diagnostic bus, snapshot, redaction | browser |
-| `@platform-internal/devtools` | Developer tools UI, React 19 + React Flow, loaded lazily by the host | browser |
-| `@platform-internal/conformance` | Shared fixtures and checks for conformance apps and E2E | node/test |
-| `@platform/react` | MFE SDK (React 18 or 19) | browser |
-| `@platform/vite` | Vite plugin turning a TanStack Router project into a remote | node |
-| `@platform/cli` | `platform create/dev/build/manifest/validate/lint/test`, `@platform/cli/eslint` | node |
-| `@platform/host` | Shell runtime (React 19), harness, Docker entrypoint | browser + node |
+| Package                                | Role                                                                                                                                                                            | Runtime                                 |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| `@platform-internal/core`              | Loader-neutral contracts: manifest, runtime config, registrations, context, storage, telemetry, navigation, shared-dependency negotiation, overlay manager, diagnostics, errors | none (bundled into the public packages) |
+| `@platform-internal/module-federation` | Module Federation 2 `RemoteLoader` for the host (`@module-federation/runtime`)                                                                                                  | browser                                 |
+| `@platform-internal/diagnostics`       | Diagnostic bus, snapshot, redaction                                                                                                                                             | browser                                 |
+| `@platform-internal/devtools`          | Developer tools UI, React 19 + React Flow, loaded lazily by the host                                                                                                            | browser                                 |
+| `@platform-internal/conformance`       | Shared fixtures and checks for conformance apps and E2E                                                                                                                         | node/test                               |
+| `@platform/react`                      | MFE SDK (React 18 or 19)                                                                                                                                                        | browser                                 |
+| `@platform/vite`                       | Vite plugin turning a TanStack Router project into a remote                                                                                                                     | node                                    |
+| `@platform/cli`                        | `platform create/dev/build/manifest/validate/lint/test`, `@platform/cli/eslint`                                                                                                 | node                                    |
+| `@platform/host`                       | Shell runtime (React 19), harness, Docker entrypoint                                                                                                                            | browser + node                          |
 
 Internal packages are bundled into the public packages by tsdown (`noExternal`), so consumers only ever install `@platform/*`.
 
@@ -35,9 +35,12 @@ Internal packages are bundled into the public packages by tsdown (`noExternal`),
 
 ```ts
 interface RemoteDefinition {
-  kind: "platform-remote"; protocolVersion: string; mfeId: string
-  widgets: { id; title?; description? }[]; hasRoutes: boolean
-  mount({ container, bridge }): MountHandle            // route MFE
+  kind: "platform-remote"
+  protocolVersion: string
+  mfeId: string
+  widgets: { id; title?; description? }[]
+  hasRoutes: boolean
+  mount({ container, bridge }): MountHandle // route MFE
   mountWidget({ container, bridge, widgetId, props }): WidgetHandle
   registrations?: { commands?; help?; releaseNotes? } // static, available before mounting
 }

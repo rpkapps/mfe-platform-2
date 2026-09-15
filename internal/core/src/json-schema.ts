@@ -1,7 +1,15 @@
 import { z } from "zod"
 
 import { CAPABILITY_IDS } from "./capabilities"
-import { commandContributionSchema, helpContributionSchema, mfeManifestSchema, releaseNoteContributionSchema, settingsContributionSchema, sharedRequestSchema, widgetContributionSchema } from "./manifest"
+import {
+  commandContributionSchema,
+  helpContributionSchema,
+  mfeManifestSchema,
+  releaseNoteContributionSchema,
+  settingsContributionSchema,
+  sharedRequestSchema,
+  widgetContributionSchema,
+} from "./manifest"
 import { runtimeConfigSchema } from "./runtime-config"
 
 /**
@@ -20,15 +28,17 @@ const registrationsSchema = z.object({
 
 const settingsSchema = settingsContributionSchema
 
-const diagnosticsSchema = z.object({
-  id: z.number(),
-  at: z.number(),
-  level: z.enum(["debug", "info", "warn", "error"]),
-  type: z.string(),
-  mfeId: z.string().optional(),
-  instanceId: z.string().optional(),
-  widgetId: z.string().optional(),
-}).passthrough()
+const diagnosticsSchema = z
+  .object({
+    id: z.number(),
+    at: z.number(),
+    level: z.enum(["debug", "info", "warn", "error"]),
+    type: z.string(),
+    mfeId: z.string().optional(),
+    instanceId: z.string().optional(),
+    widgetId: z.string().optional(),
+  })
+  .passthrough()
 
 const protocolSchema = z.object({
   hostProtocolVersion: z.string(),
@@ -54,5 +64,13 @@ export type PublishedSchemaName = keyof typeof PUBLISHED_SCHEMAS
 
 export function toJsonSchema(name: PublishedSchemaName): Record<string, unknown> {
   const schema = PUBLISHED_SCHEMAS[name]
-  return { $id: `https://platform.docs.local/schemas/${name}.json`, title: name, ...(z.toJSONSchema(schema, { target: "draft-2020-12", io: "input", unrepresentable: "any" }) as Record<string, unknown>) }
+  return {
+    $id: `https://platform.docs.local/schemas/${name}.json`,
+    title: name,
+    ...(z.toJSONSchema(schema, {
+      target: "draft-2020-12",
+      io: "input",
+      unrepresentable: "any",
+    }) as Record<string, unknown>),
+  }
 }

@@ -27,7 +27,9 @@ export interface ShellNavigation {
   go(delta: number): void
   reload(): void
   /** Subscribe to location changes (pushes, replaces, popstate). */
-  subscribe(listener: (location: ShellLocation, action: "push" | "replace" | "pop") => void): () => void
+  subscribe(
+    listener: (location: ShellLocation, action: "push" | "replace" | "pop") => void
+  ): () => void
   /** Called by the SDK before a navigation; returning `false` blocks it (used for blockers). */
   canLeave?(next: string): boolean
 }
@@ -47,8 +49,12 @@ export function parseHref(href: string): ShellLocation {
 }
 
 /** In-memory implementation for tests and the local harness (no `window` needed). */
-export function createMemoryNavigation(initial = "/"): ShellNavigation & { entries: ShellLocation[]; index: number } {
-  const listeners = new Set<(location: ShellLocation, action: "push" | "replace" | "pop") => void>()
+export function createMemoryNavigation(
+  initial = "/"
+): ShellNavigation & { entries: ShellLocation[]; index: number } {
+  const listeners = new Set<
+    (location: ShellLocation, action: "push" | "replace" | "pop") => void
+  >()
   let counter = 0
   const nav = {
     entries: [{ ...parseHref(initial), key: `k${(counter += 1)}` }],
@@ -61,7 +67,11 @@ export function createMemoryNavigation(initial = "/"): ShellNavigation & { entri
       emit("push")
     },
     replace(href: string, options?: NavigateOptions) {
-      nav.entries[nav.index] = { ...parseHref(href), state: options?.state, key: `k${(counter += 1)}` }
+      nav.entries[nav.index] = {
+        ...parseHref(href),
+        state: options?.state,
+        key: `k${(counter += 1)}`,
+      }
       emit("replace")
     },
     back: () => nav.go(-1),
@@ -93,9 +103,18 @@ export function createMemoryNavigation(initial = "/"): ShellNavigation & { entri
  * harness). Uses the History API through ordinary calls and one `popstate`
  * listener — it never patches `pushState`, `replaceState` or `history`.
  */
-export function createBrowserNavigation(win: Window = window): ShellNavigation & { dispose(): void } {
-  const listeners = new Set<(location: ShellLocation, action: "push" | "replace" | "pop") => void>()
-  const read = (): ShellLocation => ({ pathname: win.location.pathname, search: win.location.search, hash: win.location.hash, state: win.history.state })
+export function createBrowserNavigation(
+  win: Window = window
+): ShellNavigation & { dispose(): void } {
+  const listeners = new Set<
+    (location: ShellLocation, action: "push" | "replace" | "pop") => void
+  >()
+  const read = (): ShellLocation => ({
+    pathname: win.location.pathname,
+    search: win.location.search,
+    hash: win.location.hash,
+    state: win.history.state,
+  })
   const emit = (action: "push" | "replace" | "pop") => {
     const location = read()
     for (const listener of Array.from(listeners)) listener(location, action)

@@ -51,11 +51,16 @@ export function serveStatic(dir, port, { host = "127.0.0.1", cacheControl = "no-
   })
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/").split("/").pop())) {
+if (
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/").split("/").pop())
+) {
   const [dir, port] = process.argv.slice(2)
   if (!dir || !port) {
     console.error("usage: node scripts/serve-static.mjs <dir> <port>")
     process.exit(1)
   }
-  serveStatic(dir, Number(port)).then(() => console.log(`serving ${dir} on http://127.0.0.1:${port}`))
+  serveStatic(dir, Number(port)).then(() =>
+    console.log(`serving ${dir} on http://127.0.0.1:${port}`)
+  )
 }

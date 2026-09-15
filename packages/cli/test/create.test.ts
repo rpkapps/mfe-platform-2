@@ -3,7 +3,7 @@ import { join } from "node:path"
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
-import { create, dependencySpecs, titleCase } from "../src/commands/create"
+import { create, titleCase } from "../src/commands/create"
 import { CliError } from "../src/errors"
 import { makeTempDir, MONOREPO_ROOT } from "./helpers"
 
@@ -159,11 +159,21 @@ describe("platform create", () => {
       git: false,
     })
     const pkg = json(result.dir, "package.json")
-    expect(pkg.dependencies["@platform/react"]).toMatch(/^file:.*platform-react.*\.tgz$|^file:.*\/packages\/react$/)
-    expect(pkg.devDependencies["@platform/vite"]).toMatch(/^file:.*platform-vite.*\.tgz$|^file:.*\/packages\/vite$/)
-    expect(pkg.devDependencies["@platform/cli"]).toMatch(/^file:.*platform-cli.*\.tgz$|^file:.*\/packages\/cli$/)
-    expect(pkg.devDependencies["@platform/host"]).toMatch(/^file:.*platform-host.*\.tgz$|^file:.*\/packages\/host$/)
-    expect(pkg.dependencies["@tecton/react"]).toMatch(/^file:.*tecton-react.*\.tgz$|^file:.*\/@tecton\/react$/)
+    expect(pkg.dependencies["@platform/react"]).toMatch(
+      /^file:.*platform-react.*\.tgz$|^file:.*\/packages\/react$/
+    )
+    expect(pkg.devDependencies["@platform/vite"]).toMatch(
+      /^file:.*platform-vite.*\.tgz$|^file:.*\/packages\/vite$/
+    )
+    expect(pkg.devDependencies["@platform/cli"]).toMatch(
+      /^file:.*platform-cli.*\.tgz$|^file:.*\/packages\/cli$/
+    )
+    expect(pkg.devDependencies["@platform/host"]).toMatch(
+      /^file:.*platform-host.*\.tgz$|^file:.*\/packages\/host$/
+    )
+    expect(pkg.dependencies["@tecton/react"]).toMatch(
+      /^file:.*tecton-react.*\.tgz$|^file:.*\/@tecton\/react$/
+    )
     const tecton = pkg.dependencies["@tecton/react"].slice("file:".length)
     expect(existsSync(tecton.startsWith("./") ? join(result.dir, tecton) : tecton)).toBe(true)
   })

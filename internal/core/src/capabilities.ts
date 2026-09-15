@@ -25,7 +25,8 @@ export type CapabilityId = (typeof CAPABILITY_IDS)[number]
 
 export const CAPABILITY_DESCRIPTIONS: Record<CapabilityId, string> = {
   navigation: "Navigate through the shell-owned browser history.",
-  context: "Read the platform context (user, groups, tenant, project, job, locale, theme, feature flags).",
+  context:
+    "Read the platform context (user, groups, tenant, project, job, locale, theme, feature flags).",
   "storage.local": "Namespaced, schema-backed local storage.",
   "storage.session": "Namespaced, schema-backed session storage.",
   telemetry: "Emit events, errors and spans through the shell telemetry adapter.",
@@ -69,4 +70,9 @@ export function isCapabilityId(value: string): value is CapabilityId {
 }
 
 /** Capabilities every remote receives even without requesting them. */
-export const IMPLICIT_CAPABILITIES: readonly CapabilityId[] = ["context", "navigation", "telemetry", "overlays"]
+export const IMPLICIT_CAPABILITIES: readonly CapabilityId[] = [
+  "context",
+  "navigation",
+  "telemetry",
+  "overlays",
+]

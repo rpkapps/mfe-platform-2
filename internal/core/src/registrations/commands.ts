@@ -51,7 +51,11 @@ export interface RegisteredCommand {
   registeredAt: number
 }
 
-export type CommandState = { status: "idle" } | { status: "running"; startedAt: number } | { status: "failed"; error: string; failedAt: number } | { status: "succeeded"; finishedAt: number }
+export type CommandState =
+  | { status: "idle" }
+  | { status: "running"; startedAt: number }
+  | { status: "failed"; error: string; failedAt: number }
+  | { status: "succeeded"; finishedAt: number }
 
 export interface ShortcutConflict {
   shortcut: string
@@ -78,7 +82,8 @@ export function normalizeShortcut(shortcut: string): string | null {
   if (parts.length === 0) return null
   const key = parts[parts.length - 1]!
   const modifiers = parts.slice(0, -1)
-  if (modifiers.some((modifier) => !(MODIFIERS as readonly string[]).includes(modifier))) return null
+  if (modifiers.some((modifier) => !(MODIFIERS as readonly string[]).includes(modifier)))
+    return null
   if ((MODIFIERS as readonly string[]).includes(key)) return null
   if (key.length === 0) return null
   const ordered = MODIFIERS.filter((modifier) => modifiers.includes(modifier))
@@ -86,7 +91,20 @@ export function normalizeShortcut(shortcut: string): string | null {
 }
 
 /** Match a keyboard event against a normalised shortcut. */
-export function matchesShortcut(shortcut: string, event: { key: string; ctrlKey: boolean; metaKey: boolean; altKey: boolean; shiftKey: boolean }, platform: "mac" | "other" = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform) ? "mac" : "other"): boolean {
+export function matchesShortcut(
+  shortcut: string,
+  event: {
+    key: string
+    ctrlKey: boolean
+    metaKey: boolean
+    altKey: boolean
+    shiftKey: boolean
+  },
+  platform: "mac" | "other" = typeof navigator !== "undefined" &&
+  /Mac|iPhone|iPad/.test(navigator.platform)
+    ? "mac"
+    : "other"
+): boolean {
   const parts = shortcut.split("+")
   const key = parts[parts.length - 1]!
   const modifiers = new Set(parts.slice(0, -1))
@@ -107,23 +125,50 @@ export function matchesShortcut(shortcut: string, event: { key: string; ctrlKey:
   return true
 }
 
-export function validateCommandDefinition(definition: CommandDefinition, owner: RegistrationOwner): void {
+export function validateCommandDefinition(
+  definition: CommandDefinition,
+  owner: RegistrationOwner
+): void {
   if (!isValidLocalId(definition.id)) {
-    throw new PlatformError({ code: "COMMAND_INVALID", message: `Command id "${definition.id}" is not a local kebab-case id.`, owner, source: definition.id })
+    throw new PlatformError({
+      code: "COMMAND_INVALID",
+      message: `Command id "${definition.id}" is not a local kebab-case id.`,
+      owner,
+      source: definition.id,
+    })
   }
   if (!definition.label) {
-    throw new PlatformError({ code: "COMMAND_INVALID", message: `Command "${definition.id}" needs a label.`, owner, source: definition.id })
+    throw new PlatformError({
+      code: "COMMAND_INVALID",
+      message: `Command "${definition.id}" needs a label.`,
+      owner,
+      source: definition.id,
+    })
   }
   if (typeof definition.handler !== "function" && !definition.route) {
-    throw new PlatformError({ code: "COMMAND_INVALID", message: `Command "${definition.id}" needs a handler or a route.`, owner, source: definition.id })
+    throw new PlatformError({
+      code: "COMMAND_INVALID",
+      message: `Command "${definition.id}" needs a handler or a route.`,
+      owner,
+      source: definition.id,
+    })
   }
   if (definition.shortcut !== undefined && normalizeShortcut(definition.shortcut) === null) {
-    throw new PlatformError({ code: "COMMAND_INVALID", message: `Command "${definition.id}" has a malformed shortcut "${definition.shortcut}".`, owner, source: definition.id })
+    throw new PlatformError({
+      code: "COMMAND_INVALID",
+      message: `Command "${definition.id}" has a malformed shortcut "${definition.shortcut}".`,
+      owner,
+      source: definition.id,
+    })
   }
 }
 
 export interface CommandRegistry {
-  register(definition: CommandDefinition, owner: RegistrationOwner, options?: { instanceScoped?: boolean }): () => void
+  register(
+    definition: CommandDefinition,
+    owner: RegistrationOwner,
+    options?: { instanceScoped?: boolean }
+  ): () => void
   list(): RegisteredCommand[]
   get(qualifiedId: string): RegisteredCommand | undefined
   conflicts(): ShortcutConflict[]
@@ -146,9 +191,18 @@ export function createCommandRegistry(): CommandRegistry {
     events,
     register(definition, owner, options) {
       validateCommandDefinition(definition, owner)
-      const qualifiedId = qualifyId(owner.mfeId, definition.id, options?.instanceScoped || owner.widgetId ? owner.instanceId : undefined)
+      const qualifiedId = qualifyId(
+        owner.mfeId,
+        definition.id,
+        options?.instanceScoped || owner.widgetId ? owner.instanceId : undefined
+      )
       if (commands.has(qualifiedId)) {
-        throw new PlatformError({ code: "COMMAND_INVALID", message: `Command "${qualifiedId}" is already registered by this owner.`, owner, source: definition.id })
+        throw new PlatformError({
+          code: "COMMAND_INVALID",
+          message: `Command "${qualifiedId}" is already registered by this owner.`,
+          owner,
+          source: definition.id,
+        })
       }
       let shortcut: string | undefined
       if (definition.shortcut) {
@@ -156,7 +210,12 @@ export function createCommandRegistry(): CommandRegistry {
         const holder = shortcuts.get(normalised)
         if (holder && commands.has(holder)) {
           // Deterministic: the first registration keeps the shortcut; the newcomer is registered without it.
-          const conflict: ShortcutConflict = { shortcut: normalised, holder, rejected: qualifiedId, at: Date.now() }
+          const conflict: ShortcutConflict = {
+            shortcut: normalised,
+            holder,
+            rejected: qualifiedId,
+            at: Date.now(),
+          }
           conflicts.push(conflict)
           events.emit("conflict", conflict)
         } else {
@@ -164,7 +223,13 @@ export function createCommandRegistry(): CommandRegistry {
           shortcut = normalised
         }
       }
-      const registered: RegisteredCommand = { qualifiedId, definition, owner, shortcut, registeredAt: Date.now() }
+      const registered: RegisteredCommand = {
+        qualifiedId,
+        definition,
+        owner,
+        shortcut,
+        registeredAt: Date.now(),
+      }
       commands.set(qualifiedId, registered)
       states[qualifiedId] = { status: "idle" }
       emitChange()
@@ -174,7 +239,11 @@ export function createCommandRegistry(): CommandRegistry {
         delete states[qualifiedId]
         if (shortcut && shortcuts.get(shortcut) === qualifiedId) shortcuts.delete(shortcut)
         for (let index = conflicts.length - 1; index >= 0; index -= 1) {
-          if (conflicts[index]!.rejected === qualifiedId || conflicts[index]!.holder === qualifiedId) conflicts.splice(index, 1)
+          if (
+            conflicts[index]!.rejected === qualifiedId ||
+            conflicts[index]!.holder === qualifiedId
+          )
+            conflicts.splice(index, 1)
         }
         emitChange()
       }
@@ -197,7 +266,8 @@ export function createCommandRegistry(): CommandRegistry {
         if (command.owner.instanceId === instanceId) {
           commands.delete(id)
           delete states[id]
-          if (command.shortcut && shortcuts.get(command.shortcut) === id) shortcuts.delete(command.shortcut)
+          if (command.shortcut && shortcuts.get(command.shortcut) === id)
+            shortcuts.delete(command.shortcut)
         }
       }
       emitChange()
@@ -207,7 +277,27 @@ export function createCommandRegistry(): CommandRegistry {
 }
 
 /** Serialisable shape for search indexes, manifests and devtools. */
-export function describeCommand(command: RegisteredCommand): { qualifiedId: string; id: string; label: string; description?: string; group?: string; keywords: string[]; shortcut?: string; owner: RegistrationOwner; route?: string } {
+export function describeCommand(command: RegisteredCommand): {
+  qualifiedId: string
+  id: string
+  label: string
+  description?: string
+  group?: string
+  keywords: string[]
+  shortcut?: string
+  owner: RegistrationOwner
+  route?: string
+} {
   const { definition, owner } = command
-  return { qualifiedId: command.qualifiedId, id: definition.id, label: definition.label, description: definition.description, group: definition.group, keywords: definition.keywords ?? [], shortcut: command.shortcut, owner, route: definition.route }
+  return {
+    qualifiedId: command.qualifiedId,
+    id: definition.id,
+    label: definition.label,
+    description: definition.description,
+    group: definition.group,
+    keywords: definition.keywords ?? [],
+    shortcut: command.shortcut,
+    owner,
+    route: definition.route,
+  }
 }

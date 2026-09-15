@@ -11,7 +11,11 @@ export interface ReadonlyStore<TState> {
   getState(): TState
   subscribe(listener: Listener): () => void
   /** Subscribe to a slice; `listener` only fires when the slice changes (by `equals`). */
-  select<TSlice>(selector: Selector<TState, TSlice>, listener: (slice: TSlice) => void, equals?: Equality<TSlice>): () => void
+  select<TSlice>(
+    selector: Selector<TState, TSlice>,
+    listener: (slice: TSlice) => void,
+    equals?: Equality<TSlice>
+  ): () => void
 }
 
 export interface Store<TState> extends ReadonlyStore<TState> {
@@ -29,7 +33,8 @@ export function createStore<TState>(initial: TState): Store<TState> {
   const store: Store<TState> = {
     getState: () => state,
     setState(next) {
-      const value = typeof next === "function" ? (next as (previous: TState) => TState)(state) : next
+      const value =
+        typeof next === "function" ? (next as (previous: TState) => TState)(state) : next
       if (Object.is(value, state)) return
       state = value
       notify()
@@ -66,7 +71,8 @@ export function shallowEqual(a: unknown, b: unknown): boolean {
   if (keysA.length !== keysB.length) return false
   for (const key of keysA) {
     if (!Object.prototype.hasOwnProperty.call(b, key)) return false
-    if (!Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])) return false
+    if (!Object.is((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]))
+      return false
   }
   return true
 }
