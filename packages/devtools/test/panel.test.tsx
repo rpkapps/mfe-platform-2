@@ -48,7 +48,7 @@ function fakeHost() {
           },
         ],
         diagnostics: diagnostics.list(),
-        host: { kind: "harness", environment: "local", protocolVersion: "1.0" },
+        host: { kind: "shell", environment: "local", protocolVersion: "1.0" },
       }),
   }
 }

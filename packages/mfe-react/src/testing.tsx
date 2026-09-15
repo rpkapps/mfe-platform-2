@@ -217,7 +217,7 @@ export function createTestBridge(options: CreateTestBridgeOptions): TestBridge {
         }
       },
     },
-    host: options.host ?? { kind: "harness", dev: true, environment: "test" },
+    host: options.host ?? { kind: "shell", dev: true, environment: "test" },
     shell,
     setContext: (partial) => shell.patch(partial),
     setInstance: (partial) => context.update(partial),

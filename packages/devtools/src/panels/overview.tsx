@@ -97,7 +97,7 @@ export function OverviewPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
       </Section>
       <Section title="Host">
         <p>
-          {snapshot.host.kind} · environment <code>{snapshot.host.environment}</code> · protocol{" "}
+          Shell · environment <code>{snapshot.host.environment}</code> · protocol{" "}
           {snapshot.host.protocolVersion} · runtime config source{" "}
           <code>{snapshot.runtimeConfig.source ?? "static"}</code>
         </p>

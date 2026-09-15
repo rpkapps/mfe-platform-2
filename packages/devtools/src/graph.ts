@@ -42,7 +42,7 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
   const remoteIds = new Set(snapshot.remotes.map((remote) => remote.mfeId))
   const providerNode = (from: string | undefined) => {
     if (!from) return "shell"
-    if (from === "shell" || from === snapshot.host.kind) return "shell"
+    if (from === "shell") return "shell"
     const byFederationName = snapshot.remotes.find(
       (remote) => remote.mfeId === from || from === `mfe_${remote.mfeId.replace(/-/g, "_")}`
     )
@@ -56,7 +56,7 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
   nodes.push({
     id: "shell",
     kind: "shell",
-    label: `Shell (${snapshot.host.kind})`,
+    label: "Shell",
     detail: snapshot.host.environment,
     position: { x: 0, y: 0 },
   })

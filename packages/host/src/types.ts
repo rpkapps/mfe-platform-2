@@ -95,7 +95,6 @@ export interface PlatformHostOptions {
   policy?: HostPolicy
   devtools?: DevtoolsOptions
   overlays?: { baseZIndex?: number; document?: Document }
-  hostKind?: "shell" | "harness"
   environment?: string
   /** Modules the shell shares with remotes when the default loader is used. */
   shared?: Record<
@@ -258,7 +257,7 @@ export interface CommandRunner {
 }
 
 export interface PlatformHost {
-  readonly kind: "shell" | "harness"
+  readonly kind: "shell"
   readonly environment: string
   readonly protocolVersion: string
   readonly config: {

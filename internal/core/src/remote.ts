@@ -52,7 +52,8 @@ export interface HostBridge {
   settingsValues: SettingsValuePort
   /** Host environment flags. */
   host: {
-    kind: "shell" | "harness"
+    /** Always "shell"; kept so the bridge can name other host kinds without a protocol break. */
+    kind: "shell"
     dev: boolean
     environment: string
     /** Headless mounts (e.g. a settings owner mounted by the shell settings page) render but do not publish breadcrumbs or become the active route MFE. */

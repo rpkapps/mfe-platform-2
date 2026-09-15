@@ -183,7 +183,7 @@ function shareWork<T>(run: (signal: AbortSignal) => Promise<T>): SharedWork<T> {
 }
 
 export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
-  const kind = options.hostKind ?? "shell"
+  const kind = "shell" as const
   const configStore = createStore<RuntimeConfig>(options.runtimeConfig)
   const environment = options.environment ?? options.runtimeConfig.environment
   const hasWindow = typeof window !== "undefined"
