@@ -183,7 +183,6 @@ function shareWork<T>(run: (signal: AbortSignal) => Promise<T>): SharedWork<T> {
 }
 
 export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
-  const kind = "shell" as const
   const configStore = createStore<RuntimeConfig>(options.runtimeConfig)
   const environment = options.environment ?? options.runtimeConfig.environment
   const hasWindow = typeof window !== "undefined"
@@ -429,7 +428,6 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
 
   // --- host object (filled progressively so helpers can reference it) ------
   const host = {
-    kind,
     environment,
     protocolVersion: PLATFORM_PROTOCOL_VERSION,
     context,
@@ -1467,7 +1465,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       telemetry: memoryTelemetry.events,
       overlays: overlays.getState(),
       diagnostics: diagnostics.list(),
-      host: { kind, environment, protocolVersion: PLATFORM_PROTOCOL_VERSION },
+      host: { environment, protocolVersion: PLATFORM_PROTOCOL_VERSION },
     })
   }
 

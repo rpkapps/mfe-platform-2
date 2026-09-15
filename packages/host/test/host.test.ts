@@ -335,7 +335,6 @@ describe("createPlatformHost — mounting", () => {
       ])
     )
     expect(bridge.host).toEqual({
-      kind: "shell",
       dev: false,
       environment: "test",
       headless: undefined,

@@ -220,7 +220,7 @@ describe("headless mounts", () => {
     const definition = createMfe({ mfeId: "asset-tracker", routeTree })
     const bridge = bridgeFor({
       mfeId: "asset-tracker",
-      host: { kind: "shell", dev: false, environment: "test", headless: true },
+      host: { dev: false, environment: "test", headless: true },
     })
     const { handle, container } = await mountMfe(definition, bridge)
     expect(bridge.registries.settings.list().map((group) => group.qualifiedKey)).toEqual([

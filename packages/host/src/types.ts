@@ -257,7 +257,6 @@ export interface CommandRunner {
 }
 
 export interface PlatformHost {
-  readonly kind: "shell"
   readonly environment: string
   readonly protocolVersion: string
   readonly config: {

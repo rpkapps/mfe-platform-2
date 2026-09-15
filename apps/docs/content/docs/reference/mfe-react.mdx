@@ -73,7 +73,7 @@ Adds the `tecton` enhancer: the MFE tree is wrapped in Tecton's `PortalProvider`
 | `useTelemetry()`                                      | `Telemetry` enriched with `route` and `widgetId`                                                                                                                                                           |
 | `useRuntimeEnv()`                                     | `Register["env"]`                                                                                                                                                                                          |
 | `useNotifications()`                                  | `{ notify({ title, description?, kind?, durationMs? }) }`; a warning diagnostic and a no-op when the host has no notification port                                                                         |
-| `useMfeInstance()`                                    | `{ mfeId, instanceId, widgetId?, routePrefix?, displayName?, host: { kind, dev, environment, protocolVersion, headless? } }`                                                                               |
+| `useMfeInstance()`                                    | `{ mfeId, instanceId, widgetId?, routePrefix?, displayName?, host: { dev, environment, headless? } }`                                                                                                      |
 | `useOverlayContainer()`                               | the per-mount overlay root element (created lazily, disposed with the mount); portal modals into it                                                                                                        |
 | `useMountDisposer()`                                  | the mount's `Disposer`: `add(cleanup)` runs when the root is disposed (not when the component unmounts)                                                                                                    |
 | `useRegisterCommand(definition, deps?, options?)`     | `void`; re-registers when `deps` (default: the definition's data fields) change; `options.instanceScoped`                                                                                                  |
@@ -178,7 +178,7 @@ createTestBridge({
   navigation?: ShellNavigation, // default: memory navigation at initialPath
   initialPath?: string, // default: the route prefix
   context?: Partial<ShellContextState>, // theme, locale, tenant, project, job, featureFlags…
-  host?: { kind, dev, environment, headless? }, // default { kind: "shell", dev: true, environment: "test" }
+  host?: { dev, environment, headless? }, // default { dev: true, environment: "test" }
   notifications?: boolean, // false: no notification port (tests the no-op fallback)
 }): TestBridge
 // HostBridge + shell (context store), setContext(partial), setInstance(partial), storage.emitExternal(scope, key, value),

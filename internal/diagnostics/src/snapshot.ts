@@ -110,14 +110,14 @@ export interface SnapshotInput {
   overlays?: OverlayManagerState
   diagnostics?: DiagnosticEvent[]
   diagnosticsLimit?: number
-  host?: { kind: "shell"; environment: string; protocolVersion: string }
+  host?: { environment: string; protocolVersion: string }
   now?: number
 }
 
 export interface DiagnosticSnapshot {
   readonly version: 1
   readonly createdAt: number
-  readonly host: { kind: "shell"; environment: string; protocolVersion: string }
+  readonly host: { environment: string; protocolVersion: string }
   readonly runtimeConfig: RuntimeConfig
   readonly remotes: SnapshotRemote[]
   readonly widgets: SnapshotInstance[]
@@ -307,7 +307,6 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
     version: 1,
     createdAt: input.now ?? Date.now(),
     host: input.host ?? {
-      kind: "shell",
       environment: input.runtimeConfig.environment,
       protocolVersion: "1.0",
     },

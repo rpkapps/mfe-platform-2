@@ -212,7 +212,6 @@ export function createBridge(input: BridgeInput): BuiltBridge {
     credentials,
     settingsValues: createSettingsValuePort(host.storage, mfeId, input.diagnostics),
     host: {
-      kind: host.kind,
       dev: manifest.dev !== undefined,
       environment: host.environment,
       headless: input.headless,
