@@ -41,6 +41,8 @@ The full list with hints is generated from the source of truth: [Error codes](/d
 | `WIDGET_MOUNT_FAILED`         | [Widgets → failure isolation](/docs/widgets#failure-isolation)                                           |
 | `PERMISSION_DENIED`           | [Permission groups → preflight](/docs/permission-groups#preflight)                                       |
 | `CAPABILITY_UNAVAILABLE`      | [Platform context → capabilities](/docs/platform-context#capabilities)                                   |
+| `AUTH_UNAVAILABLE`            | [Authentication → no credential port](/docs/authentication#no-credential-port)                           |
+| `AUTH_FAILED`                 | [Authentication → token failures](/docs/authentication#token-failures)                                   |
 | `SHORTCUT_CONFLICT`           | [Commands → shortcut conflicts](/docs/commands#shortcut-conflicts)                                       |
 | `COMMAND_INVALID`             | [Commands → definition](/docs/commands#definition)                                                       |
 | `COMMAND_FAILED`              | [Commands → failure states](/docs/commands#failure-states)                                               |
@@ -67,6 +69,10 @@ The full list with hints is generated from the source of truth: [Error codes](/d
 **A dialog is unstyled or clipped.** The overlay root is missing the owner attribute (`OVERLAY_FAILED`) or the remote was built with `css.scope: false`. Inspect `[data-platform-overlay-root]` elements on `body`.
 
 **Two React copies.** `shared.resolved` in the devtools shows `bundled` for `react` with the reason (wrong scope, unsatisfied range). This is expected for a React 18 remote in a React 19 shell without another React 18 provider.
+
+**`AUTH_UNAVAILABLE` on a call that used to work.** Three causes, and the error says which: the MFE does not have the `auth` capability (use `useCredentials` or `usePlatformFetch` so `@platform/vite` infers it, and check the host approves it), the shell passed no `credentials` adapter to `createPlatformHost`, or the URL's origin is not the shell's own and is not in `policy.credentialOrigins`. The last one is refused before the request is sent and also appears in the diagnostics as "Refused to attach an access token to …".
+
+**A cross-origin API call is refused.** `usePlatformFetch` only attaches a bearer token to the shell origin and the origins the shell allow-listed — a token-attaching fetch with no origin check is a credential-leak primitive. Add the API origin to `policy.credentialOrigins`, or route the call through the shell origin.
 
 **A command's shortcut does nothing.** Look for `shortcut.conflict` in the events: the first registration keeps the shortcut.
 

@@ -97,4 +97,4 @@ const { notify } = useNotifications()
 notify({ title: "Asset saved", kind: "success" })
 ```
 
-Toasts render in the shell's `NotificationHost` (Tecton `Toaster`), outside every MFE root: the shell passes `notifications: createSonnerNotificationPort()` to `createPlatformHost`. Without a notification port `notify` is a no-op that records a warning diagnostic.
+Toasts render in the shell's own notification host, outside every MFE root: the shell implements a `NotificationPort` and passes it as `notifications` to `createPlatformHost` (`apps/conformance-shell/src/components/notifications.tsx` is a sonner adapter in 39 lines). Without a notification port `notify` is a no-op that records a warning diagnostic.
