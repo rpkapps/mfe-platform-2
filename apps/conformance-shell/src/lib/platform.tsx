@@ -2,7 +2,7 @@ import * as React from "react"
 import type { AnyRouter } from "@tanstack/react-router"
 import { createPlatformHost, loadRuntimeConfig, type PlatformHost } from "@platform/host"
 import { createTanStackShellNavigation } from "@platform/host/tanstack"
-import { PlatformProvider } from "@platform/host/react"
+import { PlatformProvider, createSonnerNotificationPort } from "@platform/host/react"
 import { composeTelemetryAdapters, createConsoleTelemetryAdapter, createMemoryTelemetryAdapter, type RuntimeConfig } from "@platform-internal/core"
 import { FEATURE_FLAGS, PROJECTS, TENANT, USERS, JOBS } from "@platform-internal/conformance"
 
@@ -32,6 +32,7 @@ export function createShellHost({ runtimeConfig, router }: { runtimeConfig: Runt
       environment: runtimeConfig.environment,
       release: runtimeConfig.release,
     },
+    notifications: createSonnerNotificationPort(),
     telemetry: composeTelemetryAdapters(memoryTelemetry, createConsoleTelemetryAdapter("[shell telemetry]")),
     policy: { permissionGroups: "all", preflight: true },
     devtools: runtimeConfig.devtools,

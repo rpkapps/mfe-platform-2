@@ -6,7 +6,12 @@ import {
   type ParsedHistoryState,
   type RouterHistory,
 } from "@tanstack/history"
-import { hrefOf, type ShellLocation, type ShellNavigation } from "@platform-internal/core"
+import {
+  hrefOf,
+  isUnderPrefix,
+  type ShellLocation,
+  type ShellNavigation,
+} from "@platform-internal/core"
 
 const INDEX_KEY = "__TSR_index"
 
@@ -18,7 +23,17 @@ export interface ShellHistory extends RouterHistory {
 export interface ShellHistoryOptions {
   /** Applied to every href before it reaches the shell (`createMfeRouter` drops the root trailing slash). */
   normalizeHref?: (href: string) => string
+  /**
+   * The MFE route prefix. While the shell location is outside it (another MFE or a
+   * shell page is active, or the mount is headless) the router sees a synthetic
+   * "inactive" location under the prefix and its own pushes/replaces are dropped,
+   * so an MFE router can never rewrite a URL it does not own.
+   */
+  prefix?: string
 }
+
+/** Path segment the router sees while the shell location is outside the MFE prefix. */
+export const INACTIVE_SEGMENT = "__platform_inactive__"
 
 /**
  * TanStack addresses the root route under a basepath as `/prefix/`; the shell
@@ -67,6 +82,13 @@ export function createShellHistory(
   options: ShellHistoryOptions = {}
 ): ShellHistory {
   const normalize = options.normalizeHref ?? ((href: string) => href)
+  const prefix = options.prefix && options.prefix !== "/" ? options.prefix : undefined
+  const isActive = () => !prefix || isUnderPrefix(navigation.getLocation().pathname, prefix)
+  const currentShellLocation = (): ShellLocation => {
+    const location = navigation.getLocation()
+    if (isActive()) return location
+    return { ...location, pathname: `${prefix}/${INACTIVE_SEGMENT}`, search: "", hash: "" }
+  }
   let blockers: NavigationBlocker[] = []
   let index = 0
   // Shell entries without a TanStack index in their state (the initial entry,
@@ -76,12 +98,13 @@ export function createShellHistory(
   // True while a push/replace initiated by this history is in flight: the
   // shell's synchronous subscriber echo must not notify the router twice.
   let internal = false
-  const getLocation = () => toHistoryLocation(navigation.getLocation(), index, indexByKey)
+  const getLocation = () => toHistoryLocation(currentShellLocation(), index, indexByKey)
   const history = createHistory({
     getLocation,
     getLength: () => index + 1,
     pushState(rawPath, state) {
       const path = normalize(rawPath)
+      if (!isActive() || path.includes(INACTIVE_SEGMENT)) return
       if (navigation.canLeave && navigation.canLeave(path) === false) return
       index = typeof state?.[INDEX_KEY] === "number" ? state[INDEX_KEY] : index + 1
       internal = true
@@ -93,6 +116,7 @@ export function createShellHistory(
     },
     replaceState(rawPath, state) {
       const path = normalize(rawPath)
+      if (!isActive() || path.includes(INACTIVE_SEGMENT)) return
       if (navigation.canLeave && navigation.canLeave(path) === false) return
       internal = true
       try {

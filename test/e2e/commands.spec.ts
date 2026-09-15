@@ -8,7 +8,7 @@ test.describe("command palette", () => {
     await waitForAssetTracker(page)
     await openPalette(page)
     await page.getByTestId(ids.shell.paletteInput).fill("Increment asset")
-    await page.getByRole("option", { name: /Increment asset counter/ }).click()
+    await page.getByRole("menuitem", { name: /Increment asset counter/ }).click()
     await expect(page.getByTestId(ids.assetTracker.counter)).toContainText("Counter 1")
     // Shortcut dispatch through the shell.
     await page.keyboard.press(process.platform === "darwin" ? "Meta+Shift+I" : "Control+Shift+I")
@@ -16,22 +16,22 @@ test.describe("command palette", () => {
     // Async command shows a running state and finishes with a notification.
     await openPalette(page)
     await page.getByTestId(ids.shell.paletteInput).fill("slow sync")
-    await page.getByRole("option", { name: /Run slow sync/ }).click()
+    await page.getByRole("menuitem", { name: /Run slow sync/ }).click()
     await expect(page.getByText("Sync finished")).toBeVisible()
     // Navigation metadata, settings fields and help are searchable too.
     await openPalette(page)
     await page.getByTestId(ids.shell.paletteInput).fill("density")
-    await expect(page.getByRole("option", { name: /Density/ })).toBeVisible()
+    await expect(page.getByRole("menuitem", { name: /Density/ })).toBeVisible()
     await page.keyboard.press("Escape")
     await openPalette(page)
     await page.getByTestId(ids.shell.paletteInput).fill("KPI tiles")
-    await expect(page.getByRole("option", { name: /KPI tiles/ })).toBeVisible()
+    await expect(page.getByRole("menuitem", { name: /KPI tiles/ })).toBeVisible()
     await page.keyboard.press("Escape")
     // Leaving the MFE removes its live commands.
     await page.goto("/")
     await openPalette(page)
     await page.getByTestId(ids.shell.paletteInput).fill("Increment asset")
-    await expect(page.getByRole("option", { name: /Increment asset counter/ })).toHaveCount(0)
+    await expect(page.getByRole("menuitem", { name: /Increment asset counter/ })).toHaveCount(0)
   })
 
   test("shortcut conflicts are rejected deterministically and visible in devtools", async ({ page }) => {
@@ -41,7 +41,7 @@ test.describe("command palette", () => {
     await page.getByTestId(ids.shell.devtoolsToggle).click()
     const panel = page.getByTestId(ids.shell.devtoolsPanel)
     await panel.getByRole("tab", { name: /Commands/ }).click()
-    await expect(panel).toContainText("mod+shift+i")
+    await expect(panel).toContainText("mod+shift+d")
     await expect(panel).toContainText("conflicting-shortcut")
   })
 })

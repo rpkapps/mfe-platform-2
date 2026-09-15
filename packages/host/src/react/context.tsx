@@ -1,3 +1,4 @@
+import { installShortcutListener } from "../shortcuts"
 import {
   createContext,
   useContext,
@@ -20,6 +21,8 @@ export function PlatformProvider({
   host: PlatformHost
   children: ReactNode
 }) {
+  // One keyboard listener per host dispatches registered command shortcuts.
+  useEffect(() => installShortcutListener(host), [host])
   return <PlatformHostContext.Provider value={host}>{children}</PlatformHostContext.Provider>
 }
 

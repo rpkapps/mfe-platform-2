@@ -35,6 +35,7 @@ export function createMfeRouter(options: CreateMfeRouterOptions): AnyRouter {
   const basepath = bridge.routePrefix ?? "/"
   const history: ShellHistory = createShellHistory(bridge.navigation, {
     normalizeHref: (href) => normalizeShellHref(href, basepath),
+    prefix: basepath,
   })
   const context: MfeRouterContext = { platform: scope.routeContext }
   const userInnerWrap = rest.InnerWrap as

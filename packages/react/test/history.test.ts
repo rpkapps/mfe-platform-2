@@ -83,3 +83,21 @@ describe("createShellHistory", () => {
     expect(navigation.getLocation().pathname).toBe("/ok")
   })
 })
+
+describe("createShellHistory outside the MFE prefix", () => {
+  it("shows an inactive location and drops the router's own navigations", () => {
+    const navigation = createMemoryNavigation("/settings")
+    const history = createShellHistory(navigation, { prefix: "/legacy/reports" })
+    expect(history.location.pathname).toBe("/legacy/reports/__platform_inactive__")
+    // The router normalising its location must not rewrite the shell URL.
+    history.replace("/legacy/reports/settings")
+    history.push("/legacy/reports/reports/x")
+    expect(navigation.getLocation().pathname).toBe("/settings")
+    // Once the shell enters the prefix the real location is visible and navigation works.
+    navigation.push("/legacy/reports/reports/daily")
+    expect(history.location.pathname).toBe("/legacy/reports/reports/daily")
+    history.push("/legacy/reports")
+    expect(navigation.getLocation().pathname).toBe("/legacy/reports")
+    history.dispose()
+  })
+})

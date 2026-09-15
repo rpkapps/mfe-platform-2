@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, useRegisterSettingsGroup, useRuntimeEnv, type MfeRouterContext } from "@platform/react"
+import { MfeErrorBoundary, useRegisterCommand, useRegisterSettingsGroup, useRuntimeEnv, useTelemetry, type MfeRouterContext } from "@platform/react"
 import { TEST_IDS } from "@platform-internal/conformance"
 import { z } from "zod"
 
@@ -15,6 +15,10 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 
 function RootLayout() {
   const env = useRuntimeEnv()
+  const telemetry = useTelemetry()
+  // Deliberately the same shortcut as asset-tracker's root command: the registry rejects the
+  // second registration deterministically (the first holder keeps the shortcut).
+  useRegisterCommand({ id: "conflicting-shortcut", label: "Conflicting shortcut (rejected)", group: "Legacy Reports", shortcut: "mod+shift+d", handler: () => telemetry.track("reports.conflict-command") })
   useRegisterSettingsGroup({
     key: "exports",
     title: "Exports",

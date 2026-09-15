@@ -17,11 +17,15 @@ export async function waitForLegacyReports(page: Page) {
 }
 
 export async function openPalette(page: Page) {
+  const input = page.getByTestId(ids.shell.paletteInput)
+  if (await input.isVisible()) return
   await page.keyboard.press(process.platform === "darwin" ? "Meta+K" : "Control+K")
-  await expect(page.getByTestId(ids.shell.paletteInput)).toBeVisible()
+  await expect(input).toBeVisible()
 }
 
 export async function enableDevtools(page: Page) {
+  // localStorage needs an origin: open the shell first when the page is still blank.
+  if (page.url() === "about:blank") await page.goto("/")
   await page.evaluate(() => window.localStorage.setItem("platform:devtools", "1"))
 }
 

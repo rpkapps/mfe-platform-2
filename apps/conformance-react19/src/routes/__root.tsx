@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, useMfeInstance, usePlatform, type MfeRouterContext } from "@platform/react"
+import { MfeErrorBoundary, useMfeInstance, useNavigation, usePlatform, useRegisterCommand, type MfeRouterContext } from "@platform/react"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { Badge } from "@tecton/react/components/badge"
@@ -23,6 +23,10 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 function RootLayout() {
   const instance = useMfeInstance()
   useAssetTrackerSettings()
+  const navigation = useNavigation()
+  // Root-level command: live whenever the MFE is mounted (also headless), so shortcut
+  // conflicts with other remotes are detected deterministically.
+  useRegisterCommand({ id: "go-to-dashboard", label: "Go to asset dashboard", group: "Asset Tracker", shortcut: "mod+shift+d", handler: () => navigation.navigateWithin("/") })
   const hmr = usePlatform((p) => p.runtime.environment)
   return (
     <MfeErrorBoundary>

@@ -28,6 +28,11 @@ const remotes: [string, number][] = [
 export default async function globalSetup() {
   const state = { servers: [] as { close(): void }[], children: [] as ChildProcess[] }
   globalThis.__platformE2E = state
+  // PLATFORM_E2E_EXTERNAL=1: the shell and remotes are already running (local iteration).
+  if (process.env.PLATFORM_E2E_EXTERNAL) {
+    await waitFor("http://127.0.0.1:4100/", { timeoutMs: 30_000 })
+    return
+  }
   for (const [dir, port] of remotes) {
     const full = join(root, dir)
     if (!existsSync(join(full, "platform-manifest.json"))) {

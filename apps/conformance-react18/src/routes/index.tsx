@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createFileRoute, Link } from "@tanstack/react-router"
-import { useRegisterCommand, useTelemetry } from "@platform/react"
+import { useRegisterCommand } from "@platform/react"
 import { REPORTS, TEST_IDS } from "@platform-internal/conformance"
 
 import { reportPrefs } from "@/lib/storage"
@@ -17,11 +17,8 @@ function ReportsHome() {
   const [count, setCount] = React.useState(0)
   const [open, setOpen] = React.useState(false)
   const format = reportPrefs.use((state) => state.format)
-  const telemetry = useTelemetry()
 
   useRegisterCommand({ id: "increment-report-counter", label: "Increment report counter", group: "Legacy Reports", shortcut: "mod+shift+r", handler: () => setCount((value) => value + 1) })
-  // Deliberately the same shortcut as asset-tracker's counter: the registry rejects it deterministically.
-  useRegisterCommand({ id: "conflicting-shortcut", label: "Conflicting shortcut (rejected)", group: "Legacy Reports", shortcut: "mod+shift+i", handler: () => telemetry.track("reports.conflict-command") })
 
   return (
     <div className="flex flex-col gap-3">
