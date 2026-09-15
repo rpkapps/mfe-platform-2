@@ -434,6 +434,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
     storage,
     navigation: options.navigation,
     notifications: options.notifications,
+    credentials: options.credentials,
     loader,
     events,
     policy,
@@ -1066,6 +1067,8 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         runtimeConfig: configStore.getState(),
         diagnostics: sink,
         notifications: options.notifications,
+        credentials: options.credentials,
+        credentialOrigins: policy.credentialOrigins,
         headless: mountOptions.headless,
       })
       prepareContainer(mountOptions.container, mfeId, instanceId, mountOptions.slot)
@@ -1196,6 +1199,8 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         runtimeConfig: configStore.getState(),
         diagnostics: sink,
         notifications: options.notifications,
+        credentials: options.credentials,
+        credentialOrigins: policy.credentialOrigins,
       })
       prepareContainer(mountOptions.container, mfeId, instanceId, mountOptions.slot)
       mountOptions.container.setAttribute("data-platform-widget", widgetId)

@@ -164,6 +164,9 @@ export const TEST_IDS = {
     navAssets: "asset-tracker-nav-assets",
     customSettings: "asset-tracker-custom-settings",
     customSettingsValue: "asset-tracker-custom-settings-value",
+    authFetch: "asset-tracker-auth-fetch",
+    authFetchCrossOrigin: "asset-tracker-auth-fetch-cross-origin",
+    authResult: "asset-tracker-auth-result",
   },
   legacyReports: {
     root: "legacy-reports-root",

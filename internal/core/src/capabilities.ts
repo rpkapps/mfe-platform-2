@@ -19,6 +19,7 @@ export const CAPABILITY_IDS = [
   "notifications",
   "runtime-env",
   "widgets",
+  "auth",
 ] as const
 
 export type CapabilityId = (typeof CAPABILITY_IDS)[number]
@@ -39,6 +40,7 @@ export const CAPABILITY_DESCRIPTIONS: Record<CapabilityId, string> = {
   notifications: "Show toasts through the shell notification host.",
   "runtime-env": "Read the MFE's allow-listed runtime environment values.",
   widgets: "Expose widgets that the shell or other surfaces can mount.",
+  auth: "Request an access token from the shell for calls to an authenticated backend.",
 }
 
 /** SDK API usage → capability, used by the Vite plugin's static inference. */
@@ -63,6 +65,8 @@ export const CAPABILITY_BY_API: Record<string, CapabilityId> = {
   useNotifications: "notifications",
   useRuntimeEnv: "runtime-env",
   createWidget: "widgets",
+  useCredentials: "auth",
+  usePlatformFetch: "auth",
 }
 
 export function isCapabilityId(value: string): value is CapabilityId {

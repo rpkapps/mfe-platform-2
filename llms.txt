@@ -2,7 +2,7 @@
 
 > Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, Tecton UI, schema-backed storage, provider-neutral telemetry, runtime Docker configuration, manifest overrides and lazy developer tools.
 
-Four public packages: @platform/react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint) and @platform/host (shell runtime). Canonical project instructions for agents: https://platform.docs.local/llm.txt. Every platform error carries a docs URL under https://platform.docs.local/docs/.
+Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint) and @platform/host (shell runtime). Canonical project instructions for agents: https://platform.docs.local/llm.txt. Every platform error carries a docs URL under https://platform.docs.local/docs/.
 
 ## Getting started
 
@@ -43,6 +43,7 @@ Four public packages: @platform/react (MFE SDK), @platform/vite (Vite plugin), @
 - [Storage](https://platform.docs.local/docs/storage): Schema-backed, namespaced local and session storage with typed get, set, reset, migrations, malformed-data handling and cross-tab updates.
 - [Platform context](https://platform.docs.local/docs/platform-context): Everything the shell knows about the session, typed, delivered through usePlatform, selectors and the TanStack router context.
 - [Permission groups](https://platform.docs.local/docs/permission-groups): Browser-visible permission groups for routing and UX. They never replace backend authorization.
+- [Authentication](https://platform.docs.local/docs/authentication): The credential port, useCredentials and usePlatformFetch — how an MFE calls an authenticated backend without ever seeing the shell's identity provider.
 - [Slice subscriptions](https://platform.docs.local/docs/slice-subscriptions): Subscribe to exactly the part of the platform context a component needs. Unrelated changes do not rerender it.
 - [Telemetry](https://platform.docs.local/docs/telemetry): A small, provider-neutral telemetry interface. The shell supplies the adapter; the SDK enriches every call and never imports a vendor.
 - [Help](https://platform.docs.local/docs/help): Register help entries that the shell lists in its help slot and searches from the palette.
@@ -84,7 +85,7 @@ Four public packages: @platform/react (MFE SDK), @platform/vite (Vite plugin), @
 ## Reference
 
 - [Reference](https://platform.docs.local/docs/reference): Every public export of the four packages, the published schemas, the error codes and the diagnostic events.
-- [@platform/react](https://platform.docs.local/docs/reference/platform-react): The MFE-facing SDK. Every export with its signature and a short description.
+- [@platform/mfe-react](https://platform.docs.local/docs/reference/platform-react): The MFE-facing SDK. Every export with its signature and a short description.
 - [@platform/vite](https://platform.docs.local/docs/reference/platform-vite): The platform() Vite plugin, the mfe.config.ts helper and the programmatic API (manifest generation, config resolution, CSS scoping).
 - [@platform/cli](https://platform.docs.local/docs/reference/platform-cli): The platform command line and the shareable ESLint plugin and flat config.
 - [@platform/host](https://platform.docs.local/docs/reference/platform-host): Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.

@@ -22,7 +22,8 @@
           "overlays",
           "notifications",
           "runtime-env",
-          "widgets"
+          "widgets",
+          "auth"
         ]
       }
     }

@@ -1,5 +1,10 @@
+import { CAPABILITY_IDS } from "@platform-internal/core"
+
 import rule from "../../src/eslint/rules/valid-capability-usage"
 import { ruleTester, validFile } from "./rule-tester"
+
+/** Derived, so adding a capability never means editing a string here. */
+const KNOWN_CAPABILITIES = CAPABILITY_IDS.join(", ")
 
 ruleTester.run("valid-capability-usage", rule, {
   valid: [
@@ -20,8 +25,7 @@ ruleTester.run("valid-capability-usage", rule, {
           messageId: "unknownCapability",
           data: {
             id: "teleportation",
-            known:
-              "navigation, context, storage.local, storage.session, telemetry, commands, settings, help, release-notes, breadcrumbs, overlays, notifications, runtime-env, widgets",
+            known: KNOWN_CAPABILITIES,
           },
         },
       ],

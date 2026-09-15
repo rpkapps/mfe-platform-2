@@ -12,7 +12,7 @@ configuration and the shell chrome (Tecton UI).
 
 ## Packages
 
-- @platform/react  MFE SDK (React 18 or 19): createMfe, createWidget, hooks, storage, registrations, testing
+- @platform/mfe-react  MFE SDK (React 18 or 19): createMfe, createWidget, hooks, storage, registrations, testing
 - @platform/vite   platform() Vite plugin: route tree, code splitting, manifest, inference, CSS scoping, federation
 - @platform/cli    platform create | dev | build | manifest | validate | lint | test; @platform/cli/eslint
 - @platform/host   shell runtime (React 19): host API, React components, TanStack bridge, harness, Docker entrypoint
@@ -47,7 +47,7 @@ src/routeTree.gen.ts        generated
 src/widgets/*.tsx           widget components; createWidget({ component, propsSchema }) under a kebab-case key in src/mfe.tsx
 src/lib/storage.ts          createPlatformStorage stores
 src/lib/api.ts              data access using useRuntimeEnv().API_BASE_URL
-src/platform.d.ts           declare module "@platform/react" { interface Register { env; featureFlags } }
+src/platform.d.ts           declare module "@platform/mfe-react" { interface Register { env; featureFlags } }
                             declare module "@tanstack/react-router" { interface Register { router: MfeRouter<typeof routeTree> } }
 src/__tests__/, e2e/        Vitest (renderMfe, createTestBridge) and Playwright against the harness
 mfe.config.ts               defineMfeConfig({ ... }) overrides (routePrefix, navigation, env, shared, capabilities, css, tecton, harness)
@@ -58,7 +58,7 @@ eslint.config.ts            platformConfig() from @platform/cli/eslint
 ## Canonical patterns
 
 Bootstrap (src/mfe.tsx):
-  import { createMfe, createWidget } from "@platform/react"
+  import { createMfe, createWidget } from "@platform/mfe-react"
   import { routeTree } from "./routeTree.gen"
   export default createMfe({ routeTree, widgets: { "asset-card": createWidget({ component: AssetCard, propsSchema }) } })
 
@@ -99,7 +99,7 @@ Help / release notes: useRegisterHelp([...]), useRegisterReleaseNotes([...]); st
 Breadcrumbs: staticData.breadcrumb ("Label" | { label, dynamic, hidden, fromLoader }); useBreadcrumb(override) for manual cases
 Overlays: ordinary Tecton Dialog/Popover/Menu; no configuration (withTecton PortalProvider + shell overlay manager); plain React: createPortal(el, useOverlayContainer())
 Runtime env: declare in mfe.config.ts env: { API_BASE_URL: { required: true } }; type via Register; read with useRuntimeEnv()
-Testing (@platform/react/testing): createTestBridge({ mfeId, user, permissionGroups, env }), renderMfe(definition, { bridge, path }) -> { container, navigate, location, dispose }; PlatformTestProvider for hooks
+Testing (@platform/mfe-react/testing): createTestBridge({ mfeId, user, permissionGroups, env }), renderMfe(definition, { bridge, path }) -> { container, navigate, location, dispose }; PlatformTestProvider for hooks
 
 ## Shell (host) essentials
 
@@ -119,7 +119,7 @@ pnpm install; pnpm build (internal/* then packages/*, tsdown -> dist/); pnpm che
 pnpm test:integration; pnpm build:all && pnpm e2e (Playwright against apps/conformance-*)
 pnpm --filter <pkg> build after editing a package (apps consume dist/); pnpm --filter <pkg> dev for watch mode
 pnpm schemas:build (JSON Schemas from core); pnpm docs:generate (schemas, generated reference pages, llms.txt); pnpm --filter docs docs:check
-New SDK hook: packages/react/src + export + CAPABILITY_BY_API in core if it implies a capability + docs page + lint rule if misuse is statically detectable
+New SDK hook: packages/mfe-react/src + export + CAPABILITY_BY_API in core if it implies a capability + docs page + lint rule if misuse is statically detectable
 New manifest field: internal/core/src/manifest.ts + packages/vite (generation) + packages/host (consumption) + pnpm schemas:build + docs page manifests
 New error: add a code to ERROR_CODES with a docs path that exists, then throw new PlatformError({ code, message, owner, source, override })
 

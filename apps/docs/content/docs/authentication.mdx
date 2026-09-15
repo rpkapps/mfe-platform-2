@@ -1,0 +1,161 @@
+---
+title: Authentication
+description: The credential port, useCredentials and usePlatformFetch — how an MFE calls an authenticated backend without ever seeing the shell's identity provider.
+---
+
+An MFE and its shell share one session. The shell owns it: it signs the user in, holds the
+refresh token and knows which identity provider is in play. An MFE only needs an access
+token for the API it is about to call, and it gets one through the **credential port**.
+
+That is the whole contract. An MFE never reads a cookie, never reaches into a shell global,
+never bundles a second auth library (which would create a second session), and never
+monkeypatches `fetch` — [rule 2](/docs/unsupported-cases) forbids all four, and the credential
+port is the reason none of them is needed.
+
+## Calling an API
+
+```tsx title="src/routes/assets.tsx"
+import { usePlatformFetch } from "@platform/mfe-react"
+
+function AssetList() {
+  const platformFetch = usePlatformFetch()
+  // `audience` names the API, not the provider: the shell maps it to whatever
+  // its IdP calls that resource.
+  const load = () => platformFetch("/api/assets", { audience: "assets" })
+  // …
+}
+```
+
+`usePlatformFetch` is `fetch` with the access token attached as
+`Authorization: Bearer <token>`. It does two things you would otherwise have to get right by
+hand, and nothing else:
+
+- **A 401 is retried exactly once**, with `forceRefresh: true`, which covers a token that
+  expired between being issued and being used. A second 401 is returned to you.
+- **The token only ever goes to an allowed origin** — the shell's own, plus anything the
+  shell allow-listed. See [Origin allow-listing](#origin-allow-listing).
+
+It does **not** interpret the response. A 404 or a 500 comes back as an ordinary `Response`,
+because only the caller knows what those mean:
+
+```tsx
+const response = await platformFetch("/api/assets", { audience: "assets" })
+if (!response.ok) throw new Error(`Assets API: ${response.status}`)
+return (await response.json()) as Asset[]
+```
+
+Reach for the raw token only when a client library demands one:
+
+```tsx
+import { useCredentials } from "@platform/mfe-react"
+
+const credentials = useCredentials()
+const token = await credentials.getToken({ audience: "assets", scopes: ["assets.read"] })
+```
+
+`credentials.subscribe(listener)` fires on login, logout, silent refresh and tenant switch, so
+a long-lived client can drop a cached token.
+
+## The `auth` capability
+
+Both hooks imply the `auth` capability, which `@platform/vite` infers from your source at
+build time and writes into the manifest — there is nothing to declare. The host then approves
+it by policy like any other capability, and `usePlatform((p) => p.capabilities)` reports the
+approved set.
+
+A shell that does not approve `auth`, and a shell that approves it but supplies no adapter,
+both produce [`AUTH_UNAVAILABLE`](#no-credential-port) rather than an unauthenticated request.
+
+## Supplying an adapter (shells)
+
+The shell implements `CredentialAdapter` against its identity provider and passes it to
+`createPlatformHost`. The platform never imports a vendor library, so swapping providers is a
+change in one file:
+
+```ts title="src/lib/platform.ts"
+import { createPlatformHost, type CredentialAdapter } from "@platform/host"
+
+const credentials: CredentialAdapter = {
+  getToken: ({ audience, scopes, forceRefresh, signal } = {}) =>
+    identityProvider.getAccessToken({
+      resource: audience,
+      scopes,
+      ignoreCache: forceRefresh,
+      signal,
+    }),
+  subscribe: (listener) => identityProvider.onSessionChange(listener),
+}
+
+createPlatformHost({
+  // …
+  credentials,
+  policy: { credentialOrigins: ["https://api.example.com"] },
+})
+```
+
+The adapter is the authority: it decides whether to mint a token for a given audience at all,
+and it is the only place that knows the provider.
+
+## Origin allow-listing
+
+A token-attaching `fetch` with no origin check is a credential-leak primitive — one wrong URL
+and a bearer token reaches a third party. `usePlatformFetch` therefore refuses any URL whose
+origin is neither the shell's own nor listed in `policy.credentialOrigins`. The request is
+never sent, the refusal is recorded in diagnostics, and the call rejects with
+[`AUTH_UNAVAILABLE`](#no-credential-port).
+
+The shell origin is always allowed and is not listed. Add an entry per API origin:
+
+```ts
+policy: {
+  credentialOrigins: ["https://api.example.com", "https://reports.example.com"]
+}
+```
+
+This is a guard rail against mistakes, not a sandbox: remote code is first-party code, the
+same way [permission groups](/docs/permission-groups) are a UX affordance and the backend
+remains authoritative.
+
+## Testing
+
+`createTestBridge` from `@platform/mfe-react/testing` has a credential port built in.
+
+```tsx title="src/__tests__/assets.test.tsx"
+import { createTestBridge } from "@platform/mfe-react/testing"
+
+// Grants `auth` and issues "test-token"; `bridge.credentials.requests`
+// records every TokenRequest the code made.
+const bridge = createTestBridge({ mfeId: "asset-tracker", capabilities: ["auth"] })
+
+// A specific token, and an API origin the shell allows:
+const withApi = createTestBridge({
+  mfeId: "asset-tracker",
+  capabilities: ["auth"],
+  token: "abc",
+  credentialOrigins: ["https://api.example.com"],
+})
+
+// What an MFE sees in a shell that cannot authenticate it: every getToken rejects.
+const denied = createTestBridge({ mfeId: "asset-tracker", token: false })
+```
+
+## Failure codes
+
+### No credential port
+
+`AUTH_UNAVAILABLE` is raised when a token cannot be requested at all:
+
+| Cause                                                    | Fix                                                                                                                                 |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| The MFE did not receive the `auth` capability            | Use `useCredentials` or `usePlatformFetch` so it is inferred, or add it in `mfe.config.ts → capabilities`; the host must approve it |
+| The shell supplied no `credentials` adapter              | Pass `credentials` to `createPlatformHost`                                                                                          |
+| The URL's origin is neither the shell's nor allow-listed | Add it to `policy.credentialOrigins`, or call the API through the shell origin                                                      |
+
+The error names which of the three it is, and carries the override that fixes it.
+
+### Token failures
+
+`AUTH_FAILED` is raised when the shell's adapter rejected: the session expired and could not
+be refreshed silently, or the requested audience or scopes are not granted. It is the
+adapter's error, wrapped — `error.cause` carries whatever the provider threw. Surface it and
+let the user sign in again; never fall back to an unauthenticated request.

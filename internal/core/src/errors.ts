@@ -55,6 +55,14 @@ export const ERROR_CODES = {
     docs: "/permission-groups#preflight",
     hint: "The current user lacks a permission group the manifest requires; backend authorization still applies.",
   },
+  AUTH_UNAVAILABLE: {
+    docs: "/authentication#no-credential-port",
+    hint: "The shell supplied no credential adapter, or this MFE did not receive the `auth` capability. Declare it in mfe.config.ts and pass `credentials` to createPlatformHost.",
+  },
+  AUTH_FAILED: {
+    docs: "/authentication#token-failures",
+    hint: "The shell's credential adapter could not issue a token: the session may have expired, or the requested audience or scopes may not be granted. Sign in again and check the audience.",
+  },
   CAPABILITY_UNAVAILABLE: {
     docs: "/platform-context#capabilities",
     hint: "The host does not approve this capability; feature-detect with `usePlatform((p) => p.capabilities)`.",

@@ -1,5 +1,10 @@
+import { CAPABILITY_IDS } from "@platform-internal/core"
+
 import rule from "../../src/eslint/rules/valid-manifest-config"
 import { ruleTester } from "./rule-tester"
+
+/** Derived, so adding a capability never means editing a string here. */
+const KNOWN_CAPABILITIES = CAPABILITY_IDS.join(", ")
 
 const imports = 'import { defineMfeConfig } from "@platform/vite/config"\n'
 const file = "/project/mfe.config.ts"
@@ -109,8 +114,7 @@ ruleTester.run("valid-manifest-config", rule, {
           data: {
             id: "teleportation",
             list: "add",
-            known:
-              "navigation, context, storage.local, storage.session, telemetry, commands, settings, help, release-notes, breadcrumbs, overlays, notifications, runtime-env, widgets",
+            known: KNOWN_CAPABILITIES,
           },
         },
         { messageId: "unknownKey", data: { key: "capabilities.deny", valid: "add, remove" } },

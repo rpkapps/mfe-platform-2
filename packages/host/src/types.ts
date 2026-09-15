@@ -1,6 +1,7 @@
 import type {
   BreadcrumbStore,
   CapabilityId,
+  CredentialAdapter,
   CommandRegistry,
   CommandState,
   DevInfo,
@@ -61,6 +62,11 @@ export interface HostPolicy {
   allowedOrigins?: string[]
   /** Coarse permission preflight against `manifest.permissionGroups` (default true). */
   preflight?: boolean
+  /**
+   * Origins besides the shell's own that a remote may attach a bearer token to.
+   * Anything else is refused before the request is sent.
+   */
+  credentialOrigins?: string[]
 }
 
 export interface DevtoolsOptions {
@@ -83,6 +89,8 @@ export interface PlatformHostOptions {
   telemetry?: TelemetryAdapter | Telemetry
   storage?: StorageBackend
   notifications?: NotificationPort
+  /** Issues access tokens for remotes that were granted the `auth` capability. */
+  credentials?: CredentialAdapter
   policy?: HostPolicy
   devtools?: DevtoolsOptions
   overlays?: { baseZIndex?: number; document?: Document }
@@ -268,6 +276,7 @@ export interface PlatformHost {
   readonly storage: StorageBackend
   readonly navigation: ShellNavigation
   readonly notifications: NotificationPort | undefined
+  readonly credentials: CredentialAdapter | undefined
   readonly loader: RemoteLoader
   readonly remotes: RemotesApi
   readonly commands: CommandRunner

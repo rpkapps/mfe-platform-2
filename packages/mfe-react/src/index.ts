@@ -50,6 +50,12 @@ export {
   type CommandRegistrationState,
 } from "./hooks/registrations"
 export { useBreadcrumb, BreadcrumbPublisher, buildBreadcrumbTrail } from "./breadcrumbs"
+export {
+  useCredentials,
+  usePlatformFetch,
+  type PlatformFetch,
+  type PlatformFetchOptions,
+} from "./hooks/credentials"
 
 // Storage
 export {
@@ -134,6 +140,8 @@ export {
   type TelemetrySpan,
   type TelemetryAttributes,
   type HostBridge,
+  type CredentialPort,
+  type TokenRequest,
   type RemoteDefinition,
   type MountHandle,
   type WidgetHandle,

@@ -5,6 +5,7 @@ import {
   useNotifications,
   usePlatform,
   useRegisterCommand,
+  usePlatformFetch,
   useRuntimeEnv,
   useTelemetry,
 } from "@platform/mfe-react"
@@ -92,6 +93,7 @@ function Dashboard() {
   return (
     <div className="flex flex-col gap-4">
       <UserName />
+      <AuthenticatedCall />
       <p className="text-muted-foreground text-sm">
         Theme: <ThemeValue /> · API:{" "}
         <span data-testid={ids.envValue}>{String(env.API_BASE_URL)}</span> · page size{" "}
@@ -178,6 +180,46 @@ function Dashboard() {
       <p data-testid={ids.hmrLabel} className="text-muted-foreground text-xs">
         HMR_LABEL_V1
       </p>
+    </div>
+  )
+}
+
+/**
+ * Conformance for the credential port: one call the shell allows (its own
+ * origin) and one it must refuse before anything leaves the browser. The
+ * response body does not matter — only that the token was attached, and that
+ * a cross-origin URL never receives one.
+ */
+function AuthenticatedCall() {
+  const platformFetch = usePlatformFetch()
+  const [result, setResult] = React.useState("idle")
+  const run = (url: string) => {
+    setResult("pending")
+    platformFetch(url, { audience: "assets" }).then(
+      (response) => setResult(`ok ${response.status}`),
+      (error: unknown) =>
+        setResult(
+          `refused ${(error as { code?: string }).code ?? (error as Error).message ?? "unknown"}`
+        )
+    )
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button
+        variant="outline"
+        data-testid={ids.authFetch}
+        onPress={() => run("/platform-config.json")}
+      >
+        Authenticated call
+      </Button>
+      <Button
+        variant="outline"
+        data-testid={ids.authFetchCrossOrigin}
+        onPress={() => run("https://tokens.example/collect")}
+      >
+        Cross-origin call
+      </Button>
+      <span data-testid={ids.authResult}>{result}</span>
     </div>
   )
 }
