@@ -46,7 +46,9 @@ export function checkRemoteConformance(input: ConformanceInput): { ok: boolean; 
   if (manifest.css.scoped && input.css) {
     for (const [file, css] of Object.entries(input.css)) {
       const owner = `[${manifest.css.ownerAttribute}="${manifest.mfeId}"]`
-      if (css.length > 0 && !css.includes(owner)) findings.push({ level: "error", check: "css.scoped", message: `${file} contains no selector scoped under ${owner}` })
+      // Minifiers drop the attribute quotes; both spellings are the same selector.
+      const unquoted = `[${manifest.css.ownerAttribute}=${manifest.mfeId}]`
+      if (css.length > 0 && !css.includes(owner) && !css.includes(unquoted)) findings.push({ level: "error", check: "css.scoped", message: `${file} contains no selector scoped under ${owner}` })
       if (/(^|[}\s,])(:root|html|body)\s*[{,]/.test(css)) findings.push({ level: "error", check: "css.no-global", message: `${file} still contains :root/html/body selectors` })
     }
   }

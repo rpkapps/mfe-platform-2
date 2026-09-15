@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils"
 
-import { createRule, stringValue } from "../utils"
+import { createRule, globalIdentifierReferences, stringValue } from "../utils"
 
 const FEDERATION_GLOBALS = new Set(["__federation__", "__federation_shared__", "__federation_method_getRemote", "__federation_method_setRemote", "__federation_method_ensure", "__federation_method_unwrapDefault", "__federation_method_wrapDefault", "__webpack_share_scopes__", "__webpack_init_sharing__", "__webpack_require__", "__VITE_PRELOAD__"])
 
@@ -58,10 +58,8 @@ export default createRule<[], MessageIds>({
         }
       },
       Program(program) {
-        const scope = context.sourceCode.getScope(program)
-        for (const reference of scope.through) {
-          const name = reference.identifier.name
-          if (FEDERATION_GLOBALS.has(name)) context.report({ node: reference.identifier, messageId: "federationGlobal", data: { name } })
+        for (const identifier of globalIdentifierReferences(context, program, FEDERATION_GLOBALS)) {
+          context.report({ node: identifier, messageId: "federationGlobal", data: { name: identifier.name } })
         }
       },
       MemberExpression(node) {

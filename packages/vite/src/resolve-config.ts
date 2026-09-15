@@ -1,13 +1,34 @@
 import { existsSync } from "node:fs"
 import { isAbsolute, join, resolve } from "node:path"
 
-import { assertRoutePrefix, federationName, inferRoutePrefix, inferSharedDependencies, parseVersion, rangeMajor, type CapabilityId, type SharedRequest } from "@platform-internal/core"
+import {
+  assertRoutePrefix,
+  federationName,
+  inferRoutePrefix,
+  inferSharedDependencies,
+  parseVersion,
+  rangeMajor,
+  type CapabilityId,
+  type SharedRequest,
+} from "@platform-internal/core"
 import type { ModuleFederationOptions } from "@module-federation/vite"
 
 import { resolveIdentity, type MfeIdSource } from "./identity"
 import { loadMfeConfig } from "./load-config"
-import type { EnvKeyOptions, MfeConfig, NavigationOptions, PlatformPluginOptions, ReactPluginOptions, SharedOptions } from "./options"
-import { installedVersions, isPackageResolvable, readPackageJson, type PackageJson } from "./project"
+import type {
+  EnvKeyOptions,
+  MfeConfig,
+  NavigationOptions,
+  PlatformPluginOptions,
+  ReactPluginOptions,
+  SharedOptions,
+} from "./options"
+import {
+  installedVersions,
+  isPackageResolvable,
+  readPackageJson,
+  type PackageJson,
+} from "./project"
 
 export const DEFAULT_ROUTES_DIRECTORY = "src/routes"
 export const DEFAULT_ENTRY = "src/mfe.tsx"
@@ -82,7 +103,13 @@ export interface ResolvePlatformConfigOptions {
   persistIdentity?: boolean
 }
 
-const RUNTIME_PACKAGES = ["react", "react-dom", "@tanstack/react-router", "@platform/react", TECTON_PACKAGE]
+const RUNTIME_PACKAGES = [
+  "react",
+  "react-dom",
+  "@tanstack/react-router",
+  "@platform/react",
+  TECTON_PACKAGE,
+]
 
 function pick<T>(...values: (T | undefined)[]): T | undefined {
   for (const value of values) if (value !== undefined) return value
@@ -93,14 +120,26 @@ function toAbsolute(root: string, file: string): string {
   return isAbsolute(file) ? file : resolve(root, file)
 }
 
-function rangeFor(name: string, packageJson: PackageJson, installed: Record<string, string>): string | undefined {
-  const declared = packageJson.dependencies?.[name] ?? packageJson.peerDependencies?.[name] ?? packageJson.devDependencies?.[name]
-  if (declared && !/^(workspace:|github:|git\+|file:|link:|npm:)/.test(declared)) return declared
+function rangeFor(
+  name: string,
+  packageJson: PackageJson,
+  installed: Record<string, string>
+): string | undefined {
+  const declared =
+    packageJson.dependencies?.[name] ??
+    packageJson.peerDependencies?.[name] ??
+    packageJson.devDependencies?.[name]
+  if (declared && !/^(workspace:|catalog:|github:|git\+|file:|link:|npm:)/.test(declared))
+    return declared
   const version = installed[name]
   return version ? `^${version}` : undefined
 }
 
-function majorFor(range: string | undefined, installed: string | undefined, fallback: number): number {
+function majorFor(
+  range: string | undefined,
+  installed: string | undefined,
+  fallback: number
+): number {
   return (range ? rangeMajor(range) : null) ?? parseVersion(installed ?? "")?.major ?? fallback
 }
 
@@ -110,35 +149,66 @@ function majorFor(range: string | undefined, installed: string | undefined, fall
  * and the persisted identity. Throws `PlatformError`s for invalid ids and
  * prefixes; inference never throws.
  */
-export async function resolvePlatformConfig(input: ResolvePlatformConfigOptions): Promise<ResolvedPlatformConfig> {
+export async function resolvePlatformConfig(
+  input: ResolvePlatformConfigOptions
+): Promise<ResolvedPlatformConfig> {
   const root = resolve(input.root)
   const options = input.options ?? {}
-  const loaded = await loadMfeConfig(root, { command: input.command ?? "build", mode: input.mode ?? (input.command === "serve" ? "development" : "production") })
+  const loaded = await loadMfeConfig(root, {
+    command: input.command ?? "build",
+    mode: input.mode ?? (input.command === "serve" ? "development" : "production"),
+  })
   const config: MfeConfig = loaded.config
   const packageJson = readPackageJson(root)
   const warnings: string[] = []
 
-  const identity = resolveIdentity({ root, optionMfeId: options.mfeId, configMfeId: config.mfeId, packageName: packageJson.name, persist: input.persistIdentity ?? true })
+  const identity = resolveIdentity({
+    root,
+    optionMfeId: options.mfeId,
+    configMfeId: config.mfeId,
+    packageName: packageJson.name,
+    persist: input.persistIdentity ?? true,
+  })
   const mfeId = identity.mfeId
-  const routePrefix = assertRoutePrefix(pick(options.routePrefix, config.routePrefix) ?? inferRoutePrefix(mfeId), mfeId)
+  const routePrefix = assertRoutePrefix(
+    pick(options.routePrefix, config.routePrefix) ?? inferRoutePrefix(mfeId),
+    mfeId
+  )
 
   const dependencies = { ...(packageJson.dependencies ?? {}) }
   const devDependencies = packageJson.devDependencies ?? {}
   const sharedOverrides: SharedOptions = { ...(config.shared ?? {}), ...(options.shared ?? {}) }
-  const installed = installedVersions(root, new Set([...Object.keys(dependencies), ...Object.keys(devDependencies), ...Object.keys(sharedOverrides), ...RUNTIME_PACKAGES]))
-  const shared = inferSharedDependencies({ dependencies, installed, overrides: sharedOverrides })
+  const installed = installedVersions(
+    root,
+    new Set([
+      ...Object.keys(dependencies),
+      ...Object.keys(devDependencies),
+      ...Object.keys(sharedOverrides),
+      ...RUNTIME_PACKAGES,
+    ])
+  )
+  const shared = inferSharedDependencies({
+    dependencies,
+    installed,
+    overrides: sharedOverrides,
+  })
   warnings.push(...shared.warnings)
 
   const tectonDeclared = TECTON_PACKAGE in dependencies || TECTON_PACKAGE in devDependencies
   const tectonOption = pick(options.tecton, config.tecton) ?? "auto"
   const tecton = tectonOption === "auto" ? tectonDeclared : tectonOption
-  if (tecton && !tectonDeclared && !installed[TECTON_PACKAGE]) warnings.push(`tecton is enabled but "${TECTON_PACKAGE}" is not a dependency of the project.`)
+  if (tecton && !tectonDeclared && !installed[TECTON_PACKAGE])
+    warnings.push(
+      `tecton is enabled but "${TECTON_PACKAGE}" is not a dependency of the project.`
+    )
 
   const tailwindOption = options.tailwind ?? "auto"
-  const tailwind = tailwindOption === "auto" ? isPackageResolvable(root, "tailwindcss") : tailwindOption
+  const tailwind =
+    tailwindOption === "auto" ? isPackageResolvable(root, "tailwindcss") : tailwindOption
 
   const navigation = pick(options.navigation, config.navigation)
-  const displayName = pick(options.displayName, config.displayName) ?? navigation?.title ?? mfeId
+  const displayName =
+    pick(options.displayName, config.displayName) ?? navigation?.title ?? mfeId
   const cssOptions = { ...(config.css ?? {}), ...(options.css ?? {}) }
   const runtimeOverrides = { ...(config.runtime ?? {}), ...(options.runtime ?? {}) }
   const harnessOptions = { ...(config.harness ?? {}), ...(options.harness ?? {}) }
@@ -146,19 +216,50 @@ export async function resolvePlatformConfig(input: ResolvePlatformConfigOptions)
   const reactRange = runtimeOverrides.react ?? rangeFor("react", packageJson, installed)
   const reactMajor = majorFor(reactRange, installed.react, shared.reactMajor)
   const runtime: ResolvedRuntime = {
-    react: { requiredVersion: reactRange ?? `^${reactMajor}.0.0`, major: reactMajor, builtWith: installed.react },
+    react: {
+      requiredVersion: reactRange ?? `^${reactMajor}.0.0`,
+      major: reactMajor,
+      builtWith: installed.react,
+    },
   }
-  const reactDomRange = runtimeOverrides.reactDom ?? rangeFor("react-dom", packageJson, installed)
-  if (reactDomRange) runtime.reactDom = { requiredVersion: reactDomRange, major: majorFor(reactDomRange, installed["react-dom"], reactMajor), builtWith: installed["react-dom"] }
-  const routerRange = runtimeOverrides.tanstackRouter ?? rangeFor("@tanstack/react-router", packageJson, installed)
-  if (routerRange) runtime.tanstackRouter = { requiredVersion: routerRange, builtWith: installed["@tanstack/react-router"] }
-  const platformReactRange = runtimeOverrides.platformReact ?? rangeFor("@platform/react", packageJson, installed)
-  if (platformReactRange) runtime.platformReact = { requiredVersion: platformReactRange, builtWith: installed["@platform/react"] }
-  if (!reactRange) warnings.push(`react is not a dependency of the project; runtime compatibility metadata defaults to React ${reactMajor}.`)
+  const reactDomRange =
+    runtimeOverrides.reactDom ?? rangeFor("react-dom", packageJson, installed)
+  if (reactDomRange)
+    runtime.reactDom = {
+      requiredVersion: reactDomRange,
+      major: majorFor(reactDomRange, installed["react-dom"], reactMajor),
+      builtWith: installed["react-dom"],
+    }
+  const routerRange =
+    runtimeOverrides.tanstackRouter ??
+    rangeFor("@tanstack/react-router", packageJson, installed)
+  if (routerRange)
+    runtime.tanstackRouter = {
+      requiredVersion: routerRange,
+      builtWith: installed["@tanstack/react-router"],
+    }
+  const platformReactRange =
+    runtimeOverrides.platformReact ?? rangeFor("@platform/react", packageJson, installed)
+  if (platformReactRange)
+    runtime.platformReact = {
+      requiredVersion: platformReactRange,
+      builtWith: installed["@platform/react"],
+    }
+  if (!reactRange)
+    warnings.push(
+      `react is not a dependency of the project; runtime compatibility metadata defaults to React ${reactMajor}.`
+    )
 
-  const routesDirectory = toAbsolute(root, pick(options.routesDirectory, config.routesDirectory) ?? DEFAULT_ROUTES_DIRECTORY)
+  const routesDirectory = toAbsolute(
+    root,
+    pick(options.routesDirectory, config.routesDirectory) ?? DEFAULT_ROUTES_DIRECTORY
+  )
   const entry = toAbsolute(root, pick(options.entry, config.entry) ?? DEFAULT_ENTRY)
-  const dependenciesOfConfig = [join(root, "package.json"), ...(loaded.file ? [loaded.file] : []), ...loaded.dependencies.map((file) => toAbsolute(root, file))]
+  const dependenciesOfConfig = [
+    join(root, "package.json"),
+    ...(loaded.file ? [loaded.file] : []),
+    ...loaded.dependencies.map((file) => toAbsolute(root, file)),
+  ]
 
   return {
     root,
@@ -170,15 +271,28 @@ export async function resolvePlatformConfig(input: ResolvePlatformConfigOptions)
     description: pick(options.description, config.description, packageJson.description),
     discoverable: pick(options.discoverable, config.discoverable) ?? true,
     navigation,
-    permissionGroups: [...new Set([...(config.permissionGroups ?? []), ...(options.permissionGroups ?? [])])],
+    permissionGroups: [
+      ...new Set([...(config.permissionGroups ?? []), ...(options.permissionGroups ?? [])]),
+    ],
     capabilities: {
-      add: [...new Set([...(config.capabilities?.add ?? []), ...(options.capabilities?.add ?? [])])],
-      remove: [...new Set([...(config.capabilities?.remove ?? []), ...(options.capabilities?.remove ?? [])])],
+      add: [
+        ...new Set([...(config.capabilities?.add ?? []), ...(options.capabilities?.add ?? [])]),
+      ],
+      remove: [
+        ...new Set([
+          ...(config.capabilities?.remove ?? []),
+          ...(options.capabilities?.remove ?? []),
+        ]),
+      ],
     },
     sharedOverrides,
     shared,
     env: { ...(config.env ?? {}), ...(options.env ?? {}) },
-    css: { scope: cssOptions.scope ?? true, ownerAttribute: cssOptions.ownerAttribute ?? "data-mfe", foundation: cssOptions.foundation ?? "shell" },
+    css: {
+      scope: cssOptions.scope ?? true,
+      ownerAttribute: cssOptions.ownerAttribute ?? "data-mfe",
+      foundation: cssOptions.foundation ?? "shell",
+    },
     tecton,
     tectonVersion: installed[TECTON_PACKAGE],
     tailwind,
@@ -188,10 +302,14 @@ export async function resolvePlatformConfig(input: ResolvePlatformConfigOptions)
     entry,
     generatedEntry: join(root, GENERATED_ENTRY),
     platformDir: join(root, ".platform"),
-    manifestFileName: pick(options.manifest?.fileName, config.manifest?.fileName) ?? DEFAULT_MANIFEST_FILE_NAME,
+    manifestFileName:
+      pick(options.manifest?.fileName, config.manifest?.fileName) ?? DEFAULT_MANIFEST_FILE_NAME,
     federation: pick(options.federation, config.federation),
     runtime,
-    harness: { enabled: harnessOptions.enabled ?? true, dir: harnessOptions.dir ? toAbsolute(root, harnessOptions.dir) : undefined },
+    harness: {
+      enabled: harnessOptions.enabled ?? true,
+      dir: harnessOptions.dir ? toAbsolute(root, harnessOptions.dir) : undefined,
+    },
     packageJson,
     installed,
     configFile: loaded.file,

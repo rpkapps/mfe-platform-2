@@ -1,0 +1,42 @@
+---
+title: AI-friendly design
+description: The platform is designed so that coding agents and humans find the one right place, the one right pattern and the one right document.
+---
+
+## The files
+
+| File | Audience | Content |
+| --- | --- | --- |
+| `AGENTS.md` | agents working in a repository | rules of the repository: layout, build order, what never to edit, conventions, common workflows |
+| `llm.txt` | agents starting a task | concise canonical instructions: what the platform is, the four packages, the canonical pattern for bootstrap, routes, commands, settings, storage and widgets, file locations, commands |
+| `llms.txt` | agents and tools that index documentation | machine-readable index of every documentation page, schema, example, recipe and diagnostic, with one-line descriptions |
+
+All three exist in the platform monorepo and are generated into every scaffolded MFE by `platform create`. `pnpm docs:generate` regenerates `llms.txt` from the documentation content and `docs:check` fails when it is stale.
+
+- [`/llm.txt`](https://platform.docs.local/llm.txt)
+- [`/llms.txt`](https://platform.docs.local/llms.txt)
+
+## Predictable structure
+
+- one bootstrap file (`src/mfe.tsx`), one routes directory, one file per widget, one place each for commands, settings, storage, help and release notes ([Project structure](/docs/getting-started/project-structure)),
+- one canonical pattern per task: a hook (with a thin component wrapper) and no alternatives,
+- options objects everywhere, inference first, explicit overrides second,
+- generated files that are inspectable (`routeTree.gen.ts`, `platform-manifest.json`, `.platform/*`) but never edited.
+
+## Actionable diagnostics
+
+Every failure states what failed, which MFE or widget owns it, which manifest or package caused it, which override is available and which page explains the fix — in the UI, the console, the devtools and telemetry. An agent can go from a diagnostic to the fix without guessing. See [Troubleshooting](/docs/troubleshooting).
+
+## Machine-readable schemas
+
+JSON Schemas (draft 2020-12) are published for manifests, runtime configuration, capabilities, registrations, settings, diagnostics, protocol compatibility and shared dependencies, generated from the same Zod schemas the platform validates with. See [Schemas](/docs/reference/generated/schemas); each file lives at `/schemas/<name>.json`.
+
+Editors get completion from `"$schema": "https://platform.docs.local/schemas/manifest.json"` in a manifest, and agents can validate what they generate.
+
+## Typed contracts
+
+`Register` augmentation types the runtime environment and feature flags; `MfeRouterContext` types route guards; `createWidget` infers props from `propsSchema`; settings groups infer field kinds from defaults. Types are the documentation an agent reads first, so the public API is small and strongly typed with no duplicate ways to do the same thing.
+
+## Scaffold contents
+
+`platform create` produces a working MFE with examples of every feature (command, settings group with async options, storage, slice subscription, permission guard, telemetry, breadcrumb metadata, widget, help, release notes), strict TypeScript, Prettier, ESLint with the platform rules, unit, integration and Playwright tests, `AGENTS.md`, `llm.txt` and `llms.txt`. The examples are the canonical patterns; copying them is the right thing to do.

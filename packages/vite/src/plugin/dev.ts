@@ -8,7 +8,11 @@ import type { Plugin, ViteDevServer } from "vite"
 
 import { generateManifest } from "../manifest"
 import { findPackageJson } from "../project"
-import { buildFederationConfig, resolvePlatformConfig, type ResolvedPlatformConfig } from "../resolve-config"
+import {
+  buildFederationConfig,
+  resolvePlatformConfig,
+  type ResolvedPlatformConfig,
+} from "../resolve-config"
 import { computeConfigHash, restartError, type PlatformContext } from "./context"
 
 export const DEV_MANIFEST_PATH = "/platform-manifest.json"
@@ -64,12 +68,20 @@ export function resolveHarnessDir(root: string, explicit?: string): string | und
   return existsSync(join(dir, "index.html")) ? dir : undefined
 }
 
-export function injectHarnessConfig(html: string, config: { manifestUrl: string; mfeId: string; origin?: string }): string {
+export function injectHarnessConfig(
+  html: string,
+  config: { manifestUrl: string; mfeId: string; origin?: string }
+): string {
   const script = `<script>window.__PLATFORM_HARNESS__ = ${JSON.stringify(config)}</script>`
-  return html.includes("</head>") ? html.replace("</head>", `${script}\n</head>`) : `${script}\n${html}`
+  return html.includes("</head>")
+    ? html.replace("</head>", `${script}\n</head>`)
+    : `${script}\n${html}`
 }
 
-export function renderFallbackHarness(config: ResolvedPlatformConfig, manifestUrl: string): string {
+export function renderFallbackHarness(
+  config: ResolvedPlatformConfig,
+  manifestUrl: string
+): string {
   const title = `${config.displayName} — platform harness`
   return `<!doctype html>
 <html lang="en">
@@ -108,10 +120,20 @@ try {
 }
 
 function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char)
+  return value.replace(
+    /[&<>"']/g,
+    (char) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char
+  )
 }
 
-function send(res: ServerResponse, status: number, body: string | Buffer, contentType: string, extraHeaders: Record<string, string> = {}): void {
+function send(
+  res: ServerResponse,
+  status: number,
+  body: string | Buffer,
+  contentType: string,
+  extraHeaders: Record<string, string> = {}
+): void {
   res.statusCode = status
   res.setHeader("Content-Type", contentType)
   res.setHeader("Access-Control-Allow-Origin", "*")
@@ -150,14 +172,16 @@ export interface DevState {
 export function platformDevPlugin(context: PlatformContext): Plugin {
   return {
     name: "platform:dev",
-    apply: "serve",
+    apply: (_config, env) => env.command === "serve" && env.mode !== "test",
     configureServer(server) {
       const config = context.config()
       const state: DevState = { configHash: context.configHash(), restartRequired: false }
       let manifestCache: { origin: string | undefined; manifest: MfeManifest } | undefined
       let manifestPromise: Promise<MfeManifest> | undefined
       const manifestUrl = `${server.config.base.replace(/\/$/, "")}${DEV_MANIFEST_PATH}`
-      const harnessDir = config.harness.enabled ? resolveHarnessDir(config.root, config.harness.dir) : undefined
+      const harnessDir = config.harness.enabled
+        ? resolveHarnessDir(config.root, config.harness.dir)
+        : undefined
 
       const devManifest = async (origin: string | undefined): Promise<MfeManifest> => {
         if (manifestCache && manifestCache.origin === origin) return manifestCache.manifest
@@ -165,10 +189,16 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
           root: config.root,
           config,
           mode: "dev",
-          dev: { origin, configHash: state.configHash, restartRequired: state.restartRequired || undefined, restartReason: state.restartReason },
+          dev: {
+            origin,
+            configHash: state.configHash,
+            restartRequired: state.restartRequired || undefined,
+            restartReason: state.restartReason,
+          },
         })
           .then((generated) => {
-            for (const warning of generated.warnings) server.config.logger.warn(pc.yellow(`[platform] ${warning}`))
+            for (const warning of generated.warnings)
+              server.config.logger.warn(pc.yellow(`[platform] ${warning}`))
             manifestCache = { origin, manifest: generated.manifest }
             return generated.manifest
           })
@@ -182,26 +212,54 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
       }
 
       // Restart diagnostics: watch the restart-requiring inputs and compare the config hash.
-      const watched = new Set([...config.dependencies, config.routeTreeFile, ...["mfe.config.ts", "mfe.config.mts", "mfe.config.js", "mfe.config.mjs"].map((name) => join(config.root, name))].map((file) => resolve(file)))
+      const watched = new Set(
+        [
+          ...config.dependencies,
+          config.routeTreeFile,
+          ...["mfe.config.ts", "mfe.config.mts", "mfe.config.js", "mfe.config.mjs"].map(
+            (name) => join(config.root, name)
+          ),
+        ].map((file) => resolve(file))
+      )
       for (const file of watched) if (existsSync(file)) server.watcher.add(file)
       let checking: Promise<void> | undefined
       const checkRestart = async (file: string) => {
         try {
-          const next = await resolvePlatformConfig({ root: config.root, options: context.options, command: "serve" })
+          const next = await resolvePlatformConfig({
+            root: config.root,
+            options: context.options,
+            command: "serve",
+          })
           const hash = computeConfigHash(next, buildFederationConfig(next))
           if (hash === state.configHash) return
           const rel = relative(config.root, file).replace(/\\/g, "/")
-          const reason = basename(file) === "routeTree.gen.ts" ? `The generated route tree changed (${rel})` : `A manifest-affecting input changed (${rel})`
+          const reason =
+            basename(file) === "routeTree.gen.ts"
+              ? `The generated route tree changed (${rel})`
+              : `A manifest-affecting input changed (${rel})`
           state.configHash = hash
           state.restartRequired = true
           state.restartReason = reason
           state.restartFile = rel
           invalidateManifest()
           server.config.logger.warn(pc.yellow(restartError(config, file, reason).format()))
-          server.ws.send({ type: "custom", event: RESTART_EVENT, data: { reason, file: rel, configHash: hash, mfeId: config.mfeId } })
+          server.ws.send({
+            type: "custom",
+            event: RESTART_EVENT,
+            data: { reason, file: rel, configHash: hash, mfeId: config.mfeId },
+          })
         } catch (error) {
-          const message = error instanceof PlatformError ? error.format() : error instanceof Error ? error.message : String(error)
-          server.config.logger.error(pc.red(`[platform] could not re-evaluate the configuration after ${file} changed:\n${message}`))
+          const message =
+            error instanceof PlatformError
+              ? error.format()
+              : error instanceof Error
+                ? error.message
+                : String(error)
+          server.config.logger.error(
+            pc.red(
+              `[platform] could not re-evaluate the configuration after ${file} changed:\n${message}`
+            )
+          )
         }
       }
       const onFsEvent = (file: string) => {
@@ -218,16 +276,30 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         const url = (req.url ?? "/").split("?")[0] ?? "/"
         const base = server.config.base.replace(/\/$/, "")
         const path = base && url.startsWith(base) ? url.slice(base.length) || "/" : url
-        if (req.method === "OPTIONS" && (path === DEV_MANIFEST_PATH || path === REFRESH_PREAMBLE_PATH || path.startsWith(`${HARNESS_PATH}/`))) {
-          send(res, 204, "", "text/plain", { "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Allow-Headers": "*" })
+        if (
+          req.method === "OPTIONS" &&
+          (path === DEV_MANIFEST_PATH ||
+            path === REFRESH_PREAMBLE_PATH ||
+            path.startsWith(`${HARNESS_PATH}/`))
+        ) {
+          send(res, 204, "", "text/plain", {
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "*",
+          })
           return
         }
         if (path === DEV_MANIFEST_PATH) {
           const origin = requestOrigin(server, req)
           void devManifest(origin).then(
-            (manifest) => send(res, 200, `${JSON.stringify(manifest, null, 2)}\n`, CONTENT_TYPES[".json"]!),
+            (manifest) =>
+              send(res, 200, `${JSON.stringify(manifest, null, 2)}\n`, CONTENT_TYPES[".json"]!),
             (error: unknown) => {
-              const message = error instanceof PlatformError ? error.format() : error instanceof Error ? error.message : String(error)
+              const message =
+                error instanceof PlatformError
+                  ? error.format()
+                  : error instanceof Error
+                    ? error.message
+                    : String(error)
               server.config.logger.error(pc.red(`[platform] ${message}`))
               send(res, 500, JSON.stringify({ error: message }), CONTENT_TYPES[".json"]!)
             }
@@ -235,7 +307,12 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
           return
         }
         if (path === REFRESH_PREAMBLE_PATH) {
-          send(res, 200, renderRefreshPreamble(server.config.base || "/"), CONTENT_TYPES[".js"]!)
+          send(
+            res,
+            200,
+            renderRefreshPreamble(server.config.base || "/"),
+            CONTENT_TYPES[".js"]!
+          )
           return
         }
         if (path === HARNESS_PATH) {
@@ -246,29 +323,54 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         }
         if (path.startsWith(`${HARNESS_PATH}/`)) {
           if (!config.harness.enabled) {
-            send(res, 404, "The platform harness is disabled (harness.enabled = false).", CONTENT_TYPES[".txt"]!)
+            send(
+              res,
+              404,
+              "The platform harness is disabled (harness.enabled = false).",
+              CONTENT_TYPES[".txt"]!
+            )
             return
           }
-          const relativePath = decodeURIComponent(path.slice(HARNESS_PATH.length + 1)) || "index.html"
+          const relativePath =
+            decodeURIComponent(path.slice(HARNESS_PATH.length + 1)) || "index.html"
           if (!harnessDir) {
-            if (relativePath === "index.html") send(res, 200, renderFallbackHarness(config, manifestUrl), CONTENT_TYPES[".html"]!)
+            if (relativePath === "index.html")
+              send(
+                res,
+                200,
+                renderFallbackHarness(config, manifestUrl),
+                CONTENT_TYPES[".html"]!
+              )
             else send(res, 404, "Not found", CONTENT_TYPES[".txt"]!)
             return
           }
           const target = normalize(join(harnessDir, relativePath))
-          if (!target.startsWith(`${normalize(harnessDir)}${sep}`) && target !== normalize(harnessDir)) {
+          if (
+            !target.startsWith(`${normalize(harnessDir)}${sep}`) &&
+            target !== normalize(harnessDir)
+          ) {
             send(res, 403, "Forbidden", CONTENT_TYPES[".txt"]!)
             return
           }
           let file = target
-          if (!existsSync(file) || statSync(file).isDirectory()) file = join(harnessDir, "index.html")
+          if (!existsSync(file) || statSync(file).isDirectory())
+            file = join(harnessDir, "index.html")
           if (!existsSync(file)) {
             send(res, 404, "Not found", CONTENT_TYPES[".txt"]!)
             return
           }
           const type = CONTENT_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream"
           if (basename(file) === "index.html") {
-            send(res, 200, injectHarnessConfig(readFileSync(file, "utf8"), { manifestUrl, mfeId: config.mfeId, origin: requestOrigin(server, req) }), type)
+            send(
+              res,
+              200,
+              injectHarnessConfig(readFileSync(file, "utf8"), {
+                manifestUrl,
+                mfeId: config.mfeId,
+                origin: requestOrigin(server, req),
+              }),
+              type
+            )
           } else send(res, 200, readFileSync(file), type)
           return
         }
@@ -278,8 +380,12 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
       const printSummary = () => {
         const origin = server.resolvedUrls?.local[0]?.replace(/\/$/, "")
         const routes = manifestCache?.manifest.routes.length
-        const shared = config.shared.requests.filter((request) => request.shared).map((request) => request.name)
-        const bundled = config.shared.requests.filter((request) => !request.shared).map((request) => request.name)
+        const shared = config.shared.requests
+          .filter((request) => request.shared)
+          .map((request) => request.name)
+        const bundled = config.shared.requests
+          .filter((request) => !request.shared)
+          .map((request) => request.name)
         const lines = [
           `${pc.bold("platform")} remote ${pc.cyan(config.mfeId)} (${config.mfeIdSource === "identity" ? "persisted identity" : config.mfeIdSource})`,
           `  route prefix   ${config.routePrefix}${routes !== undefined ? `  (${routes} route${routes === 1 ? "" : "s"})` : ""}`,
@@ -295,7 +401,11 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
       const summarize = () => {
         if (summarized) return
         summarized = true
-        void devManifest(server.resolvedUrls?.local[0] ? new URL(server.resolvedUrls.local[0]).origin : undefined).then(printSummary, printSummary)
+        void devManifest(
+          server.resolvedUrls?.local[0]
+            ? new URL(server.resolvedUrls.local[0]).origin
+            : undefined
+        ).then(printSummary, printSummary)
       }
       // The Vite CLI prints its URLs once `resolvedUrls` is known; programmatic servers get a delayed fallback.
       const printUrls = server.printUrls.bind(server)
@@ -303,7 +413,8 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         printUrls()
         summarize()
       }
-      if (server.httpServer) server.httpServer.once("listening", () => setTimeout(summarize, 100))
+      if (server.httpServer)
+        server.httpServer.once("listening", () => setTimeout(summarize, 100))
     },
   }
 }

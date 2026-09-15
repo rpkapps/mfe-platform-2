@@ -1,0 +1,44 @@
+---
+title: Retries
+description: What the host retries automatically, with which policy, and what it deliberately does not.
+---
+
+## Policy
+
+The runtime configuration sets the policy for the whole shell:
+
+```json
+{
+  "retry": { "attempts": 2, "backoffMs": 500 },
+  "cache": { "manifestMaxAgeSeconds": 60, "bustOnRetry": true }
+}
+```
+
+`attempts` is the number of retries after the first try; the delay doubles each time (`500`, `1000`). Every retry emits `manifest.retry` or `remote.failed` with the attempt number, so the diagnostics show the whole sequence.
+
+## Retried automatically
+
+| Operation | Retried | Cache busting |
+| --- | --- | --- |
+| Manifest fetch | network errors, 5xx, timeouts | `?t=<timestamp>` when `cache.bustOnRetry` |
+| Remote entry load | network and evaluation errors | loader cache invalidated, entry URL busted |
+| Runtime configuration fetch | network errors | yes |
+| Async settings options | manual (*Retry* in the control) | provider decides |
+
+## Never retried automatically
+
+- 4xx responses for manifests (a wrong URL does not fix itself); the *Retry* button still lets the operator try after fixing the deployment.
+- Manifest validation and protocol errors.
+- Mount failures: the *Retry* button disposes and mounts again on request.
+- Command handlers, loaders and guards: TanStack Router and the command palette expose retry to the user; the platform never re-runs business logic on its own.
+
+## Manual retry
+
+Every boundary state has a *Retry* action. Programmatically:
+
+```ts
+await host.remotes.retry("asset-tracker") // re-resolve, refetch, invalidate the loader, remount
+host.remotes.invalidate("asset-tracker") // drop caches without remounting
+```
+
+In development, the harness *Failure toggles* simulate unavailable remotes and slow manifests to exercise these states.

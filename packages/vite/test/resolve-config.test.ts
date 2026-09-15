@@ -26,12 +26,30 @@ afterEach(() => {
 describe("resolvePlatformConfig", () => {
   it("applies plugin option > mfe.config > inference > default per key", async () => {
     const root = project({
-      "package.json": JSON.stringify({ name: "@acme/Inferred Id", version: "2.0.0", description: "pkg description", dependencies: { react: "^18.3.0", "react-dom": "^18.3.0", "@tecton/react": "github:acme/tecton" } }),
+      "package.json": JSON.stringify({
+        name: "@acme/Inferred Id",
+        version: "2.0.0",
+        description: "pkg description",
+        dependencies: {
+          react: "^18.3.0",
+          "react-dom": "^18.3.0",
+          "@tecton/react": "github:acme/tecton",
+        },
+      }),
       "mfe.config.ts": `import { defineMfeConfig } from ${JSON.stringify(join(__dirname, "..", "src", "config.ts"))}
 export default defineMfeConfig({ routePrefix: "/from-config", description: "config description", discoverable: false, permissionGroups: ["a"], capabilities: { add: ["widgets"] }, css: { foundation: "bundled" }, env: { A: { required: true } } })`,
       "src/mfe.tsx": "export default {}",
     })
-    const config = await resolvePlatformConfig({ root, options: { routePrefix: "/from-option", permissionGroups: ["b"], capabilities: { remove: ["telemetry"] }, css: { ownerAttribute: "data-owner" }, env: { B: {} } } })
+    const config = await resolvePlatformConfig({
+      root,
+      options: {
+        routePrefix: "/from-option",
+        permissionGroups: ["b"],
+        capabilities: { remove: ["telemetry"] },
+        css: { ownerAttribute: "data-owner" },
+        env: { B: {} },
+      },
+    })
     expect(config.mfeId).toBe("inferred-id")
     expect(config.mfeIdSource).toBe("inferred")
     expect(config.federationName).toBe("mfe_inferred_id")
@@ -41,24 +59,51 @@ export default defineMfeConfig({ routePrefix: "/from-config", description: "conf
     expect(config.displayName).toBe("inferred-id")
     expect(config.permissionGroups).toEqual(["a", "b"])
     expect(config.capabilities).toEqual({ add: ["widgets"], remove: ["telemetry"] })
-    expect(config.css).toEqual({ scope: true, ownerAttribute: "data-owner", foundation: "bundled" })
+    expect(config.css).toEqual({
+      scope: true,
+      ownerAttribute: "data-owner",
+      foundation: "bundled",
+    })
     expect(config.env).toEqual({ A: { required: true }, B: {} })
     expect(config.tecton).toBe(true)
     expect(config.tailwind).toBe(false)
     expect(config.configFile).toBe(join(root, "mfe.config.ts"))
-    expect(config.runtime.react).toEqual({ requiredVersion: "^18.3.0", major: 18, builtWith: undefined })
+    expect(config.runtime.react).toEqual({
+      requiredVersion: "^18.3.0",
+      major: 18,
+      builtWith: undefined,
+    })
     expect(config.shared.reactMajor).toBe(18)
-    expect(config.shared.requests.find((request) => request.name === "react")).toMatchObject({ scope: "react18", shared: true, requiredVersion: "^18.3.0" })
-    expect(config.shared.requests.find((request) => request.name === "@tecton/react")).toMatchObject({ shared: false, reason: "source-package" })
+    expect(config.shared.requests.find((request) => request.name === "react")).toMatchObject({
+      scope: "react18",
+      shared: true,
+      requiredVersion: "^18.3.0",
+    })
+    expect(
+      config.shared.requests.find((request) => request.name === "@tecton/react")
+    ).toMatchObject({ shared: false, reason: "source-package" })
     // Second run: identity persisted, package rename ignored.
-    writeFileSync(join(root, "package.json"), JSON.stringify({ name: "renamed", version: "2.0.0" }))
+    writeFileSync(
+      join(root, "package.json"),
+      JSON.stringify({ name: "renamed", version: "2.0.0" })
+    )
     const again = await resolvePlatformConfig({ root })
-    expect(again).toMatchObject({ mfeId: "inferred-id", mfeIdSource: "identity", routePrefix: "/from-config", tecton: false })
-    expect(again.warnings.some((warning) => warning.includes("react is not a dependency"))).toBe(true)
+    expect(again).toMatchObject({
+      mfeId: "inferred-id",
+      mfeIdSource: "identity",
+      routePrefix: "/from-config",
+      tecton: false,
+    })
+    expect(
+      again.warnings.some((warning) => warning.includes("react is not a dependency"))
+    ).toBe(true)
   })
 
   it("falls back to defaults without mfe.config and supports .mjs configs", async () => {
-    const root = project({ "package.json": JSON.stringify({ name: "plain-mfe" }), "mfe.config.mjs": "export default { navigation: { title: \"Plain\" } }" })
+    const root = project({
+      "package.json": JSON.stringify({ name: "plain-mfe" }),
+      "mfe.config.mjs": 'export default { navigation: { title: "Plain" } }',
+    })
     const config = await resolvePlatformConfig({ root })
     expect(config.routePrefix).toBe("/plain-mfe")
     expect(config.displayName).toBe("Plain")
@@ -72,11 +117,23 @@ export default defineMfeConfig({ routePrefix: "/from-config", description: "conf
   })
 
   it("fails on invalid ids and prefixes with PlatformErrors", async () => {
-    const root = project({ "package.json": JSON.stringify({ name: "x" }), "mfe.config.ts": "export default { routePrefix: \"bad/\" }" })
-    await expect(resolvePlatformConfig({ root })).rejects.toMatchObject({ code: "ROUTE_PREFIX_INVALID" })
-    await expect(resolvePlatformConfig({ root, options: { mfeId: "Bad Id" } })).rejects.toMatchObject({ code: "MFE_ID_INVALID" })
-    const broken = project({ "package.json": JSON.stringify({ name: "x" }), "mfe.config.ts": "export default 42" })
-    await expect(resolvePlatformConfig({ root: broken })).rejects.toMatchObject({ code: "INTERNAL" })
+    const root = project({
+      "package.json": JSON.stringify({ name: "x" }),
+      "mfe.config.ts": 'export default { routePrefix: "bad/" }',
+    })
+    await expect(resolvePlatformConfig({ root })).rejects.toMatchObject({
+      code: "ROUTE_PREFIX_INVALID",
+    })
+    await expect(
+      resolvePlatformConfig({ root, options: { mfeId: "Bad Id" } })
+    ).rejects.toMatchObject({ code: "MFE_ID_INVALID" })
+    const broken = project({
+      "package.json": JSON.stringify({ name: "x" }),
+      "mfe.config.ts": "export default 42",
+    })
+    await expect(resolvePlatformConfig({ root: broken })).rejects.toMatchObject({
+      code: "INTERNAL",
+    })
   })
 
   it("resolves the sample fixture with installed versions and builds the federation config", async () => {
@@ -88,15 +145,41 @@ export default defineMfeConfig({ routePrefix: "/from-config", description: "conf
     expect(config.tecton).toBe(false)
     expect(config.installed.react).toMatch(/^19\./)
     const react = config.shared.requests.find((request) => request.name === "react")
-    expect(react).toMatchObject({ scope: "react19", shared: true, singleton: false, requiredVersion: "^19.0.0", pairedWith: ["react-dom"] })
+    expect(react).toMatchObject({
+      scope: "react19",
+      shared: true,
+      singleton: false,
+      requiredVersion: "^19.0.0",
+      pairedWith: ["react-dom"],
+    })
     expect(react?.version).toBe(config.installed.react)
-    expect(config.runtime.react).toEqual({ requiredVersion: "^19.0.0", major: 19, builtWith: config.installed.react })
-    expect(config.runtime.tanstackRouter?.builtWith).toBe(config.installed["@tanstack/react-router"])
+    expect(config.runtime.react).toEqual({
+      requiredVersion: "^19.0.0",
+      major: 19,
+      builtWith: config.installed.react,
+    })
+    expect(config.runtime.tanstackRouter?.builtWith).toBe(
+      config.installed["@tanstack/react-router"]
+    )
     const federation = buildFederationConfig(config)
-    expect(federation).toMatchObject({ name: "mfe_sample_mfe", filename: "remoteEntry.js", exposes: { "./mfe": join(sample, ".platform/entry.tsx") }, manifest: true, dts: false })
-    expect(federation.shared).toMatchObject({ react: { shareScope: "react19", requiredVersion: "^19.0.0", singleton: false }, "react-dom": { shareScope: "react19" }, "@tanstack/react-router": { shareScope: "react19" } })
+    expect(federation).toMatchObject({
+      name: "mfe_sample_mfe",
+      filename: "remoteEntry.js",
+      exposes: { "./mfe": join(sample, ".platform/entry.tsx") },
+      manifest: true,
+      dts: false,
+    })
+    expect(federation.shared).toMatchObject({
+      react: { shareScope: "react19", requiredVersion: "^19.0.0", singleton: false },
+      "react-dom": { shareScope: "react19" },
+      "@tanstack/react-router": { shareScope: "react19" },
+    })
     expect(federation.shared).not.toHaveProperty("zod")
-    const custom = await resolvePlatformConfig({ root: sample, persistIdentity: false, options: { federation: (base) => ({ ...base, shared: {} }) } })
+    const custom = await resolvePlatformConfig({
+      root: sample,
+      persistIdentity: false,
+      options: { federation: (base) => ({ ...base, shared: {} }) },
+    })
     expect(buildFederationConfig(custom).shared).toEqual({})
   })
 })

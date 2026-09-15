@@ -3,7 +3,13 @@ import { join } from "node:path"
 
 import { describe, expect, it } from "vitest"
 
-import { analyzeRouteSource, deriveRoutes, joinRoutePath, listRouteFiles, routePathFromFile } from "../src/routes"
+import {
+  analyzeRouteSource,
+  deriveRoutes,
+  joinRoutePath,
+  listRouteFiles,
+  routePathFromFile,
+} from "../src/routes"
 
 const fixtures = join(__dirname, "fixtures")
 
@@ -36,7 +42,17 @@ describe("routePathFromFile", () => {
     expect(routePathFromFile(file)).toBe(expected)
   })
 
-  it.each(["__root.tsx", "_layout.tsx", "(group).tsx", "-components/Button.tsx", "-helper.tsx", "index.test.tsx", "styles.css", "notes.md", "assets/$assetId.spec.tsx"])("skips %s", (file) => {
+  it.each([
+    "__root.tsx",
+    "_layout.tsx",
+    "(group).tsx",
+    "-components/Button.tsx",
+    "-helper.tsx",
+    "index.test.tsx",
+    "styles.css",
+    "notes.md",
+    "assets/$assetId.spec.tsx",
+  ])("skips %s", (file) => {
     expect(routePathFromFile(file)).toBeNull()
   })
 
@@ -49,13 +65,21 @@ describe("routePathFromFile", () => {
 })
 
 describe("analyzeRouteSource", () => {
-  const source = (name: string) => readFileSync(join(fixtures, "analysis", "routes", name), "utf8")
+  const source = (name: string) =>
+    readFileSync(join(fixtures, "analysis", "routes", name), "utf8")
 
   it("extracts guards, breadcrumbs, navigation and permission groups from literals", () => {
     const analysis = analyzeRouteSource(source("guarded.tsx"), "guarded.tsx")
     expect(analysis.guarded).toBe(true)
     expect(analysis.breadcrumb).toEqual({ label: "Asset", dynamic: true })
-    expect(analysis.navigation).toEqual({ title: "Asset", description: "One asset", icon: "box", keywords: ["asset"], order: 2, hidden: true })
+    expect(analysis.navigation).toEqual({
+      title: "Asset",
+      description: "One asset",
+      icon: "box",
+      keywords: ["asset"],
+      order: 2,
+      hidden: true,
+    })
     expect(analysis.permissionGroups).toEqual(["assets:read", "assets:write"])
     expect(analysis.warnings).toEqual([])
   })
@@ -70,10 +94,19 @@ describe("analyzeRouteSource", () => {
   })
 
   it("handles plain string breadcrumbs, lazy routes and broken sources", () => {
-    expect(analyzeRouteSource(source("plain.tsx"), "plain.tsx")).toMatchObject({ guarded: false, breadcrumb: "Plain" })
-    expect(analyzeRouteSource(source("lazy.lazy.tsx"), "lazy.lazy.tsx")).toMatchObject({ guarded: false })
-    const broken = analyzeRouteSource("export const Route = createFileRoute('/x')({ beforeLoad: () => {}, staticData: { breadcrumb: 'X' } ", "broken.tsx")
-    expect(broken.guarded).toBe(true)
+    expect(analyzeRouteSource(source("plain.tsx"), "plain.tsx")).toMatchObject({
+      guarded: false,
+      breadcrumb: "Plain",
+    })
+    expect(analyzeRouteSource(source("lazy.lazy.tsx"), "lazy.lazy.tsx")).toMatchObject({
+      guarded: false,
+    })
+    const broken = analyzeRouteSource(
+      "export const Route = createFileRoute('/x')({ beforeLoad: () => {}, staticData: { breadcrumb: 'X' } ",
+      "broken.tsx"
+    )
+    expect(broken.guarded).toBe(false)
+    expect(broken.warnings.some((warning) => warning.includes("could not parse"))).toBe(true)
   })
 })
 
@@ -90,18 +123,51 @@ describe("deriveRoutes", () => {
   })
 
   it("produces manifest route metadata with the prefix applied", () => {
-    const { routes, hasRoutes, warnings } = deriveRoutes({ root, routesDirectory: join(root, "src/routes"), routePrefix: "/sample" })
+    const { routes, hasRoutes, warnings } = deriveRoutes({
+      root,
+      routesDirectory: join(root, "src/routes"),
+      routePrefix: "/sample",
+    })
     expect(hasRoutes).toBe(true)
     expect(warnings).toEqual([])
     expect(routes).toEqual([
-      { path: "/", fullPath: "/sample", file: "src/routes/index.tsx", guarded: false, breadcrumb: "Home", navigation: { title: "Home", description: "Landing page", order: 1, keywords: ["start"] } },
-      { path: "/assets/$assetId", fullPath: "/sample/assets/$assetId", file: "src/routes/assets/$assetId.tsx", guarded: false, breadcrumb: { dynamic: true } },
-      { path: "/settings", fullPath: "/sample/settings", file: "src/routes/settings.tsx", guarded: true, breadcrumb: { label: "Settings", hidden: false }, permissionGroups: ["sample:admin"] },
+      {
+        path: "/",
+        fullPath: "/sample",
+        file: "src/routes/index.tsx",
+        guarded: false,
+        breadcrumb: "Home",
+        navigation: {
+          title: "Home",
+          description: "Landing page",
+          order: 1,
+          keywords: ["start"],
+        },
+      },
+      {
+        path: "/assets/$assetId",
+        fullPath: "/sample/assets/$assetId",
+        file: "src/routes/assets/$assetId.tsx",
+        guarded: false,
+        breadcrumb: { dynamic: true },
+      },
+      {
+        path: "/settings",
+        fullPath: "/sample/settings",
+        file: "src/routes/settings.tsx",
+        guarded: true,
+        breadcrumb: { label: "Settings", hidden: false },
+        permissionGroups: ["sample:admin"],
+      },
     ])
   })
 
   it("reports a missing routes directory", () => {
-    const result = deriveRoutes({ root, routesDirectory: join(root, "src/nope"), routePrefix: "/x" })
+    const result = deriveRoutes({
+      root,
+      routesDirectory: join(root, "src/nope"),
+      routePrefix: "/x",
+    })
     expect(result).toEqual({ routes: [], warnings: [], hasRoutes: false })
   })
 })

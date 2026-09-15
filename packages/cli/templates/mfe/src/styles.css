@@ -1,0 +1,18 @@
+@import "tailwindcss";
+/* {{#tecton}} */
+@import "@tecton/react/globals.css";
+/* {{/tecton}} */
+@source "./";
+
+/*
+ * MFE-local styles. The build scopes every selector under [data-mfe="__MFE_ID__"], so these
+ * rules never leak into the shell or other MFEs. Prefer Tailwind utilities{{#tecton}} and Tecton
+ * tokens (bg-muted, text-muted-foreground…){{/tecton}}; never stock colour classes such as
+ * `bg-red-500`{{#tecton}} (they produce no CSS with the Tecton palette){{/tecton}}.
+ */
+.asset-status-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}

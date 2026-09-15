@@ -1,0 +1,103 @@
+---
+title: "@platform/host"
+description: Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.
+---
+
+## `createPlatformHost(options)`
+
+```ts
+import { createPlatformHost } from "@platform/host"
+
+const host = createPlatformHost({
+  runtimeConfig: RuntimeConfigInput | string, // document or same-origin URL
+  registry?: { baseUrl?: string; remotes?: Record<string, { manifestUrl?: string; allowedOrigins?: string[] }> },
+  loader?: RemoteLoader, // default: Module Federation
+  telemetry?: TelemetryAdapter,
+  storage?: StorageBackend, // default: browser backend
+  navigation?: ShellNavigation, // default: browser navigation
+  context?: Partial<ShellContextState>, // initial user, groups, tenant…
+  policy?: { allowLocalOverrides?: boolean; exposePermissionGroups?: (groups: string[]) => string[] },
+  overlays?: { baseZIndex?: number; ownerAttribute?: string },
+  devtools?: { panels?: DevtoolsPanel[] },
+})
+```
+
+`PlatformHost`:
+
+| Member | Description |
+| --- | --- |
+| `context` | shell context store: `getState()`, `setState()`, `patch()`, `subscribe()` — update user, groups, tenant, project, job, theme, flags |
+| `remotes` | `resolve(mfeId)`, `load(mfeId)`, `preload(mfeId)`, `retry(mfeId)`, `invalidate(mfeId)`, `list()`, `setOverride(mfeId, url)`, `clearOverrides()` |
+| `mount(mfeId, container, options?)` | mount a route MFE; returns `MountHandle` |
+| `mountWidget({ mfeId, widgetId, container, props })` | mount a widget instance; returns `WidgetHandle` |
+| `commands` | `run(qualifiedId, { source? })`, `list()`, `conflicts()`, `states()`, `events` |
+| `settings`, `help`, `releaseNotes` | registries (`list()`, `events`) and the settings value port |
+| `breadcrumbs` | `setShell(entries)`, `current()`, `subscribe()`, `setRenderer()` |
+| `overlays` | overlay manager |
+| `runtimeConfig` | `get()`, `refresh()`, `viewFor(mfeId)` (redacted views for devtools) |
+| `diagnostics` | `snapshot()`, `subscribe(listener)`, `events` |
+| `telemetry` | shell-level `Telemetry` |
+| `devtools` | `enabled`, `open()`, `close()` |
+| `dispose()` | tear down everything |
+
+## React components — `@platform/host/react`
+
+```tsx
+import {
+  PlatformProvider, MfeOutlet, WidgetSlot, CommandPalette, SettingsHost,
+  HelpSlot, ReleaseNotesSlot, Breadcrumbs, AppFinder, PlatformDevtools, NotificationHost,
+} from "@platform/host/react"
+```
+
+| Component | Props |
+| --- | --- |
+| `PlatformProvider` | `host`; wraps the shell tree |
+| `MfeOutlet` | `mfeId`, `loading?`, `error?`, `unavailable?`, `forbidden?`, `disabled?` |
+| `WidgetSlot` | `mfeId`, `widgetId`, `props`, `slot?` (stable instance key), `loading?`, `error?` |
+| `CommandPalette` | `shortcut?`, `placeholder?`, `groups?` |
+| `SettingsHost` | `mfeId?`; renders framework-managed groups and links MFE-managed pages |
+| `HelpSlot`, `ReleaseNotesSlot` | `mfeId?` |
+| `Breadcrumbs` | `max?`, `renderer?` (custom renderer escape hatch) |
+| `AppFinder` | `category?`, `onOpen?`; discoverable remotes only |
+| `PlatformDevtools` | `position?`; lazy |
+| `NotificationHost` | Tecton `Toaster` bound to the notification port |
+
+## TanStack bridge — `@platform/host/tanstack`
+
+```ts
+import { createTanStackShellNavigation, mfeRoute } from "@platform/host/tanstack"
+
+const navigation = createTanStackShellNavigation(router)
+
+// $-route helper: mounts a remote for everything under a prefix
+export const Route = createFileRoute("/asset-tracker/$")(mfeRoute({ mfeId: "asset-tracker" }))
+```
+
+## Harness — `@platform/host/harness`
+
+```ts
+import { createHarness } from "@platform/host/harness"
+```
+
+The local shell used by `platform dev`, built by `@platform/host` into `dist/harness/`. `createHarness({ manifestUrl, context?, failures? })` is available for custom setups; the CLI serves the built assets at `/__platform/harness/`.
+
+## Entrypoint — `@platform/host/entrypoint`
+
+```text
+platform-host-entrypoint --out <file> [--base <file>] [--known <ids>] [--print]
+```
+
+```ts
+import { generateRuntimeConfig } from "@platform/host/entrypoint"
+const { config, refused, sources } = generateRuntimeConfig({ env: process.env, base, knownMfeIds })
+```
+
+See [Runtime configuration](/docs/runtime-configuration).
+
+## Styles
+
+`@platform/host/styles.css` contains the host component styles (boundary states, palette, settings host, breadcrumbs) built on the Tecton tokens; import it after `@tecton/react/globals.css`.
+
+## Re-exported contracts
+
+`PlatformError`, `ERROR_CODES`, `isPlatformError`, `validateManifest`, `parseRuntimeConfig`, `redactRuntimeConfig`, `negotiateShared`, `createMemoryNavigation`, `createBrowserNavigation`, `createMemoryStorageBackend`, `createBrowserStorageBackend`, `createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`, and the types `HostBridge`, `RemoteDefinition`, `RemoteLoader`, `ShellNavigation`, `StorageBackend`, `TelemetryAdapter`, `DiagnosticEvent`, `MfeManifest`, `RuntimeConfig`.

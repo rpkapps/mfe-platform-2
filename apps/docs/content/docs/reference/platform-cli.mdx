@@ -1,0 +1,74 @@
+---
+title: "@platform/cli"
+description: The platform command line and the shareable ESLint configuration.
+---
+
+## Commands
+
+```text
+platform create <name>       scaffold a complete MFE
+platform dev                 Vite dev server + local shell harness
+platform build               production build with manifest
+platform manifest            print the manifest without building
+platform validate [dir]      validate a built manifest (default dist/)
+platform lint                run the shareable ESLint config
+platform test                run Vitest with the scaffolded configuration
+```
+
+### `create`
+
+```bash
+npx @platform/cli create my-mfe
+```
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `--react <18\|19>` | `19` | React major of the remote |
+| `--tecton` / `--no-tecton` | `--tecton` | Tecton UI and Tailwind isolation |
+| `--widgets-only` | off | widget library without routes |
+| `--route-prefix <prefix>` | `/<mfeId>` | initial `mfe.config.ts` override |
+| `--package-manager <pnpm\|npm\|yarn\|bun>` | detected | scripts and lockfile |
+| `--no-install` | off | skip installing dependencies |
+
+The scaffold contents are listed in [Create an MFE](/docs/getting-started/create-mfe).
+
+### `dev`
+
+| Flag | Default |
+| --- | --- |
+| `--port <n>` | `4200` |
+| `--host <host>` | `localhost` |
+| `--cors <origin>` | shell origins allowed to load the dev remote (repeatable) |
+| `--no-harness` | serve the remote only |
+| `--open` | open the harness in the browser |
+
+### `build`, `manifest`, `validate`
+
+`build` runs `vite build` with the platform plugin and prints the shared/bundled summary and the scoped CSS summary. `manifest` prints the JSON the build would emit (`--json` for machine output). `validate` checks `dist/platform-manifest.json` against the schema and the protocol version and exits non-zero with the issues.
+
+### `lint`, `test`
+
+Thin wrappers around ESLint and Vitest that use the scaffolded configuration files, so local runs and CI are identical. Arguments are passed through (`platform lint --fix`, `platform test --watch`).
+
+## `@platform/cli/eslint`
+
+```ts
+import { platformConfig, platformPlugin, platformRules } from "@platform/cli/eslint"
+```
+
+| Export | Description |
+| --- | --- |
+| `platformConfig(options?)` | flat config array: JS, TypeScript (strict, type-aware with `tsconfig`), React hooks, JSX a11y, TanStack Router and the platform rules, with generated files ignored |
+| `platformPlugin` | the ESLint plugin (`platform/*` rules) for custom configs |
+| `platformRules` | the recommended rule severities |
+
+```ts
+platformConfig({
+  tsconfig?: string,
+  rules?: Record<string, "off" | "warn" | "error">,
+  ignores?: string[],
+  overrides?: Linter.Config[],
+})
+```
+
+Every rule is documented in [Linting](/docs/linting).

@@ -324,3 +324,22 @@ export const PLATFORM_HOOKS = [
 export const IMPERATIVE_REGISTERS = ["registerCommand", "registerSettingsGroup", "registerSettingsField", "registerHelp", "registerReleaseNotes", "registerBreadcrumb"] as const
 
 export const KEBAB_LOCAL_ID_RE = /^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$/
+
+/**
+ * Identifier references to global names (unresolved references plus references to
+ * globals declared through `languageOptions.globals`, which ESLint resolves).
+ */
+export function globalIdentifierReferences(context: Readonly<TSESLint.RuleContext<string, unknown[]>>, program: TSESTree.Program, names: ReadonlySet<string>): TSESTree.Identifier[] {
+  let scope: TSESLint.Scope.Scope | null = context.sourceCode.getScope(program)
+  while (scope && scope.type !== "global" && scope.upper) scope = scope.upper
+  if (!scope) return []
+  const found: TSESTree.Identifier[] = []
+  for (const reference of scope.through) {
+    if (names.has(reference.identifier.name)) found.push(reference.identifier as TSESTree.Identifier)
+  }
+  for (const variable of scope.variables) {
+    if (!names.has(variable.name) || variable.defs.length > 0) continue
+    for (const reference of variable.references) found.push(reference.identifier as TSESTree.Identifier)
+  }
+  return found
+}

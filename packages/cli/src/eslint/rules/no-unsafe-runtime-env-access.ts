@@ -1,11 +1,12 @@
 import { AST_NODE_TYPES } from "@typescript-eslint/utils"
 
 import { matchesAny } from "../../glob"
-import { createRule, filenameOf, memberChain, stringValue } from "../utils"
+import { createRule, filenameOf, globalIdentifierReferences, memberChain, stringValue } from "../utils"
 
 type Options = [{ allow?: string[] }]
 type MessageIds = "platformConfigGlobal" | "platformConfigFetch" | "viteEnv" | "processEnv"
 
+const PLATFORM_CONFIG_GLOBALS = new Set(["__PLATFORM_CONFIG__"])
 const DEFAULT_ALLOW = ["**/vite.config.*", "**/mfe.config.*", "**/playwright.config.*", "**/vitest.config.*"]
 
 export default createRule<Options, MessageIds>({
@@ -33,9 +34,7 @@ export default createRule<Options, MessageIds>({
     if (matchesAny(filename, [...DEFAULT_ALLOW, ...(options.allow ?? [])])) return {}
     return {
       Program(program) {
-        for (const reference of context.sourceCode.getScope(program).through) {
-          if (reference.identifier.name === "__PLATFORM_CONFIG__") context.report({ node: reference.identifier, messageId: "platformConfigGlobal" })
-        }
+        for (const identifier of globalIdentifierReferences(context, program, PLATFORM_CONFIG_GLOBALS)) context.report({ node: identifier, messageId: "platformConfigGlobal" })
       },
       MemberExpression(node) {
         const chain = memberChain(node)

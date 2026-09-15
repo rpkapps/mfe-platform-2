@@ -15,10 +15,17 @@ function toImportPath(from: string, to: string): string {
 
 /** Source of `.platform/entry.tsx`: the user entry, wrapped with `withTecton` when Tecton is enabled. */
 export function renderEntry(config: ResolvedPlatformConfig): string {
-  const userEntry = toImportPath(config.generatedEntry, config.entry).replace(/\.(tsx|ts|jsx|js)$/, "")
+  const userEntry = toImportPath(config.generatedEntry, config.entry).replace(
+    /\.(tsx|ts|jsx|js)$/,
+    ""
+  )
   const lines = [GENERATED_BANNER, `import definition from "${userEntry}"`]
   if (config.tecton) {
-    lines.push(`import { withTecton } from "@platform/react/tecton"`, "", "export default withTecton(definition)")
+    lines.push(
+      `import { withTecton } from "@platform/react/tecton"`,
+      "",
+      "export default withTecton(definition)"
+    )
   } else {
     lines.push("", "export default definition")
   }
@@ -44,6 +51,10 @@ export function writeGeneratedEntry(config: ResolvedPlatformConfig): string {
   ensurePlatformDir(config.root)
   mkdirSync(dirname(config.generatedEntry), { recursive: true })
   const content = renderEntry(config)
-  if (!existsSync(config.generatedEntry) || readFileSync(config.generatedEntry, "utf8") !== content) writeFileSync(config.generatedEntry, content)
+  if (
+    !existsSync(config.generatedEntry) ||
+    readFileSync(config.generatedEntry, "utf8") !== content
+  )
+    writeFileSync(config.generatedEntry, content)
   return config.generatedEntry
 }

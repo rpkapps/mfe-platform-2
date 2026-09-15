@@ -18,7 +18,8 @@ export interface ScopeCssResult {
 }
 
 const KEYFRAMES_RE = /^(-\w+-)?keyframes$/i
-const UNSCOPED_AT_RULES = /^((-\w+-)?keyframes|font-face|property|page|counter-style|font-feature-values|font-palette-values)$/i
+const UNSCOPED_AT_RULES =
+  /^((-\w+-)?keyframes|font-face|property|page|counter-style|font-feature-values|font-palette-values)$/i
 const ANIMATION_DECL_RE = /^(-\w+-)?animation(-name)?$/i
 
 /**
@@ -60,17 +61,28 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
   root.walkAtRules((atRule) => {
     if (/^property$/i.test(atRule.name) && !propertyWarned) {
       propertyWarned = true
-      warnings.push(`@property rules are document-global and were kept unscoped (${atRule.params.trim()}${countAtRules(root, /^property$/i) > 1 ? ", …" : ""}).`)
+      warnings.push(
+        `@property rules are document-global and were kept unscoped (${atRule.params.trim()}${countAtRules(root, /^property$/i) > 1 ? ", …" : ""}).`
+      )
     }
     if (/^import$/i.test(atRule.name) && !importWarned) {
       importWarned = true
-      warnings.push(`@import rules were left as is; imported stylesheets are not scoped (${atRule.params.trim()}).`)
+      warnings.push(
+        `@import rules were left as is; imported stylesheets are not scoped (${atRule.params.trim()}).`
+      )
     }
   })
 
-  const isOwnerAttribute = (node: selectorParser.Node): boolean => selectorParser.isAttribute(node) && node.attribute === attribute && node.value === owner
+  const isOwnerAttribute = (node: selectorParser.Node): boolean =>
+    selectorParser.isAttribute(node) && node.attribute === attribute && node.value === owner
   const createOwner = () => {
-    const node = selectorParser.attribute({ attribute, operator: "=", value: owner, raws: {} })
+    const node = selectorParser.attribute({
+      attribute,
+      operator: "=",
+      value: owner,
+      quoteMark: '"',
+      raws: {},
+    })
     node.setValue(owner, { quoteMark: '"' })
     return node
   }
@@ -86,7 +98,10 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
     return false
   }
 
-  const replaceRootLike = (container: selectorParser.Container, firstCompoundOnly: boolean): boolean => {
+  const replaceRootLike = (
+    container: selectorParser.Container,
+    firstCompoundOnly: boolean
+  ): boolean => {
     let rooted = false
     let compound = 0
     for (const node of [...container.nodes]) {
@@ -100,9 +115,18 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
         if (compound === 0) rooted = true
         continue
       }
-      if (selectorParser.isPseudoClass(node) && node.nodes.length > 0 && /^:(is|where|not|has)$/i.test(node.value)) {
+      if (
+        selectorParser.isPseudoClass(node) &&
+        node.nodes.length > 0 &&
+        /^:(is|where|not|has)$/i.test(node.value)
+      ) {
         for (const inner of node.nodes) {
-          if (replaceRootLike(inner, false) && compound === 0 && !/^:(not|has)$/i.test(node.value)) rooted = true
+          if (
+            replaceRootLike(inner, false) &&
+            compound === 0 &&
+            !/^:(not|has)$/i.test(node.value)
+          )
+            rooted = true
         }
       }
     }
@@ -116,9 +140,16 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
       if (!first || !combinator || !second) continue
       const before = nodes[index - 1]
       const after = nodes[index + 3]
-      const firstAlone = isOwnerAttribute(first) && (before === undefined || selectorParser.isCombinator(before))
-      const secondAlone = isOwnerAttribute(second) && (after === undefined || selectorParser.isCombinator(after))
-      if (firstAlone && secondAlone && selectorParser.isCombinator(combinator) && combinator.value.trim() === "") {
+      const firstAlone =
+        isOwnerAttribute(first) && (before === undefined || selectorParser.isCombinator(before))
+      const secondAlone =
+        isOwnerAttribute(second) && (after === undefined || selectorParser.isCombinator(after))
+      if (
+        firstAlone &&
+        secondAlone &&
+        selectorParser.isCombinator(combinator) &&
+        combinator.value.trim() === ""
+      ) {
         combinator.remove()
         second.remove()
         index -= 1
@@ -149,7 +180,9 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
     try {
       rule.selector = processor.processSync(rule.selector, { lossless: true })
     } catch (error) {
-      warnings.push(`Selector "${rule.selector}" could not be parsed and was left unscoped (${error instanceof Error ? error.message : String(error)}).`)
+      warnings.push(
+        `Selector "${rule.selector}" could not be parsed and was left unscoped (${error instanceof Error ? error.message : String(error)}).`
+      )
       return
     }
     const unique = [...new Set(rule.selectors.map((selector) => selector.trim()))]
@@ -185,10 +218,16 @@ function isUnscopable(rule: Rule): boolean {
 
 /** Rename keyframe identifiers inside `animation` / `animation-name` values. */
 export function rewriteAnimationNames(value: string, renamed: Map<string, string>): string {
-  return value.replace(/(?<![\w-])([A-Za-z_][\w-]*)(?![\w-(])/g, (match) => renamed.get(match) ?? match)
+  return value.replace(
+    /(?<![\w-])([A-Za-z_][\w-]*)(?![\w-(])/g,
+    (match) => renamed.get(match) ?? match
+  )
 }
 
-/** True when the stylesheet already carries the owner attribute on its first scoped rule (used to skip double work). */
+/** True when the stylesheet carries the owner attribute (quoted, or unquoted after minification). */
 export function isScoped(css: string, owner: string, ownerAttribute = "data-mfe"): boolean {
-  return css.includes(`[${ownerAttribute}="${owner}"]`)
+  return (
+    css.includes(`[${ownerAttribute}="${owner}"]`) ||
+    css.includes(`[${ownerAttribute}=${owner}]`)
+  )
 }

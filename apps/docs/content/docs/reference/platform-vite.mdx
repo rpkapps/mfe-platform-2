@@ -1,0 +1,70 @@
+---
+title: "@platform/vite"
+description: The platform() Vite plugin and the mfe.config.ts helper.
+---
+
+## `platform(options?)`
+
+```ts
+import { platform } from "@platform/vite"
+
+export default defineConfig({ plugins: [platform(options)] })
+```
+
+Returns an array of Vite plugins. `options` is `PlatformPluginOptions`: everything in [`MfeConfig`](#mfeconfig) plus `root`, `react` (`false | ReactPluginOptions`) and `tailwind` (`boolean | "auto"`). See [Vite configuration](/docs/getting-started/vite-configuration) for the composed integrations and the option table.
+
+## `defineMfeConfig(config)` — `@platform/vite/config`
+
+```ts
+import { defineMfeConfig } from "@platform/vite/config"
+
+export default defineMfeConfig({ routePrefix: "/assets" })
+```
+
+Identity function that types `mfe.config.ts` (`mfe.config.mts`, `.js`, `.mjs` are also found). The file must default-export an object.
+
+## `MfeConfig`
+
+```ts
+interface MfeConfig {
+  mfeId?: string
+  routePrefix?: string
+  displayName?: string
+  description?: string
+  discoverable?: boolean
+  navigation?: { title: string; description?: string; icon?: string; keywords?: string[]; category?: string; order?: number }
+  permissionGroups?: string[]
+  capabilities?: { add?: CapabilityId[]; remove?: CapabilityId[] }
+  shared?: Record<string, boolean | { version?: string; bundle?: boolean; singleton?: boolean; scope?: string }>
+  env?: Record<string, { required?: boolean; description?: string; default?: string | number | boolean }>
+  css?: { scope?: boolean; ownerAttribute?: string; foundation?: "shell" | "bundled" }
+  tecton?: boolean | "auto"
+  routesDirectory?: string
+  entry?: string
+  manifest?: { fileName?: string }
+  federation?: (config: ModuleFederationOptions) => ModuleFederationOptions
+  runtime?: { react?: string; reactDom?: string; tanstackRouter?: string; platformReact?: string }
+  harness?: { enabled?: boolean; dir?: string }
+}
+```
+
+Exported types: `MfeConfig`, `NavigationOptions`, `CapabilityOptions`, `EnvKeyOptions`, `CssOptions`, `ManifestOptions`, `RuntimeOverrides`, `HarnessOptions`, `SharedOptions`, `PlatformPluginOptions`.
+
+## Generated artefacts
+
+| Artefact | Location |
+| --- | --- |
+| Route tree | `src/routeTree.gen.ts` |
+| Identity | `.platform/identity.json` (committed) |
+| Entry | `.platform/entry.tsx` |
+| Manifest | `dist/platform-manifest.json` (build), `/platform-manifest.json` (dev) |
+| Loader manifest | `dist/mf-manifest.json` |
+| Dev endpoints | `/@platform/refresh-preamble`, `/__platform/harness/` |
+
+## Build environment
+
+| Variable | Manifest field |
+| --- | --- |
+| `PLATFORM_BUILD_ID` | `release.buildId` |
+| `PLATFORM_COMMIT` | `release.commit` |
+| `PLATFORM_CHANNEL` | `release.channel` |

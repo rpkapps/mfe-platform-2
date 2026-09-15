@@ -205,6 +205,12 @@ importers:
       '@eslint/js':
         specifier: 'catalog:'
         version: 9.39.5
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:internal/conformance
+      '@platform-internal/core':
+        specifier: workspace:*
+        version: link:internal/core
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.63.0

@@ -1,0 +1,55 @@
+---
+title: Telemetry span in a loader
+description: Time a route loader with a span that is automatically enriched with the MFE, instance and route.
+---
+
+```tsx title="src/routes/assets/$assetId.tsx"
+import { createFileRoute, notFound } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/assets/$assetId")({
+  loader: async ({ context, params, abortController }) => {
+    const { telemetry, runtime } = context.platform
+    const span = telemetry.span("load-asset", { assetId: params.assetId })
+    try {
+      const response = await fetch(`${runtime.env.API_BASE_URL}/assets/${params.assetId}`, {
+        signal: abortController.signal,
+      })
+      if (response.status === 404) {
+        span.end({ outcome: "not-found" })
+        throw notFound()
+      }
+      if (!response.ok) throw new Error(`Asset request failed (${response.status})`)
+      const asset = await response.json()
+      const child = span.child("parse")
+      const parsed = assetSchema.parse(asset)
+      child.end()
+      span.end({ outcome: "ok" })
+      return parsed
+    } catch (error) {
+      span.fail(error)
+      throw error
+    }
+  },
+  staticData: { breadcrumb: { fromLoader: "name" } },
+})
+```
+
+What the adapter receives (with a span-capable adapter, or as `span:load-asset` events otherwise):
+
+```json
+{
+  "span.name": "load-asset",
+  "span.duration_ms": 118,
+  "assetId": "pump-42",
+  "outcome": "ok",
+  "mfeId": "asset-tracker",
+  "instanceId": "asset-tracker#1",
+  "route": "/assets/$assetId",
+  "environment": "staging",
+  "release": "3.4.0",
+  "remoteRelease": "2.1.0",
+  "sessionId": "…"
+}
+```
+
+`span.fail` also reports the error through `adapter.error` with the same attributes. If the shell has no telemetry adapter, all of this is a no-op; if the adapter throws, the loader is unaffected.

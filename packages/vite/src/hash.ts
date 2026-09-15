@@ -20,7 +20,10 @@ function sortKeys(value: unknown): unknown {
     for (const key of Object.keys(value as Record<string, unknown>).sort()) {
       const entry = (value as Record<string, unknown>)[key]
       if (entry === undefined) continue
-      sorted[key] = typeof entry === "function" ? `[function ${(entry as { name?: string }).name || "anonymous"}]` : sortKeys(entry)
+      sorted[key] =
+        typeof entry === "function"
+          ? `[function ${(entry as { name?: string }).name || "anonymous"}]`
+          : sortKeys(entry)
     }
     return sorted
   }

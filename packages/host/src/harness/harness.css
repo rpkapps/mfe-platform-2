@@ -1,0 +1,70 @@
+@import "@tecton/react/globals.css";
+@import "../styles.css";
+
+@source "../";
+
+.harness-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.harness-remote {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+.harness-remote-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.harness-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 36rem;
+}
+.harness-form-row {
+  display: grid;
+  gap: 0.25rem;
+}
+.harness-form-row > span {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.harness-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.harness-lab {
+  display: grid;
+  gap: 0.75rem;
+}
+.harness-lab-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.harness-widgets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+.harness-widget-card {
+  padding: 0.75rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+}
+.harness-textarea {
+  width: 100%;
+  min-height: 6rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}

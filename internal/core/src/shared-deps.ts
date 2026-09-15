@@ -76,7 +76,7 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       if (override !== undefined && override !== false) warnings.push(`"${name}" is configured as shared but is not a dependency of the project.`)
       continue
     }
-    if (range.startsWith("workspace:") || range.startsWith("github:") || range.startsWith("git+") || range.startsWith("file:") || range.startsWith("link:")) {
+    if (range.startsWith("workspace:") || range.startsWith("catalog:") || range.startsWith("github:") || range.startsWith("git+") || range.startsWith("file:") || range.startsWith("link:")) {
       const installedVersion = installed[name]
       if (!installedVersion) {
         requests.push({ name, requiredVersion: "*", version: undefined, scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "source-package" })
@@ -91,7 +91,7 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       requests.push({ name, requiredVersion: range, version: installed[name], scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "source-package" })
       continue
     }
-    const requiredVersion = typeof override === "object" && override.version ? override.version : range.startsWith("workspace:") ? `^${installed[name] ?? "0.0.0"}` : range
+    const requiredVersion = typeof override === "object" && override.version ? override.version : range.startsWith("workspace:") || range.startsWith("catalog:") ? `^${installed[name] ?? "0.0.0"}` : range
     requests.push({
       name,
       requiredVersion,

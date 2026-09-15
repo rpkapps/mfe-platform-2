@@ -1,0 +1,83 @@
+---
+title: Manifest schema
+description: Fields of platform-manifest.json. The JSON Schema is published at /schemas/manifest.json.
+---
+
+Schema: [`/schemas/manifest.json`](/schemas/manifest.json) (JSON Schema draft 2020-12, generated from the Zod schema in `internal/core/src/manifest.ts`). Guide: [Manifests](/docs/manifests).
+
+```json
+{ "$schema": "https://platform.docs.local/schemas/manifest.json" }
+```
+
+## Top level
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `schemaVersion` | `1` | `1` | manifest format version |
+| `protocolVersion` | `string` | `"1.0"` | platform protocol; majors must match the host |
+| `mfeId` | `string` (kebab-case) | required | stable identity |
+| `kind` | `"mfe" \| "widget-library"` | `"mfe"` | |
+| `version` | `string` | required | package version |
+| `displayName`, `description` | `string` | | |
+| `release` | `{ version, buildId?, commit?, builtAt?, channel? }` | required | |
+| `entry` | `RemoteEntry` | required | |
+| `remote` | `{ baseUrl, allowedOrigins?, preload }` | `{ baseUrl: "./", preload: "none" }` | |
+| `routePrefix` | `string` | `/${mfeId}` when absent | |
+| `routes` | `RouteMetadata[]` | `[]` | |
+| `navigation` | `{ title, description?, icon?, keywords?, category?, order? }` | | App Finder entry |
+| `discoverable` | `boolean` | `true` | |
+| `enabled` | `boolean` | `true` | |
+| `loadPolicy` | `"lazy" \| "preload" \| "eager"` | `"lazy"` | |
+| `permissionGroups` | `string[]` | `[]` | required to load |
+| `capabilities` | `CapabilityId[]` | `[]` | requested |
+| `commands`, `settings`, `help`, `releaseNotes`, `widgets` | contribution arrays | `[]` | static contributions |
+| `breadcrumbs` | `{ rootLabel?, renderer: "shell" \| "mfe" }` | `{ renderer: "shell" }` | |
+| `shared` | `SharedRequest[]` | `[]` | |
+| `runtime` | `RuntimeRequirements` | required | |
+| `tecton` | `{ enabled, version?, cssProtocol?, tokens?, foundation }` | `{ enabled: false, foundation: "shell" }` | |
+| `css` | `{ ownerAttribute, scoped, assets }` | `{ "data-mfe", true, [] }` | |
+| `env` | `{ keys: Record<string, { required, description?, public: true, default? }> }` | `{ keys: {} }` | |
+| `dev` | `DevInfo` | absent in production | |
+
+## `entry`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `loader` | `"module-federation"` | loader the entry targets |
+| `name` | `string` | container name (`mfe_asset_tracker`) |
+| `file` | `string` | entry file relative to `remote.baseUrl` (`remoteEntry.js`) |
+| `expose` | `string` | exposed module (`./mfe`) |
+| `type` | `"module" \| "var"` | module type |
+| `loaderManifest` | `string?` | `mf-manifest.json` |
+
+## `routes[]`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `path` | `string` | relative to the prefix, TanStack syntax |
+| `fullPath` | `string` | including the prefix |
+| `file` | `string` | route file |
+| `guarded` | `boolean` | declares `beforeLoad` |
+| `breadcrumb` | `string \| { label?, dynamic?, hidden? }` | from `staticData` |
+| `navigation` | `{ title, description?, keywords?, icon?, order?, hidden? }` | from `staticData` |
+| `permissionGroups` | `string[]` | from `staticData` |
+
+## Contributions
+
+- `commands[]`: `{ id, label, description?, group?, keywords?, shortcut?, permissionGroups?, route?, static }`
+- `settings[]`: `{ key, title, description?, keywords?, managedBy, route?, fields: [{ key, label?, description?, kind?, keywords? }] }`
+- `help[]`: `{ id, title, description?, keywords?, href?, route? }`
+- `releaseNotes[]`: `{ id, version, title, date?, summary?, keywords?, href? }`
+- `widgets[]`: `{ id, title?, description?, propsSchema?, permissionGroups? }`
+
+## `shared[]`
+
+`{ name, requiredVersion, version?, scope, singleton, shared, reason, pairedWith? }` with `reason` in `inferred`, `configured`, `source-package`, `disabled`, `pinned`. See [Dependency sharing](/docs/dependency-sharing).
+
+## `runtime`
+
+`{ react: { requiredVersion, major, builtWith? }, reactDom?, tanstackRouter?, platformReact? }`.
+
+## `dev`
+
+`{ hmr, origin?, refreshPreamble?, configHash?, restartRequired?, restartReason? }`. Only development servers emit it. See [Local development](/docs/local-development).

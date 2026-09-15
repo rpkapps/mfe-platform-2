@@ -1,4 +1,5 @@
-import { relative } from "node:path"
+import { existsSync } from "node:fs"
+import { join, relative } from "node:path"
 
 import { PlatformError } from "@platform-internal/core"
 import type { Plugin, ResolvedConfig, UserConfig } from "vite"
@@ -18,8 +19,15 @@ export function platformCorePlugin(context: PlatformContext): Plugin {
   return {
     name: "platform:core",
     enforce: "post",
+    apply: (_config, env) => env.mode !== "test",
     config(userConfig: UserConfig) {
       const config = context.config()
+      // Written before rolldown resolves inputs; a missing src/mfe.tsx fails here with a formatted PlatformError.
+      try {
+        writeGeneratedEntry(config)
+      } catch (error) {
+        throw toBuildError(error)
+      }
       const port = userConfig.server?.port
       const server: NonNullable<UserConfig["server"]> = {}
       if (userConfig.server?.cors === undefined) server.cors = true
@@ -27,11 +35,12 @@ export function platformCorePlugin(context: PlatformContext): Plugin {
       const build: NonNullable<UserConfig["build"]> = {}
       if (userConfig.build?.target === undefined) build.target = "es2022"
       if (userConfig.build?.cssCodeSplit === undefined) build.cssCodeSplit = false
-      return {
-        define: { __PLATFORM_MFE_ID__: JSON.stringify(config.mfeId) },
-        build,
-        server,
-      }
+      // A remote needs no index.html: the generated entry is the build input unless the project configures one.
+      const configuredInput =
+        userConfig.build?.rolldownOptions?.input ?? userConfig.build?.rollupOptions?.input
+      if (configuredInput === undefined && !existsSync(join(config.root, "index.html")))
+        build.rolldownOptions = { input: { mfe: config.generatedEntry } }
+      return { build, server }
     },
     configResolved(resolved) {
       viteConfig = resolved
@@ -46,10 +55,15 @@ export function platformCorePlugin(context: PlatformContext): Plugin {
           })
         )
       }
-      const output = resolved.build.rolldownOptions?.output ?? resolved.build.rollupOptions?.output
+      const output =
+        resolved.build.rolldownOptions?.output ?? resolved.build.rollupOptions?.output
       const outputs = Array.isArray(output) ? output : output ? [output] : []
-      if (outputs.some((entry) => (entry as { codeSplitting?: unknown }).codeSplitting === false)) {
-        resolved.logger.warn(`[platform] build.rolldownOptions.output.codeSplitting is false: route-level code splitting and shared-dependency chunks are disabled for "${config.mfeId}".`)
+      if (
+        outputs.some((entry) => (entry as { codeSplitting?: unknown }).codeSplitting === false)
+      ) {
+        resolved.logger.warn(
+          `[platform] build.rolldownOptions.output.codeSplitting is false: route-level code splitting and shared-dependency chunks are disabled for "${config.mfeId}".`
+        )
       }
     },
     buildStart() {
@@ -67,18 +81,34 @@ export function platformCorePlugin(context: PlatformContext): Plugin {
         if (asset.type !== "asset" || !asset.fileName.endsWith(".css")) continue
         cssAssets.push(asset.fileName)
         if (!config.css.scope) continue
-        const source = typeof asset.source === "string" ? asset.source : Buffer.from(asset.source).toString("utf8")
+        const source =
+          typeof asset.source === "string"
+            ? asset.source
+            : Buffer.from(asset.source).toString("utf8")
         // Idempotent: already scoped rules and renamed keyframes are left untouched.
-        asset.source = scopeCss(source, { owner: config.mfeId, ownerAttribute: config.css.ownerAttribute, dropFontFaces: config.css.foundation === "shell" }).css
+        asset.source = scopeCss(source, {
+          owner: config.mfeId,
+          ownerAttribute: config.css.ownerAttribute,
+          dropFontFaces: config.css.foundation === "shell",
+        }).css
       }
       let generated
       try {
-        generated = await generateManifest({ root: config.root, config, mode: "build", cssAssets: cssAssets.sort() })
+        generated = await generateManifest({
+          root: config.root,
+          config,
+          mode: "build",
+          cssAssets: cssAssets.sort(),
+        })
       } catch (error) {
         throw toBuildError(error)
       }
       for (const warning of generated.warnings) this.warn(`[platform] ${warning}`)
-      this.emitFile({ type: "asset", fileName: config.manifestFileName, source: serializeManifest(generated.manifest) })
+      this.emitFile({
+        type: "asset",
+        fileName: config.manifestFileName,
+        source: serializeManifest(generated.manifest),
+      })
       writeManifestCopy(config, generated.manifest)
     },
   }

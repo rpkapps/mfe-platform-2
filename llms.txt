@@ -1,0 +1,134 @@
+# MFE Platform
+
+> Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, Tecton UI, schema-backed storage, provider-neutral telemetry, runtime Docker configuration, manifest overrides and lazy developer tools.
+
+Four public packages: @platform/react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint) and @platform/host (shell runtime). Canonical project instructions for agents: https://platform.docs.local/llm.txt. Every platform error carries a docs URL under https://platform.docs.local/docs/.
+
+## Getting started
+
+- [Introduction](https://platform.docs.local/docs): A platform for independently deployed React micro-frontends and widgets that feel like ordinary TanStack Router applications.
+- [Guides](https://platform.docs.local/docs/guides): Every platform feature has a guide. Start with routing and widgets, then work through isolation, shell integration, configuration and operations.
+- [Create an MFE](https://platform.docs.local/docs/getting-started/create-mfe): Scaffold a complete, runnable micro-frontend with one command, then run it in the local shell harness.
+- [Vite configuration](https://platform.docs.local/docs/getting-started/vite-configuration): The platform() plugin composes every Vite integration a remote needs. Configure it inline or through mfe.config.ts.
+- [Project structure](https://platform.docs.local/docs/getting-started/project-structure): Predictable file locations and one canonical pattern for every task, so humans and coding agents always know where things go.
+
+## Routing
+
+- [Folder routing](https://platform.docs.local/docs/routing/folder-routing): MFE routes are ordinary TanStack Router file routes. The Vite plugin generates the route tree and code-splits every route.
+- [Route guards](https://platform.docs.local/docs/routing/route-guards): Use native TanStack Router guards with a typed platform context. The platform does not add a second guard system.
+- [Shell history](https://platform.docs.local/docs/routing/shell-history): The shell owns browser history. MFE routers use a private TanStack history adapter backed by the shell navigation contract, with no monkeypatching.
+- [Breadcrumbs](https://platform.docs.local/docs/routing/breadcrumbs): Breadcrumbs come from ordinary TanStack route metadata. The shell renders them; MFEs only publish labels, links and states.
+- [Route prefixes](https://platform.docs.local/docs/route-prefixes): Each MFE owns a route subtree under a prefix inferred from its mfeId and overridable for legacy or custom URLs.
+
+## Remotes and isolation
+
+- [Widgets](https://platform.docs.local/docs/widgets): Widgets are React components that the shell or other surfaces mount into slots, each in its own React root, with typed props.
+- [React roots](https://platform.docs.local/docs/isolation/react-roots): Every MFE and widget always renders in its own React root, even when React is shared. Nothing React-shaped crosses the boundary.
+- [CSS isolation](https://platform.docs.local/docs/isolation/css-isolation): Build-time selector scoping keeps MFE styles under an owner attribute, while Tecton foundation styles, fonts and tokens load once at the shell.
+- [Dependency sharing](https://platform.docs.local/docs/dependency-sharing): Compatible packages are shared by version group. React 19 never satisfies a React 18 request; anything without a compatible provider uses the remote's bundled copy.
+- [Module Federation](https://platform.docs.local/docs/module-federation): Module Federation 2 is platform infrastructure. The Vite plugin generates it, the host drives it, and MFE code never sees it.
+- [Manifests](https://platform.docs.local/docs/manifests): Every remote ships a typed, versioned platform-manifest.json generated at build time. You never maintain it by hand.
+- [Manifest overrides](https://platform.docs.local/docs/manifest-overrides): Point the shell at a different manifest URL per mfeId at runtime or in local development, without touching source code.
+- [Hidden MFEs](https://platform.docs.local/docs/hidden-mfes): Remotes with discoverable false stay out of the App Finder while remaining full platform citizens.
+
+## Shell integration
+
+- [Commands](https://platform.docs.local/docs/commands): Register command palette commands with a hook or a declarative component. Ids are local; the platform namespaces, cleans up and reports them.
+- [Command palette](https://platform.docs.local/docs/command-palette): The shell owns the palette UI and its search index. MFEs contribute commands and metadata; business data is out of scope.
+- [Settings](https://platform.docs.local/docs/settings): Register settings groups and fields from an MFE. The shell places, persists and validates them; the MFE owns their meaning, defaults and renderers.
+- [Settings groups](https://platform.docs.local/docs/settings/groups): Groups place, order and label an MFE's settings in the shell. Fields in a group can depend on each other.
+- [Settings schemas](https://platform.docs.local/docs/settings/schemas): Validate settings with any Standard Schema library. Zod is first class. Migrate old values or reset them safely.
+- [Async options](https://platform.docs.local/docs/settings/async-options): Select and multi-select fields can load their options asynchronously with cancellation, caching, retry and stale-selection handling.
+- [Custom settings pages](https://platform.docs.local/docs/settings/custom-pages): With managedBy mfe the MFE renders a whole settings page on one of its routes. The shell only lists, places, loads and guards it.
+- [Storage](https://platform.docs.local/docs/storage): Schema-backed, namespaced local and session storage with typed get, set, reset, migrations, malformed-data handling and cross-tab updates.
+- [Platform context](https://platform.docs.local/docs/platform-context): Everything the shell knows about the session, typed, delivered through usePlatform, selectors and the TanStack router context.
+- [Permission groups](https://platform.docs.local/docs/permission-groups): Browser-visible permission groups for routing and UX. They never replace backend authorization.
+- [Slice subscriptions](https://platform.docs.local/docs/slice-subscriptions): Subscribe to exactly the part of the platform context a component needs. Unrelated changes do not rerender it.
+- [Telemetry](https://platform.docs.local/docs/telemetry): A small, provider-neutral telemetry interface. The shell supplies the adapter; the SDK enriches every call and never imports a vendor.
+- [Help](https://platform.docs.local/docs/help): Register help entries that the shell lists in its help slot and searches from the palette.
+- [Release notes](https://platform.docs.local/docs/release-notes): Register release notes per version. The shell shows them in its release notes slot and searches them from the palette.
+
+## Configuration
+
+- [Runtime environment](https://platform.docs.local/docs/runtime-environment): Typed, allow-listed runtime values per MFE, provided by the shell at container start rather than baked in at build time.
+- [Runtime configuration](https://platform.docs.local/docs/runtime-configuration): A shell-owned, client-safe configuration document generated when the container starts, validated before the platform boots, organised by mfeId.
+- [Overlays](https://platform.docs.local/docs/overlays): Ordinary Tecton dialogs, popovers, menus and tooltips work in every MFE and widget without configuration, through a centralized shell overlay manager.
+- [Transparent overlays](https://platform.docs.local/docs/overlays/transparent-overlays): The Tecton portal provider adapter gives every MFE an owner-tagged, body-level overlay root, so scoped styles and theme tokens apply to dialogs that escape the MFE container.
+- [Modal ordering](https://platform.docs.local/docs/overlays/modal-ordering): Deterministic layer allocation across MFEs and widgets, with owner metadata for every open overlay.
+- [Developer tools](https://platform.docs.local/docs/developer-tools): A private, lazily loaded panel in the host that shows the diagnostic snapshot, the live event stream and the shared-dependency graph.
+
+## Operations
+
+- [Failure handling](https://platform.docs.local/docs/failure-handling): Every remote boundary has clear loading, error, unavailable and retry states. A failed remote, widget, command or settings field never crashes the shell.
+- [Retries](https://platform.docs.local/docs/retries): What the host retries automatically, with which policy, and what it deliberately does not.
+- [Local development](https://platform.docs.local/docs/local-development): Run an MFE alone in the local shell harness, or through a real SSR shell with a manifest override. Both give HMR, a realistic context and every shell surface.
+- [Linting](https://platform.docs.local/docs/linting): The shareable ESLint plugin and flat config from @platform/cli/eslint, every platform rule with its rationale, and the generated eslint.config.ts.
+- [Testing](https://platform.docs.local/docs/testing): The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers and the harness.
+- [Troubleshooting](https://platform.docs.local/docs/troubleshooting): How to read a platform diagnostic and where each error code leads.
+- [Migration patterns](https://platform.docs.local/docs/migration-patterns): Moving an existing application onto the platform, from a single SPA, from iframes, or from an older micro-frontend setup.
+- [Unsupported cases](https://platform.docs.local/docs/unsupported-cases): What the platform deliberately does not do, and what to use instead.
+- [AI-friendly design](https://platform.docs.local/docs/ai-friendly): The platform is designed so that coding agents and humans find the one right place, the one right pattern and the one right document.
+
+## Recipes
+
+- [Recipes](https://platform.docs.local/docs/recipes): Short, copy-ready solutions for common tasks. Each recipe uses only the canonical APIs.
+- [Permission-gated route](https://platform.docs.local/docs/recipes/permission-gated-route): Gate a route on a permission group with a native guard, declare the group for preflight, and show a friendly denied state.
+- [Widget with a dialog](https://platform.docs.local/docs/recipes/widget-with-dialog): A dashboard widget that opens an ordinary Tecton dialog. No overlay configuration, several instances at once.
+- [Async select setting](https://platform.docs.local/docs/recipes/async-select-setting): A select setting whose options come from an API, with cancellation, caching, retry and a dependent field.
+- [Cross-tab storage](https://platform.docs.local/docs/recipes/cross-tab-storage): Keep a preference in sync across browser tabs with a local-scope store.
+- [Telemetry span in a loader](https://platform.docs.local/docs/recipes/telemetry-span-in-loader): Time a route loader with a span that is automatically enriched with the MFE, instance and route.
+- [Hidden utility MFE providing commands](https://platform.docs.local/docs/recipes/hidden-utility-mfe): A remote with no App Finder entry that contributes global commands, available before it is loaded.
+- [Manifest override for local dev against staging](https://platform.docs.local/docs/recipes/local-override-against-staging): Develop one MFE locally while everything else comes from the staging shell.
+- [Docker runtime configuration](https://platform.docs.local/docs/recipes/docker-runtime-config): Configure manifest URLs, enablement and environment values when the shell container starts, without rebuilding assets.
+
+## Reference
+
+- [Reference](https://platform.docs.local/docs/reference): Every public export of the four packages, the published schemas, the error codes and the diagnostic events.
+- [@platform/react](https://platform.docs.local/docs/reference/platform-react): The MFE-facing SDK. Every export with its signature and a short description.
+- [@platform/vite](https://platform.docs.local/docs/reference/platform-vite): The platform() Vite plugin and the mfe.config.ts helper.
+- [@platform/cli](https://platform.docs.local/docs/reference/platform-cli): The platform command line and the shareable ESLint configuration.
+- [@platform/host](https://platform.docs.local/docs/reference/platform-host): Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.
+- [Manifest schema](https://platform.docs.local/docs/reference/manifest-schema): Fields of platform-manifest.json. The JSON Schema is published at /schemas/manifest.json.
+- [Runtime config schema](https://platform.docs.local/docs/reference/runtime-config-schema): Fields of platform-config.json. The JSON Schema is published at /schemas/runtime-config.json.
+- [Diagnostics](https://platform.docs.local/docs/reference/diagnostics): Every diagnostic event the host records, with its level. The developer tools show the snapshot and the live stream; telemetry receives a subset.
+- [Error codes](https://platform.docs.local/docs/reference/generated/error-codes): Every PlatformError code with its hint and the documentation page that explains the fix.
+- [Capabilities](https://platform.docs.local/docs/reference/generated/capabilities): Every capability a remote can request, what grants it and whether it is implicit.
+- [Schemas](https://platform.docs.local/docs/reference/generated/schemas): Machine-readable JSON Schemas (draft 2020-12) for every platform document, generated from the Zod schemas the platform validates with.
+- [Examples](https://platform.docs.local/docs/examples): The conformance applications in the platform monorepo are the generated examples. Each one exercises a set of features end to end.
+
+## Schemas
+
+- [manifest.json](https://platform.docs.local/schemas/manifest.json): Generated platform-manifest.json of a remote (JSON Schema draft 2020-12)
+- [runtime-config.json](https://platform.docs.local/schemas/runtime-config.json): Shell runtime configuration (platform-config.json) (JSON Schema draft 2020-12)
+- [capabilities.json](https://platform.docs.local/schemas/capabilities.json): Capability ids a remote may request (JSON Schema draft 2020-12)
+- [registrations.json](https://platform.docs.local/schemas/registrations.json): Static contributions: commands, settings, help, release notes, widgets (JSON Schema draft 2020-12)
+- [settings.json](https://platform.docs.local/schemas/settings.json): A settings group contribution (JSON Schema draft 2020-12)
+- [diagnostics.json](https://platform.docs.local/schemas/diagnostics.json): Diagnostic event envelope (JSON Schema draft 2020-12)
+- [protocol-compatibility.json](https://platform.docs.local/schemas/protocol-compatibility.json): Host/remote protocol compatibility report (JSON Schema draft 2020-12)
+- [shared-dependencies.json](https://platform.docs.local/schemas/shared-dependencies.json): Shared dependency requests (JSON Schema draft 2020-12)
+
+## Examples
+
+- [Conformance shell](https://platform.docs.local/docs/examples#appsconformance-shell): apps/conformance-shell — TanStack Start SSR shell using @platform/host
+- [asset-tracker (React 19, Tecton)](https://platform.docs.local/docs/examples#appsconformance-react19--asset-tracker): apps/conformance-react19 — routes, guards, commands, settings, storage, widgets
+- [legacy-reports (React 18)](https://platform.docs.local/docs/examples#appsconformance-react18--legacy-reports): apps/conformance-react18 — React 18 remote on a legacy route prefix
+- [widget-a (React 19 widgets)](https://platform.docs.local/docs/examples#appsconformance-widget-a--widget-a): apps/conformance-widget-a — hidden widget library
+- [widget-b (React 18 widgets)](https://platform.docs.local/docs/examples#appsconformance-widget-b--widget-b): apps/conformance-widget-b — hidden widget library
+
+## Diagnostics
+
+- [Error codes](https://platform.docs.local/docs/reference/generated/error-codes): every PlatformError code with hint and docs link
+- [Diagnostic events](https://platform.docs.local/docs/reference/diagnostics): every diagnostic event type and level
+- [Troubleshooting](https://platform.docs.local/docs/troubleshooting): how to read a diagnostic; code → page table
+
+## Supported patterns
+
+- [Project structure](https://platform.docs.local/docs/getting-started/project-structure): one canonical pattern for bootstrap, routes, commands, settings, storage, widgets
+- [Recipes](https://platform.docs.local/docs/recipes): copy-ready solutions using only the canonical APIs
+- [Unsupported cases](https://platform.docs.local/docs/unsupported-cases): what the platform deliberately does not do
+- [AI-friendly design](https://platform.docs.local/docs/ai-friendly): AGENTS.md, llm.txt, llms.txt, schemas
+
+## Optional
+
+- [AGENTS.md](https://platform.docs.local/AGENTS.md): repository rules for humans and agents (in the platform monorepo)
+- [llm.txt](https://platform.docs.local/llm.txt): concise canonical instructions

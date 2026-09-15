@@ -31,7 +31,11 @@ export function readIdentity(root: string): PersistedIdentity | undefined {
   try {
     const parsed = JSON.parse(readFileSync(file, "utf8")) as Partial<PersistedIdentity>
     if (typeof parsed.mfeId !== "string") return undefined
-    return { mfeId: parsed.mfeId, createdAt: typeof parsed.createdAt === "string" ? parsed.createdAt : new Date().toISOString() }
+    return {
+      mfeId: parsed.mfeId,
+      createdAt:
+        typeof parsed.createdAt === "string" ? parsed.createdAt : new Date().toISOString(),
+    }
   } catch {
     return undefined
   }
@@ -43,7 +47,8 @@ export function ensurePlatformDir(root: string): string {
   mkdirSync(dir, { recursive: true })
   const gitignore = join(dir, ".gitignore")
   const content = "*\n!identity.json\n!.gitignore\n"
-  if (!existsSync(gitignore) || readFileSync(gitignore, "utf8") !== content) writeFileSync(gitignore, content)
+  if (!existsSync(gitignore) || readFileSync(gitignore, "utf8") !== content)
+    writeFileSync(gitignore, content)
   return dir
 }
 
@@ -81,7 +86,10 @@ export function resolveIdentity(options: ResolveIdentityOptions): ResolvedIdenti
     assertMfeId(explicit, source === "option" ? "platform() → mfeId" : "mfe.config.ts → mfeId")
     let written = false
     if (persist && persisted?.mfeId !== explicit) {
-      writeIdentity(root, { mfeId: explicit, createdAt: persisted?.createdAt ?? new Date().toISOString() })
+      writeIdentity(root, {
+        mfeId: explicit,
+        createdAt: persisted?.createdAt ?? new Date().toISOString(),
+      })
       written = true
     }
     return { mfeId: explicit, source, file, written }

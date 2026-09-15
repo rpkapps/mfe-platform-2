@@ -1,0 +1,36 @@
+---
+title: Runtime config schema
+description: Fields of platform-config.json. The JSON Schema is published at /schemas/runtime-config.json.
+---
+
+Schema: [`/schemas/runtime-config.json`](/schemas/runtime-config.json). Guide: [Runtime configuration](/docs/runtime-configuration).
+
+## Top level
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `schemaVersion` | `1` | `1` | |
+| `generatedAt` | `string` | set by the entrypoint | ISO timestamp |
+| `source` | `string` | | `entrypoint`, `inline`, `fetch`, `static`, `test` |
+| `environment` | `string` | `"production"` | |
+| `release` | `{ version?, buildId?, commit? }` | `{}` | shell release |
+| `shared` | `Record<string, string \| number \| boolean>` | `{}` | values every MFE receives |
+| `mfes` | `Record<mfeId, MfeRuntimeConfig>` | `{}` | keys must be kebab-case |
+| `devtools` | `{ policy: "flag" \| "always" \| "never", environments: string[] }` | `{ "flag", ["development","local","test","staging"] }` | |
+| `cache` | `{ manifestMaxAgeSeconds, bustOnRetry }` | `{ 60, true }` | |
+| `retry` | `{ attempts, backoffMs }` | `{ 2, 500 }` | |
+| `allowedOrigins` | `string[]` | `[]` | in addition to same-origin and manifest-declared origins |
+
+## `mfes.<mfeId>`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `enabled` | `boolean?` | `false` disables the remote everywhere |
+| `manifestUrl` | `string?` | overrides registry and default |
+| `env` | `Record<string, string \| number \| boolean>` | allow-listed values for `useRuntimeEnv()` |
+| `preload` | `"none" \| "entry" \| "eager"?` | overrides the manifest |
+| `allowedOrigins` | `string[]?` | additional origins for this remote |
+
+## Environment variable mapping
+
+See the table in [Runtime configuration](/docs/runtime-configuration#platform_-variables). Sensitive-looking names are refused: `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `PRIVATE`, `CREDENTIAL`, `API_KEY`, `APIKEY`, `*_KEY`.

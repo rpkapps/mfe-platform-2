@@ -1,0 +1,82 @@
+---
+title: Docker runtime configuration
+description: Configure manifest URLs, enablement and environment values when the shell container starts, without rebuilding assets.
+---
+
+```dockerfile title="Dockerfile (shell)"
+FROM node:22-alpine AS runtime
+WORKDIR /app
+COPY .output ./.output
+COPY node_modules ./node_modules
+COPY scripts/start.mjs ./scripts/start.mjs
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["node", "./scripts/start.mjs"]
+```
+
+```js title="scripts/start.mjs"
+import { spawnSync, spawn } from "node:child_process"
+
+// 1. Generate the client-safe runtime configuration from PLATFORM_* variables.
+const generate = spawnSync("platform-host-entrypoint", ["--out", "./.output/public/platform-config.json"], {
+  stdio: "inherit",
+  shell: process.platform === "win32",
+})
+if (generate.status !== 0) process.exit(generate.status ?? 1)
+
+// 2. Start the SSR shell; it inlines the document into every response.
+spawn("node", ["./.output/server/index.mjs"], { stdio: "inherit", shell: process.platform === "win32" })
+```
+
+```yaml title="compose.yaml"
+services:
+  shell:
+    image: example/shell:3.4.0
+    environment:
+      PLATFORM_ENVIRONMENT: staging
+      PLATFORM_RELEASE_VERSION: 3.4.0
+      PLATFORM_ALLOWED_ORIGINS: https://remotes.staging.example.com
+      PLATFORM_SHARED_SUPPORT_URL: https://support.example.com
+      PLATFORM_MFE_ASSET_TRACKER_MANIFEST_URL: https://remotes.staging.example.com/asset-tracker/platform-manifest.json
+      PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL: https://api.staging.example.com/assets
+      PLATFORM_MFE_ASSET_TRACKER_ENV_PAGE_SIZE: "50"
+      PLATFORM_MFE_LEGACY_REPORTS_MANIFEST_URL: https://legacy.staging.example.com/reports/platform-manifest.json
+      PLATFORM_MFE_LEGACY_REPORTS_ENABLED: "false"
+      PLATFORM_DEVTOOLS_POLICY: flag
+      # refused with a warning: looks like a secret
+      PLATFORM_MFE_ASSET_TRACKER_ENV_API_TOKEN: nope
+    ports:
+      - "3000:3000"
+```
+
+The generated document:
+
+```json title="/platform-config.json"
+{
+  "schemaVersion": 1,
+  "environment": "staging",
+  "release": { "version": "3.4.0" },
+  "shared": { "SUPPORT_URL": "https://support.example.com" },
+  "mfes": {
+    "asset-tracker": {
+      "manifestUrl": "https://remotes.staging.example.com/asset-tracker/platform-manifest.json",
+      "env": { "API_BASE_URL": "https://api.staging.example.com/assets", "PAGE_SIZE": 50 }
+    },
+    "legacy-reports": {
+      "manifestUrl": "https://legacy.staging.example.com/reports/platform-manifest.json",
+      "enabled": false,
+      "env": {}
+    }
+  },
+  "devtools": { "policy": "flag", "environments": ["development", "local", "test", "staging"] },
+  "allowedOrigins": ["https://remotes.staging.example.com"],
+  "generatedAt": "2026-03-02T08:00:00.000Z",
+  "source": "entrypoint"
+}
+```
+
+Checks:
+
+- `docker compose logs shell` shows the refused variable (`PLATFORM_MFE_ASSET_TRACKER_ENV_API_TOKEN`) and the per-key provenance.
+- In the app, `useRuntimeEnv().PAGE_SIZE` is the number `50`; `legacy-reports` renders the *disabled* state.
+- Changing a variable and restarting the container changes behaviour without rebuilding the image.

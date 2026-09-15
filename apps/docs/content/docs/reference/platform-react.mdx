@@ -1,0 +1,143 @@
+---
+title: "@platform/react"
+description: The MFE-facing SDK. Every export with its signature and a short description.
+---
+
+Install: `pnpm add @platform/react` (a scaffolded project already has it). Peer dependencies: `react` and `react-dom` 18.2+ or 19, `@tanstack/react-router` ^1.170, optionally `@tecton/react`.
+
+## Bootstrap
+
+### `createMfe(options)`
+
+```ts
+createMfe({
+  mfeId?: string, // default: build-time constant from @platform/vite
+  displayName?: string,
+  routeTree?: AnyRoute, // omit for a widget-only library
+  widgets?: Record<string, WidgetDefinition> | WidgetDefinition[],
+  registrations?: { commands?, help?, releaseNotes? }, // static, available before mounting
+  errorComponent?: ComponentType<{ error: unknown; reset: () => void }>,
+  pendingComponent?: ComponentType,
+  notFoundComponent?: ComponentType<{ data?: unknown }>,
+  wrap?: (children: ReactNode, context: MfeEnhancerContext) => ReactNode,
+  router?: Record<string, unknown>, // extra TanStack router options
+}): MfeDefinition
+```
+
+Returns the `RemoteDefinition` the host mounts (`kind: "platform-remote"`, `mount`, `mountWidget`, `widgets`, `hasRoutes`, `registrations`) plus `use(enhancer)` for wrappers such as `withTecton`. Default-export it from `src/mfe.tsx`.
+
+### `createWidget(options)`
+
+```ts
+createWidget<TProps>({
+  id?: string, // default: the key in createMfe({ widgets })
+  component: ComponentType<TProps>,
+  propsSchema?: StandardSchema<TProps>,
+  title?: string,
+  description?: string,
+}): WidgetDefinition<TProps>
+```
+
+### `createMfeRouter(options)`
+
+```ts
+createMfeRouter({ routeTree, bridge, ...tanstackRouterOptions }): Router
+```
+
+Used by `createMfe`; public for tests and advanced hosts. Creates the router with the shell-backed history, `basepath: bridge.routePrefix` and `context: { platform }`.
+
+### `withTecton(definition)` — `@platform/react/tecton`
+
+Adds the Tecton `PortalProvider` adapter and theme sync. The generated entry applies it when Tecton is enabled; call it yourself only with a custom entry.
+
+## Hooks
+
+| Hook | Returns |
+| --- | --- |
+| `usePlatform()` | `PlatformContextValue` (full context) |
+| `usePlatform(selector, equals?)` | the selected slice; rerenders only when it changes ([Slice subscriptions](/docs/slice-subscriptions)) |
+| `useNavigation()` | `{ navigate(href \| { to, search, hash, replace, state }), navigateWithin(path), back(), forward(), reload(), location, subscribe(), routePrefix }` |
+| `useCapability(id)` | `boolean` |
+| `usePermissions()` | `{ groups, hasGroup, hasAnyGroup, hasAllGroups }` |
+| `useTelemetry()` | enriched `Telemetry` |
+| `useRuntimeEnv()` | `Register["env"]` |
+| `useNotifications()` | `{ notify({ title, description?, kind?, durationMs? }) }` |
+| `useMfeInstance()` | `{ mfeId, instanceId, widgetId?, routePrefix?, displayName?, host: { kind, dev, environment } }` |
+| `useRegisterCommand(definition, deps?, options?)` | `void`; `options.instanceScoped` |
+| `useRegisterSettingsGroup(definition)` | `{ values, set(key, value), reset(key?) }` |
+| `useRegisterSettingsField({ group, key, ...field })` | `{ value, set, reset }` |
+| `useRegisterHelp(definition \| definition[])` | `void` |
+| `useRegisterReleaseNotes(definition \| definition[])` | `void` |
+| `useBreadcrumb(entry \| null)` | `void`; overrides the current route's crumb |
+| `usePlatformStorage(store, selector?)` | the selected slice of a store |
+
+## Components
+
+| Component | Props |
+| --- | --- |
+| `<CommandRegistration definition />` | `CommandInput` |
+| `<SettingsRegistration definition />` | `SettingsGroupInput` |
+| `<HelpRegistration definition />` | `HelpEntryInput \| HelpEntryInput[]` |
+| `<ReleaseNotesRegistration definition />` | `ReleaseNoteInput \| ReleaseNoteInput[]` |
+| `<MfeErrorBoundary fallback? />` | platform-styled boundary for a subtree |
+| `<MfeLoading />` | platform-styled skeleton |
+
+## Storage
+
+```ts
+createPlatformStorage<TValue>({
+  scope: "local" | "session",
+  key: string,
+  schema?: StandardSchema<TValue>,
+  defaults: TValue,
+  version?: number,
+  migrate?: (stored: unknown, version: number) => TValue | undefined,
+  instanceScoped?: boolean,
+}): PlatformStore<TValue>
+// { use(selector?), get(), set(value | updater), setKey(key, value | updater), reset(), subscribe(listener), namespacedKey, scope, lastError }
+```
+
+## Types
+
+| Type | Purpose |
+| --- | --- |
+| `Register` | augment with `env` and `featureFlags` |
+| `MfeRouterContext` | `createRootRouteWithContext<MfeRouterContext>()` |
+| `PlatformRouteContext` | `context.platform` in guards and loaders |
+| `PlatformContextValue` | result of `usePlatform()` |
+| `PlatformNavigation` | result of `useNavigation()` |
+| `MfeInstance` | result of `useMfeInstance()` |
+| `WidgetDefinition`, `CreateMfeOptions`, `MfeDefinition`, `MfeEnhancer`, `MfeEnhancerContext` | bootstrap |
+| `CommandInput`, `SettingsGroupInput`, `SettingsFieldInput`, `SettingsFieldRegistration`, `HelpEntryInput`, `ReleaseNoteInput` | registrations as MFE code writes them |
+| `SettingsController`, `SettingsRenderer`, `SettingsRendererSurface` | custom settings controls |
+| `BreadcrumbStaticData`, `NavigationStaticData`, `BreadcrumbOverride` | route `staticData` |
+| `MountableSurface` | metadata + `mount/dispose` |
+
+`StaticDataRouteOption` of `@tanstack/react-router` is augmented with `breadcrumb`, `navigation` and `permissionGroups`.
+
+Re-exported contract types from the core: `Telemetry`, `TelemetrySpan`, `TelemetryAttributes`, `CapabilityId`, `PlatformUser`, `ShellLocation`, `CommandDefinition`, `SettingsGroupDefinition`, `SettingsFieldDefinition`, `SettingsOption`, `HelpEntryDefinition`, `ReleaseNoteDefinition`, `BreadcrumbEntry`, `PlatformError`, `PlatformErrorCode`, `HostBridge`, `RemoteDefinition`.
+
+## Testing — `@platform/react/testing`
+
+```ts
+createTestBridge({
+  mfeId: string,
+  instanceId?: string,
+  widgetId?: string,
+  routePrefix?: string,
+  user?: PlatformUser | null,
+  permissionGroups?: string[],
+  tenant?, project?, job?, locale?, timezone?, theme?, featureFlags?,
+  env?: Record<string, string | number | boolean>,
+  capabilities?: CapabilityId[], // default: every capability
+  navigation?: string | ShellNavigation, // initial href or a custom implementation
+  telemetry?: TelemetryAdapter,
+}): TestBridge // HostBridge + context.update(), diagnostics.events, telemetry events, storage.emitExternal()
+
+renderMfe(definition, {
+  bridge?: HostBridge,
+  path?: string, // MFE-relative initial path
+  widget?: { id: string; props: Record<string, unknown> },
+  container?: HTMLElement,
+}): { container, bridge, unmount(), setProps?(props) }
+```

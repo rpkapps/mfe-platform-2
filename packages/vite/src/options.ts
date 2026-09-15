@@ -131,6 +131,13 @@ export interface PlatformPluginOptions extends MfeConfig {
   react?: false | ReactPluginOptions
   /** `@tailwindcss/vite` integration. `"auto"` enables it when `tailwindcss` resolves from the project root. */
   tailwind?: boolean | "auto"
+  /**
+   * Lightweight test integration for `vitest.config.ts`: only `@vitejs/plugin-react`
+   * and the `__PLATFORM_MFE_ID__` / `__PLATFORM_ROUTE_PREFIX__` defines; no
+   * federation, router generation, Tailwind, CSS scoping or dev endpoints.
+   * Default: `true` when `process.env.VITEST` is set.
+   */
+  test?: boolean
 }
 
 export type { ReactPluginOptions, ModuleFederationOptions }

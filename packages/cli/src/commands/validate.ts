@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -152,19 +152,24 @@ interface RouterGeneratorModule {
   getConfig(inline: Record<string, unknown>, configDirectory?: string): unknown
 }
 
-/** Regenerate the route tree into a temp file with the project's own router generator, if installed. */
+/** Regenerate the route tree in a temporary copy of `src/routes` with the project's own router generator, if installed. */
 export async function regenerateRouteTree(root: string): Promise<string | null> {
   const resolved = resolveProjectModule(root, "@tanstack/router-generator")
   if (!resolved) return null
+  const routes = join(root, "src", "routes")
+  if (!existsSync(routes)) return null
   const mod = (await import(pathToFileURL(resolved).href)) as RouterGeneratorModule
-  const dir = mkdtempSync(join(tmpdir(), "platform-validate-"))
-  const generatedRouteTree = join(dir, "routeTree.gen.ts")
+  const work = mkdtempSync(join(tmpdir(), "platform-validate-"))
   try {
-    const config = mod.getConfig({ target: "react", autoCodeSplitting: true, routesDirectory: join(root, "src", "routes"), generatedRouteTree, disableLogging: true }, root)
-    await new mod.Generator({ config, root }).run()
+    // Import paths in the generated file are relative to its location, so mirror the layout.
+    const routesDirectory = join(work, "src", "routes")
+    cpSync(routes, routesDirectory, { recursive: true })
+    const generatedRouteTree = join(work, "src", "routeTree.gen.ts")
+    const config = mod.getConfig({ target: "react", autoCodeSplitting: true, routesDirectory, generatedRouteTree, disableLogging: true }, work)
+    await new mod.Generator({ config, root: work }).run()
     return existsSync(generatedRouteTree) ? readFileSync(generatedRouteTree, "utf8") : null
   } finally {
-    rmSync(dir, { recursive: true, force: true })
+    rmSync(work, { recursive: true, force: true })
   }
 }
 

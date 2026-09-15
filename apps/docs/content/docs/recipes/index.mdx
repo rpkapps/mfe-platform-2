@@ -1,0 +1,15 @@
+---
+title: Recipes
+description: Short, copy-ready solutions for common tasks. Each recipe uses only the canonical APIs.
+---
+
+| Recipe | Uses |
+| --- | --- |
+| [Permission-gated route](/docs/recipes/permission-gated-route) | `beforeLoad`, `redirect`, `staticData.permissionGroups` |
+| [Widget with a dialog](/docs/recipes/widget-with-dialog) | `createWidget`, Tecton `Dialog`, overlay roots |
+| [Async select setting](/docs/recipes/async-select-setting) | `useRegisterSettingsGroup`, async `options`, `AbortSignal` |
+| [Cross-tab storage](/docs/recipes/cross-tab-storage) | `createPlatformStorage` with `scope: "local"` |
+| [Telemetry span in a loader](/docs/recipes/telemetry-span-in-loader) | `context.platform.telemetry.span` |
+| [Hidden utility MFE providing commands](/docs/recipes/hidden-utility-mfe) | `discoverable: false`, static `registrations`, `loadPolicy` |
+| [Manifest override for local dev against staging](/docs/recipes/local-override-against-staging) | `?platform.override.<mfeId>=…` |
+| [Docker runtime configuration](/docs/recipes/docker-runtime-config) | `platform-host-entrypoint`, `PLATFORM_*` |

@@ -8,7 +8,14 @@ export const Route = createFileRoute("/assets/$assetId")({
   component: () => null,
   staticData: {
     breadcrumb: { label: "Asset", dynamic: true },
-    navigation: { title: "Asset", description: "One asset", icon: "box", keywords: ["asset"], order: 2, hidden: true },
+    navigation: {
+      title: "Asset",
+      description: "One asset",
+      icon: "box",
+      keywords: ["asset"],
+      order: 2,
+      hidden: true,
+    },
     permissionGroups: ["assets:read", "assets:write"],
   },
 } satisfies Record<string, unknown>)

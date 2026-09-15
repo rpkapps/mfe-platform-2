@@ -23,11 +23,16 @@ export function platformCssPlugin(context: PlatformContext): Plugin {
   const warned = new Set<string>()
   return {
     name: "platform:css-scope",
+    apply: (_config, env) => env.mode !== "test",
     transform(code, id) {
       if (!isCssId(id)) return null
       const config = context.config()
       if (!config.css.scope) return null
-      const result = scopeCss(code, { owner: config.mfeId, ownerAttribute: config.css.ownerAttribute, dropFontFaces: config.css.foundation === "shell" })
+      const result = scopeCss(code, {
+        owner: config.mfeId,
+        ownerAttribute: config.css.ownerAttribute,
+        dropFontFaces: config.css.foundation === "shell",
+      })
       for (const warning of result.warnings) {
         const key = `${id}:${warning}`
         if (warned.has(key)) continue

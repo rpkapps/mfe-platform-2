@@ -33,7 +33,8 @@ const config = defineConfig({
         retryDelay: 1000,
         // Only crawl the site's own pages; schema files and external links are
         // static assets or foreign origins.
-        filter: (page) => page.path === "/" || /^\/docs(\/|$)/.test(page.path),
+        filter: (page) =>
+          !page.path.includes("#") && (page.path === "/" || /^\/docs(\/|$)/.test(page.path)),
       },
     }),
     viteReact(),

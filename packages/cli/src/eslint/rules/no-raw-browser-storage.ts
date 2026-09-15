@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils"
 
 import { matchesAny } from "../../glob"
-import { createRule, filenameOf } from "../utils"
+import { createRule, filenameOf, globalIdentifierReferences } from "../utils"
 
 const STORAGE_NAMES = new Set(["localStorage", "sessionStorage"])
 const GLOBAL_OBJECTS = new Set(["window", "globalThis", "self", "top", "parent"])
@@ -40,11 +40,7 @@ export default createRule<Options, MessageIds>({
     }
     return {
       Program(program) {
-        const scope = context.sourceCode.getScope(program)
-        for (const reference of scope.through) {
-          const name = reference.identifier.name
-          if (STORAGE_NAMES.has(name)) report(reference.identifier, name)
-        }
+        for (const identifier of globalIdentifierReferences(context, program, STORAGE_NAMES)) report(identifier, identifier.name)
       },
       MemberExpression(node) {
         if (node.computed || node.property.type !== AST_NODE_TYPES.Identifier) return

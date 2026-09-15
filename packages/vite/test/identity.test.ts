@@ -21,14 +21,20 @@ describe("resolveIdentity", () => {
   it("infers the mfeId from the package name on first run and persists it", () => {
     const root = temp()
     const identity = resolveIdentity({ root, packageName: "@acme/Asset Tracker" })
-    expect(identity).toMatchObject({ mfeId: "asset-tracker", source: "inferred", written: true })
+    expect(identity).toMatchObject({
+      mfeId: "asset-tracker",
+      source: "inferred",
+      written: true,
+    })
     const file = join(root, ".platform", "identity.json")
     expect(existsSync(file)).toBe(true)
     const persisted = JSON.parse(readFileSync(file, "utf8"))
     expect(persisted.mfeId).toBe("asset-tracker")
     expect(typeof persisted.createdAt).toBe("string")
     expect(readFileSync(file, "utf8")).toBe(`${JSON.stringify(persisted, null, 2)}\n`)
-    expect(readFileSync(join(root, ".platform", ".gitignore"), "utf8")).toBe("*\n!identity.json\n!.gitignore\n")
+    expect(readFileSync(join(root, ".platform", ".gitignore"), "utf8")).toBe(
+      "*\n!identity.json\n!.gitignore\n"
+    )
   })
 
   it("keeps the persisted id when the package is renamed", () => {
@@ -42,7 +48,11 @@ describe("resolveIdentity", () => {
     const root = temp()
     const first = resolveIdentity({ root, packageName: "first-name" })
     const created = readIdentity(root)?.createdAt
-    const explicit = resolveIdentity({ root, packageName: "first-name", configMfeId: "renamed" })
+    const explicit = resolveIdentity({
+      root,
+      packageName: "first-name",
+      configMfeId: "renamed",
+    })
     expect(explicit).toMatchObject({ mfeId: "renamed", source: "config", written: true })
     expect(readIdentity(root)).toEqual({ mfeId: "renamed", createdAt: created })
     expect(first.mfeId).toBe("first-name")
@@ -53,7 +63,9 @@ describe("resolveIdentity", () => {
 
   it("rejects invalid ids with a PlatformError", () => {
     const root = temp()
-    expect(() => resolveIdentity({ root, configMfeId: "Not Valid" })).toThrowError(/MFE_ID_INVALID|not a valid mfeId/)
+    expect(() => resolveIdentity({ root, configMfeId: "Not Valid" })).toThrowError(
+      /MFE_ID_INVALID|not a valid mfeId/
+    )
     expect(existsSync(join(root, ".platform", "identity.json"))).toBe(false)
   })
 

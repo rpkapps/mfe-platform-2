@@ -11,7 +11,7 @@
  * `platform lint` and CI run this exact configuration.
  */
 import js from "@eslint/js"
-import tanstackRouter from "@tanstack/eslint-plugin-router"
+import tanstackRouterPlugin from "@tanstack/eslint-plugin-router"
 import type { TSESLint } from "@typescript-eslint/utils"
 import jsxA11y from "eslint-plugin-jsx-a11y"
 import reactHooks from "eslint-plugin-react-hooks"
@@ -175,7 +175,7 @@ export function platformConfig(options: PlatformConfigOptions = {}): TSESLint.Fl
     config.push({ ...flat, name: "jsx-a11y/recommended", files: ["**/*.{jsx,tsx}"] })
   }
   if (tanstackRouter) {
-    const flat = (tanstackRouter as unknown as { configs: { "flat/recommended": FlatConfig | FlatConfig[] } }).configs["flat/recommended"]
+    const flat = (tanstackRouterPlugin as unknown as { configs: { "flat/recommended": FlatConfig | FlatConfig[] } }).configs["flat/recommended"]
     config.push(...asConfigArray(flat).map((entry, index) => ({ ...entry, name: entry.name ?? `@tanstack/router/recommended${index ? `-${index}` : ""}` })))
   }
   config.push(recommended)

@@ -1,7 +1,12 @@
 import { createMfe, createWidget } from "@platform/react"
 import { routeTree } from "./routeTree.gen"
 
-const statusWidget = createWidget({ id: "status", title: "Status", description: "Live status", component: () => null })
+const statusWidget = createWidget({
+  id: "status",
+  title: "Status",
+  description: "Live status",
+  component: () => null,
+})
 
 export default createMfe({
   routeTree,

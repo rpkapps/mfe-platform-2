@@ -3,7 +3,20 @@ import { join, relative } from "node:path"
 
 import type { RouteMetadata } from "@platform-internal/core"
 
-import { booleanLiteral, isFunctionNode, literalValue, numberLiteral, objectProperties, parseSource, propertyValue, stringArray, stringLiteral, t, traverseAst, unwrapExpression } from "./ast"
+import {
+  booleanLiteral,
+  isFunctionNode,
+  literalValue,
+  numberLiteral,
+  objectProperties,
+  parseSource,
+  propertyValue,
+  stringArray,
+  stringLiteral,
+  t,
+  traverseAst,
+  unwrapExpression,
+} from "./ast"
 
 const ROUTE_FILE_RE = /\.(tsx|ts|jsx|js)$/
 const TEST_FILE_RE = /\.(test|spec)\.[tj]sx?$/
@@ -22,7 +35,8 @@ export function routePathFromFile(relativeFile: string): string | null {
   const directories = withoutExtension.split("/")
   const base = directories.pop() ?? ""
   if (base === "__root" || directories.some((directory) => directory === "__root")) return null
-  if (base.startsWith("-") || directories.some((directory) => directory.startsWith("-"))) return null
+  if (base.startsWith("-") || directories.some((directory) => directory.startsWith("-")))
+    return null
   const rawSegments = [...directories.flatMap(splitFlat), ...splitFlat(base)]
   const segments: string[] = []
   let lastKept = false
@@ -99,7 +113,9 @@ export function analyzeRouteSource(code: string, file: string): RouteFileAnalysi
   try {
     ast = parseSource(code, file)
   } catch (error) {
-    analysis.warnings.push(`${file}: could not parse route file (${error instanceof Error ? error.message : String(error)})`)
+    analysis.warnings.push(
+      `${file}: could not parse route file (${error instanceof Error ? error.message : String(error)})`
+    )
     return analysis
   }
   let options: t.ObjectExpression | undefined
@@ -120,7 +136,9 @@ export function analyzeRouteSource(code: string, file: string): RouteFileAnalysi
   const staticData = propertyValue(properties.get("staticData"))
   if (!staticData) return analysis
   if (!t.isObjectExpression(staticData)) {
-    analysis.warnings.push(`${file}: staticData is not an object literal; breadcrumb, navigation and permission groups are not inferred.`)
+    analysis.warnings.push(
+      `${file}: staticData is not an object literal; breadcrumb, navigation and permission groups are not inferred.`
+    )
     return analysis
   }
   const data = objectProperties(staticData)
@@ -135,21 +153,27 @@ export function analyzeRouteSource(code: string, file: string): RouteFileAnalysi
       const result: { label?: string; dynamic?: boolean; hidden?: boolean } = {}
       if (label !== undefined) result.label = label
       const dynamic = booleanLiteral(propertyValue(crumb.get("dynamic")))
-      if (dynamic === true || (labelNode && label === undefined) || crumb.has("fromLoader")) result.dynamic = true
+      if (dynamic === true || (labelNode && label === undefined) || crumb.has("fromLoader"))
+        result.dynamic = true
       const hidden = booleanLiteral(propertyValue(crumb.get("hidden")))
       if (hidden !== undefined) result.hidden = hidden
       analysis.breadcrumb = result
     } else if (isFunctionNode(breadcrumb)) analysis.breadcrumb = { dynamic: true }
     else {
       analysis.breadcrumb = { dynamic: true }
-      analysis.warnings.push(`${file}: staticData.breadcrumb is not a literal; it is treated as dynamic.`)
+      analysis.warnings.push(
+        `${file}: staticData.breadcrumb is not a literal; it is treated as dynamic.`
+      )
     }
   }
   const navigation = propertyValue(data.get("navigation"))
   if (navigation) {
     const nav = objectProperties(navigation)
     const title = stringLiteral(propertyValue(nav.get("title")))
-    if (title === undefined) analysis.warnings.push(`${file}: staticData.navigation needs a literal string title to be inferred.`)
+    if (title === undefined)
+      analysis.warnings.push(
+        `${file}: staticData.navigation needs a literal string title to be inferred.`
+      )
     else {
       const entry: NonNullable<RouteMetadata["navigation"]> = { title }
       const description = stringLiteral(propertyValue(nav.get("description")))
@@ -168,8 +192,14 @@ export function analyzeRouteSource(code: string, file: string): RouteFileAnalysi
   const groups = propertyValue(data.get("permissionGroups"))
   if (groups) {
     const list = literalValue(groups)
-    if (list.ok && Array.isArray(list.value)) analysis.permissionGroups = list.value.filter((value): value is string => typeof value === "string")
-    else analysis.warnings.push(`${file}: staticData.permissionGroups is not an array of string literals; it is ignored.`)
+    if (list.ok && Array.isArray(list.value))
+      analysis.permissionGroups = list.value.filter(
+        (value): value is string => typeof value === "string"
+      )
+    else
+      analysis.warnings.push(
+        `${file}: staticData.permissionGroups is not an array of string literals; it is ignored.`
+      )
   }
   return analysis
 }

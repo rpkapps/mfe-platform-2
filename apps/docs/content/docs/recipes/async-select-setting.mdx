@@ -1,0 +1,63 @@
+---
+title: Async select setting
+description: A select setting whose options come from an API, with cancellation, caching, retry and a dependent field.
+---
+
+```ts title="src/settings.ts"
+import { useRegisterSettingsGroup } from "@platform/react"
+import { z } from "zod"
+
+export function useReportSettings() {
+  return useRegisterSettingsGroup({
+    key: "reports",
+    title: "Reports",
+    fields: {
+      site: {
+        defaultValue: "",
+        label: "Default site",
+        schema: z.string(),
+        optionsCacheMs: 5 * 60_000,
+        options: async ({ platform, signal }) => {
+          const url = `${platform.runtime.env.API_BASE_URL}/sites?tenant=${platform.tenant?.id ?? ""}`
+          const response = await fetch(url, { signal })
+          if (!response.ok) throw new Error(`Sites unavailable (${response.status})`)
+          const sites: { id: string; name: string; archived: boolean }[] = await response.json()
+          return sites.map((site) => ({ value: site.id, label: site.name, disabled: site.archived }))
+        },
+      },
+      area: {
+        defaultValue: "",
+        label: "Default area",
+        disabledWhen: (state) => !state.site,
+        options: async ({ platform, state, signal }) => {
+          if (!state.site) return []
+          const response = await fetch(
+            `${platform.runtime.env.API_BASE_URL}/sites/${state.site}/areas`,
+            { signal }
+          )
+          if (!response.ok) throw new Error("Areas unavailable")
+          const areas: { id: string; name: string }[] = await response.json()
+          return areas.map((area) => ({ value: area.id, label: area.name }))
+        },
+      },
+    },
+  })
+}
+```
+
+Mount the hook in a component that lives with the feature (the settings page or the root layout):
+
+```tsx title="src/routes/__root.tsx"
+function RootLayout() {
+  useReportSettings()
+  return <Outlet />
+}
+```
+
+Behaviour you get for free:
+
+- the control shows loading, error and *Retry* states; the stored value survives a failed load,
+- changing `site` aborts the pending `area` request and reloads areas,
+- results are cached for five minutes per dependency snapshot,
+- a stored site that is no longer in the list is shown as stale with a *Reset* action,
+- the provider sees only the typed platform view (context, runtime env, telemetry), not shell internals or storage.

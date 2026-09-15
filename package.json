@@ -37,13 +37,21 @@
     "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "jsdom": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "@platform-internal/core": "workspace:*",
+    "@platform-internal/conformance": "workspace:*"
   },
   "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=20.19.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "lightningcss", "@tailwindcss/oxide", "unrs-resolver"]
-  }
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss",
+      "@tailwindcss/oxide",
+      "unrs-resolver"
+    ]
+  },
+  "type": "module"
 }

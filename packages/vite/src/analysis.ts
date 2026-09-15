@@ -1,14 +1,37 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
 
-import { CAPABILITY_BY_API, inferKind, type CapabilityId, type CommandContribution, type HelpContribution, type ReleaseNoteContribution, type SettingsContribution, type WidgetContribution } from "@platform-internal/core"
+import {
+  CAPABILITY_BY_API,
+  inferKind,
+  type CapabilityId,
+  type CommandContribution,
+  type HelpContribution,
+  type ReleaseNoteContribution,
+  type SettingsContribution,
+  type WidgetContribution,
+} from "@platform-internal/core"
 
-import { literalValue, objectProperties, parseSource, propertyValue, stringArray, stringLiteral, t, traverseAst, unwrapExpression, type NodePath } from "./ast"
+import {
+  literalValue,
+  objectProperties,
+  parseSource,
+  propertyValue,
+  stringArray,
+  stringLiteral,
+  t,
+  traverseAst,
+  unwrapExpression,
+  type NodePath,
+} from "./ast"
 
 export const SDK_PACKAGE = "@platform/react"
 
 const STORAGE_APIS = new Set(["createPlatformStorage", "usePlatformStorage"])
-const REGISTRATION_COMPONENTS: Record<string, "command" | "settings" | "help" | "releaseNotes"> = {
+const REGISTRATION_COMPONENTS: Record<
+  string,
+  "command" | "settings" | "help" | "releaseNotes"
+> = {
   CommandRegistration: "command",
   SettingsRegistration: "settings",
   HelpRegistration: "help",
@@ -36,7 +59,18 @@ export interface FileAnalysis {
 }
 
 function emptyAnalysis(file: string): FileAnalysis {
-  return { file, capabilities: [], commands: [], settings: [], settingsFields: [], help: [], releaseNotes: [], widgets: [], warnings: [], usesSdk: false }
+  return {
+    file,
+    capabilities: [],
+    commands: [],
+    settings: [],
+    settingsFields: [],
+    help: [],
+    releaseNotes: [],
+    widgets: [],
+    warnings: [],
+    usesSdk: false,
+  }
 }
 
 /** One-level identifier resolution: `const def = {...}; useRegisterCommand(def)`. */
@@ -46,7 +80,8 @@ function resolveNode(path: NodePath, node: t.Node | null | undefined): t.Node | 
   if (t.isIdentifier(value)) {
     const binding = path.scope.getBinding(value.name)
     const declarator = binding?.path.node
-    if (declarator && t.isVariableDeclarator(declarator) && declarator.init) return unwrapExpression(declarator.init) ?? undefined
+    if (declarator && t.isVariableDeclarator(declarator) && declarator.init)
+      return unwrapExpression(declarator.init) ?? undefined
     return value
   }
   return value
@@ -60,16 +95,25 @@ function routeString(node: t.Node | undefined): string | undefined {
   return to
 }
 
-export function extractCommand(node: t.Node | undefined, file: string, warnings: string[], isStatic = false): CommandContribution | undefined {
+export function extractCommand(
+  node: t.Node | undefined,
+  file: string,
+  warnings: string[],
+  isStatic = false
+): CommandContribution | undefined {
   if (!node || !t.isObjectExpression(node)) {
-    warnings.push(`${file}: a command definition is not an object literal; it is not listed in the manifest.`)
+    warnings.push(
+      `${file}: a command definition is not an object literal; it is not listed in the manifest.`
+    )
     return undefined
   }
   const props = objectProperties(node)
   const id = stringLiteral(propertyValue(props.get("id")))
   const label = stringLiteral(propertyValue(props.get("label")))
   if (id === undefined || label === undefined) {
-    warnings.push(`${file}: a command definition needs literal \`id\` and \`label\` to be listed in the manifest.`)
+    warnings.push(
+      `${file}: a command definition needs literal \`id\` and \`label\` to be listed in the manifest.`
+    )
     return undefined
   }
   const command: CommandContribution = { id, label, static: isStatic }
@@ -88,10 +132,17 @@ export function extractCommand(node: t.Node | undefined, file: string, warnings:
   return command
 }
 
-function extractSettingsField(key: string, node: t.Node | undefined, file: string, warnings: string[]): SettingsContribution["fields"][number] {
+function extractSettingsField(
+  key: string,
+  node: t.Node | undefined,
+  file: string,
+  warnings: string[]
+): SettingsContribution["fields"][number] {
   const field: SettingsContribution["fields"][number] = { key }
   if (!node || !t.isObjectExpression(node)) {
-    warnings.push(`${file}: settings field "${key}" is not an object literal; its kind is unknown.`)
+    warnings.push(
+      `${file}: settings field "${key}" is not an object literal; its kind is unknown.`
+    )
     field.kind = "unknown"
     return field
   }
@@ -104,27 +155,47 @@ function extractSettingsField(key: string, node: t.Node | undefined, file: strin
   if (keywords) field.keywords = keywords
   const explicitKind = stringLiteral(propertyValue(props.get("kind")))
   const hasOptions = props.has("options")
-  if (explicitKind && ["boolean", "text", "number", "select", "multi-select", "unknown"].includes(explicitKind)) {
+  if (
+    explicitKind &&
+    ["boolean", "text", "number", "select", "multi-select", "unknown"].includes(explicitKind)
+  ) {
     field.kind = explicitKind as NonNullable<typeof field.kind>
   } else {
     const defaultValue = literalValue(propertyValue(props.get("defaultValue")))
-    field.kind = defaultValue.ok ? inferKind(defaultValue.value, hasOptions) : hasOptions ? "select" : "unknown"
+    field.kind = defaultValue.ok
+      ? inferKind(defaultValue.value, hasOptions)
+      : hasOptions
+        ? "select"
+        : "unknown"
   }
   return field
 }
 
-export function extractSettingsGroup(node: t.Node | undefined, file: string, warnings: string[]): SettingsContribution | undefined {
+export function extractSettingsGroup(
+  node: t.Node | undefined,
+  file: string,
+  warnings: string[]
+): SettingsContribution | undefined {
   if (!node || !t.isObjectExpression(node)) {
-    warnings.push(`${file}: a settings group definition is not an object literal; it is not listed in the manifest.`)
+    warnings.push(
+      `${file}: a settings group definition is not an object literal; it is not listed in the manifest.`
+    )
     return undefined
   }
   const props = objectProperties(node)
   const key = stringLiteral(propertyValue(props.get("key")))
   if (key === undefined) {
-    warnings.push(`${file}: a settings group needs a literal \`key\` to be listed in the manifest.`)
+    warnings.push(
+      `${file}: a settings group needs a literal \`key\` to be listed in the manifest.`
+    )
     return undefined
   }
-  const group: SettingsContribution = { key, title: stringLiteral(propertyValue(props.get("title"))) ?? key, managedBy: "framework", fields: [] }
+  const group: SettingsContribution = {
+    key,
+    title: stringLiteral(propertyValue(props.get("title"))) ?? key,
+    managedBy: "framework",
+    fields: [],
+  }
   const description = stringLiteral(propertyValue(props.get("description")))
   if (description !== undefined) group.description = description
   const keywords = stringArray(propertyValue(props.get("keywords")))
@@ -135,21 +206,33 @@ export function extractSettingsGroup(node: t.Node | undefined, file: string, war
   if (route !== undefined) group.route = route
   const fields = propertyValue(props.get("fields"))
   if (fields && t.isObjectExpression(fields)) {
-    for (const [fieldKey, property] of objectProperties(fields)) group.fields.push(extractSettingsField(fieldKey, propertyValue(property), file, warnings))
-  } else if (fields) warnings.push(`${file}: settings group "${key}" has non-literal fields; they are not listed in the manifest.`)
+    for (const [fieldKey, property] of objectProperties(fields))
+      group.fields.push(extractSettingsField(fieldKey, propertyValue(property), file, warnings))
+  } else if (fields)
+    warnings.push(
+      `${file}: settings group "${key}" has non-literal fields; they are not listed in the manifest.`
+    )
   return group
 }
 
-export function extractHelp(node: t.Node | undefined, file: string, warnings: string[]): HelpContribution | undefined {
+export function extractHelp(
+  node: t.Node | undefined,
+  file: string,
+  warnings: string[]
+): HelpContribution | undefined {
   if (!node || !t.isObjectExpression(node)) {
-    warnings.push(`${file}: a help entry is not an object literal; it is not listed in the manifest.`)
+    warnings.push(
+      `${file}: a help entry is not an object literal; it is not listed in the manifest.`
+    )
     return undefined
   }
   const props = objectProperties(node)
   const id = stringLiteral(propertyValue(props.get("id")))
   const title = stringLiteral(propertyValue(props.get("title")))
   if (id === undefined || title === undefined) {
-    warnings.push(`${file}: a help entry needs literal \`id\` and \`title\` to be listed in the manifest.`)
+    warnings.push(
+      `${file}: a help entry needs literal \`id\` and \`title\` to be listed in the manifest.`
+    )
     return undefined
   }
   const help: HelpContribution = { id, title }
@@ -164,9 +247,15 @@ export function extractHelp(node: t.Node | undefined, file: string, warnings: st
   return help
 }
 
-export function extractReleaseNote(node: t.Node | undefined, file: string, warnings: string[]): ReleaseNoteContribution | undefined {
+export function extractReleaseNote(
+  node: t.Node | undefined,
+  file: string,
+  warnings: string[]
+): ReleaseNoteContribution | undefined {
   if (!node || !t.isObjectExpression(node)) {
-    warnings.push(`${file}: a release note is not an object literal; it is not listed in the manifest.`)
+    warnings.push(
+      `${file}: a release note is not an object literal; it is not listed in the manifest.`
+    )
     return undefined
   }
   const props = objectProperties(node)
@@ -174,7 +263,9 @@ export function extractReleaseNote(node: t.Node | undefined, file: string, warni
   const version = stringLiteral(propertyValue(props.get("version")))
   const title = stringLiteral(propertyValue(props.get("title")))
   if (id === undefined || version === undefined || title === undefined) {
-    warnings.push(`${file}: a release note needs literal \`id\`, \`version\` and \`title\` to be listed in the manifest.`)
+    warnings.push(
+      `${file}: a release note needs literal \`id\`, \`version\` and \`title\` to be listed in the manifest.`
+    )
     return undefined
   }
   const note: ReleaseNoteContribution = { id, version, title }
@@ -189,11 +280,18 @@ export function extractReleaseNote(node: t.Node | undefined, file: string, warni
   return note
 }
 
-function extractWidget(node: t.Node | undefined, fallbackId: string | undefined, file: string, warnings: string[]): WidgetContribution | undefined {
+function extractWidget(
+  node: t.Node | undefined,
+  fallbackId: string | undefined,
+  file: string,
+  warnings: string[]
+): WidgetContribution | undefined {
   const props = objectProperties(node)
   const id = stringLiteral(propertyValue(props.get("id"))) ?? fallbackId
   if (id === undefined) {
-    warnings.push(`${file}: a createWidget call without a literal \`id\` is not listed in the manifest.`)
+    warnings.push(
+      `${file}: a createWidget call without a literal \`id\` is not listed in the manifest.`
+    )
     return undefined
   }
   const widget: WidgetContribution = { id }
@@ -208,7 +306,8 @@ function extractWidget(node: t.Node | undefined, fallbackId: string | undefined,
 
 function listOf(node: t.Node | undefined): (t.Node | undefined)[] {
   const value = unwrapExpression(node)
-  if (t.isArrayExpression(value)) return value.elements.map((element) => unwrapExpression(element) ?? undefined)
+  if (t.isArrayExpression(value))
+    return value.elements.map((element) => unwrapExpression(element) ?? undefined)
   return [value ?? undefined]
 }
 
@@ -224,7 +323,9 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
   try {
     ast = parseSource(code, file)
   } catch (error) {
-    analysis.warnings.push(`${file}: could not parse (${error instanceof Error ? error.message : String(error)}); SDK usage is not inferred.`)
+    analysis.warnings.push(
+      `${file}: could not parse (${error instanceof Error ? error.message : String(error)}); SDK usage is not inferred.`
+    )
     return analysis
   }
   const locals = new Map<string, string>()
@@ -238,7 +339,9 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
     for (const specifier of statement.specifiers) {
       if (t.isImportSpecifier(specifier)) {
         if (specifier.importKind === "type") continue
-        const imported = t.isIdentifier(specifier.imported) ? specifier.imported.name : specifier.imported.value
+        const imported = t.isIdentifier(specifier.imported)
+          ? specifier.imported.name
+          : specifier.imported.value
         locals.set(specifier.local.name, imported)
       } else if (t.isImportNamespaceSpecifier(specifier)) namespaces.add(specifier.local.name)
     }
@@ -257,16 +360,31 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
   const sdkName = (callee: t.Node | null | undefined): string | undefined => {
     const node = unwrapExpression(callee)
     if (t.isIdentifier(node)) return locals.get(node.name)
-    if (t.isMemberExpression(node) && !node.computed && t.isIdentifier(node.object) && t.isIdentifier(node.property) && namespaces.has(node.object.name)) return node.property.name
+    if (
+      t.isMemberExpression(node) &&
+      !node.computed &&
+      t.isIdentifier(node.object) &&
+      t.isIdentifier(node.property) &&
+      namespaces.has(node.object.name)
+    )
+      return node.property.name
     return undefined
   }
   const jsxName = (name: t.JSXOpeningElement["name"]): string | undefined => {
     if (t.isJSXIdentifier(name)) return locals.get(name.name)
-    if (t.isJSXMemberExpression(name) && t.isJSXIdentifier(name.object) && namespaces.has(name.object.name)) return name.property.name
+    if (
+      t.isJSXMemberExpression(name) &&
+      t.isJSXIdentifier(name.object) &&
+      namespaces.has(name.object.name)
+    )
+      return name.property.name
     return undefined
   }
 
-  const handleDefinition = (kind: "command" | "settings" | "help" | "releaseNotes", node: t.Node | undefined) => {
+  const handleDefinition = (
+    kind: "command" | "settings" | "help" | "releaseNotes",
+    node: t.Node | undefined
+  ) => {
     switch (kind) {
       case "command": {
         const command = extractCommand(node, file, analysis.warnings)
@@ -296,7 +414,13 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
   traverseAst(ast, {
     MemberExpression(path) {
       const node = path.node
-      if (node.computed || !t.isIdentifier(node.object) || !t.isIdentifier(node.property) || !namespaces.has(node.object.name)) return
+      if (
+        node.computed ||
+        !t.isIdentifier(node.object) ||
+        !t.isIdentifier(node.property) ||
+        !namespaces.has(node.object.name)
+      )
+        return
       const name = node.property.name
       if (STORAGE_APIS.has(name)) return
       const capability = CAPABILITY_BY_API[name]
@@ -324,8 +448,15 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
           const props = objectProperties(first)
           const group = stringLiteral(propertyValue(props.get("group")))
           const key = stringLiteral(propertyValue(props.get("key")))
-          if (group === undefined || key === undefined) analysis.warnings.push(`${file}: useRegisterSettingsField needs literal \`group\` and \`key\` to be listed in the manifest.`)
-          else analysis.settingsFields.push({ group, field: extractSettingsField(key, first, file, analysis.warnings) })
+          if (group === undefined || key === undefined)
+            analysis.warnings.push(
+              `${file}: useRegisterSettingsField needs literal \`group\` and \`key\` to be listed in the manifest.`
+            )
+          else
+            analysis.settingsFields.push({
+              group,
+              field: extractSettingsField(key, first, file, analysis.warnings),
+            })
           break
         }
         case "useRegisterHelp":
@@ -345,23 +476,43 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
           if (widgets && t.isObjectExpression(widgets)) {
             for (const [id, property] of objectProperties(widgets)) {
               const value = resolveNode(path, propertyValue(property))
-              const call = value && t.isCallExpression(value) && sdkName(value.callee) === "createWidget" ? resolveNode(path, value.arguments[0]) : undefined
+              const call =
+                value && t.isCallExpression(value) && sdkName(value.callee) === "createWidget"
+                  ? resolveNode(path, value.arguments[0])
+                  : undefined
               const widget = extractWidget(call, id, file, analysis.warnings)
               if (widget) analysis.widgets.push({ ...widget, id })
             }
           } else if (widgets && t.isArrayExpression(widgets)) {
             for (const element of widgets.elements) {
               const value = resolveNode(path, element)
-              if (value && t.isCallExpression(value) && sdkName(value.callee) === "createWidget") {
-                const widget = extractWidget(resolveNode(path, value.arguments[0]), undefined, file, analysis.warnings)
+              if (
+                value &&
+                t.isCallExpression(value) &&
+                sdkName(value.callee) === "createWidget"
+              ) {
+                const widget = extractWidget(
+                  resolveNode(path, value.arguments[0]),
+                  undefined,
+                  file,
+                  analysis.warnings
+                )
                 if (widget) analysis.widgets.push(widget)
-              } else analysis.warnings.push(`${file}: a widget in createMfe({ widgets }) is not an inline createWidget call; it is not listed in the manifest.`)
+              } else
+                analysis.warnings.push(
+                  `${file}: a widget in createMfe({ widgets }) is not an inline createWidget call; it is not listed in the manifest.`
+                )
             }
-          } else if (widgets) analysis.warnings.push(`${file}: createMfe({ widgets }) is not an object or array literal; widgets are not listed in the manifest.`)
+          } else if (widgets)
+            analysis.warnings.push(
+              `${file}: createMfe({ widgets }) is not an object or array literal; widgets are not listed in the manifest.`
+            )
           const registrations = resolveNode(path, propertyValue(props.get("registrations")))
           if (registrations && t.isObjectExpression(registrations)) {
             const groups = objectProperties(registrations)
-            for (const entry of listOf(resolveNode(path, propertyValue(groups.get("commands"))))) {
+            for (const entry of listOf(
+              resolveNode(path, propertyValue(groups.get("commands")))
+            )) {
               if (!entry) continue
               const command = extractCommand(entry, file, analysis.warnings, true)
               if (command) analysis.commands.push(command)
@@ -371,12 +522,17 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
               const help = extractHelp(entry, file, analysis.warnings)
               if (help) analysis.help.push(help)
             }
-            for (const entry of listOf(resolveNode(path, propertyValue(groups.get("releaseNotes"))))) {
+            for (const entry of listOf(
+              resolveNode(path, propertyValue(groups.get("releaseNotes")))
+            )) {
               if (!entry) continue
               const note = extractReleaseNote(entry, file, analysis.warnings)
               if (note) analysis.releaseNotes.push(note)
             }
-          } else if (registrations) analysis.warnings.push(`${file}: createMfe({ registrations }) is not an object literal; static registrations are not listed in the manifest.`)
+          } else if (registrations)
+            analysis.warnings.push(
+              `${file}: createMfe({ registrations }) is not an object literal; static registrations are not listed in the manifest.`
+            )
           break
         }
         default:
@@ -388,9 +544,16 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
       if (!name) return
       const kind = REGISTRATION_COMPONENTS[name]
       if (!kind) return
-      const attribute = path.node.attributes.find((attr): attr is t.JSXAttribute => t.isJSXAttribute(attr) && t.isJSXIdentifier(attr.name) && attr.name.name === "definition")
+      const attribute = path.node.attributes.find(
+        (attr): attr is t.JSXAttribute =>
+          t.isJSXAttribute(attr) &&
+          t.isJSXIdentifier(attr.name) &&
+          attr.name.name === "definition"
+      )
       if (!attribute || !t.isJSXExpressionContainer(attribute.value)) {
-        analysis.warnings.push(`${file}: <${name}> without a literal \`definition\` prop is not listed in the manifest.`)
+        analysis.warnings.push(
+          `${file}: <${name}> without a literal \`definition\` prop is not listed in the manifest.`
+        )
         return
       }
       handleDefinition(kind, resolveNode(path, attribute.value.expression))
@@ -398,8 +561,10 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
   })
 
   if (storageUsed) {
-    for (const scope of storageScopes) capabilities.add(scope === "session" ? "storage.session" : "storage.local")
-  } else if ([...locals.values()].some((name) => STORAGE_APIS.has(name))) capabilities.add("storage.local")
+    for (const scope of storageScopes)
+      capabilities.add(scope === "session" ? "storage.session" : "storage.local")
+  } else if ([...locals.values()].some((name) => STORAGE_APIS.has(name)))
+    capabilities.add("storage.local")
   analysis.capabilities = [...capabilities]
   return analysis
 }
@@ -439,15 +604,38 @@ export function listSourceFiles(dir: string): string[] {
 
 /** Merge per-file analyses; the first definition of an id wins, duplicates warn. */
 export function mergeAnalyses(analyses: FileAnalysis[], root: string): ProjectAnalysis {
-  const result: ProjectAnalysis = { capabilities: [], commands: [], settings: [], help: [], releaseNotes: [], widgets: [], warnings: [], files: [] }
+  const result: ProjectAnalysis = {
+    capabilities: [],
+    commands: [],
+    settings: [],
+    help: [],
+    releaseNotes: [],
+    widgets: [],
+    warnings: [],
+    files: [],
+  }
   const capabilities = new Set<CapabilityId>()
-  const seen = { commands: new Set<string>(), settings: new Set<string>(), help: new Set<string>(), releaseNotes: new Set<string>(), widgets: new Set<string>() }
+  const seen = {
+    commands: new Set<string>(),
+    settings: new Set<string>(),
+    help: new Set<string>(),
+    releaseNotes: new Set<string>(),
+    widgets: new Set<string>(),
+  }
   const pendingFields: PendingSettingsField[] = []
-  const dedupe = <T>(kind: keyof typeof seen, items: T[], key: (item: T) => string, target: T[], file: string) => {
+  const dedupe = <T>(
+    kind: keyof typeof seen,
+    items: T[],
+    key: (item: T) => string,
+    target: T[],
+    file: string
+  ) => {
     for (const item of items) {
       const id = key(item)
       if (seen[kind].has(id)) {
-        result.warnings.push(`${file}: duplicate ${kind} "${id}"; the first definition is used.`)
+        result.warnings.push(
+          `${file}: duplicate ${kind} "${id}"; the first definition is used.`
+        )
         continue
       }
       seen[kind].add(id)
@@ -472,20 +660,31 @@ export function mergeAnalyses(analyses: FileAnalysis[], root: string): ProjectAn
       group = { key: pending.group, title: pending.group, managedBy: "framework", fields: [] }
       result.settings.push(group)
     }
-    if (!group.fields.some((field) => field.key === pending.field.key)) group.fields.push(pending.field)
+    if (!group.fields.some((field) => field.key === pending.field.key))
+      group.fields.push(pending.field)
   }
   result.capabilities = [...capabilities]
   return result
 }
 
-export function analyzeProjectSources(options: { root: string; sourceDirectory?: string }): ProjectAnalysis {
+export function analyzeProjectSources(options: {
+  root: string
+  sourceDirectory?: string
+}): ProjectAnalysis {
   const dir = options.sourceDirectory ?? join(options.root, "src")
-  const analyses = listSourceFiles(dir).map((file) => analyzeSourceFile(readFileSync(file, "utf8"), file))
+  const analyses = listSourceFiles(dir).map((file) =>
+    analyzeSourceFile(readFileSync(file, "utf8"), file)
+  )
   return mergeAnalyses(analyses, options.root)
 }
 
 /** Final capability request: usage ∪ implicit ∪ `add`, minus `remove`, in canonical order. */
-export function finalizeCapabilities(inferred: Iterable<CapabilityId>, implicit: readonly CapabilityId[], add: CapabilityId[] = [], remove: CapabilityId[] = []): CapabilityId[] {
+export function finalizeCapabilities(
+  inferred: Iterable<CapabilityId>,
+  implicit: readonly CapabilityId[],
+  add: CapabilityId[] = [],
+  remove: CapabilityId[] = []
+): CapabilityId[] {
   const set = new Set<CapabilityId>([...implicit, ...inferred, ...add])
   for (const capability of remove) set.delete(capability)
   return [...set].sort()

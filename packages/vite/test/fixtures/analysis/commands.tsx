@@ -1,5 +1,10 @@
 import * as React from "react"
-import { CommandRegistration, useRegisterCommand, useTelemetry, useNavigation } from "@platform/react"
+import {
+  CommandRegistration,
+  useRegisterCommand,
+  useTelemetry,
+  useNavigation,
+} from "@platform/react"
 import type { CommandDefinition } from "@platform/react"
 
 const exportCommand = {
@@ -22,7 +27,9 @@ export function Commands() {
   return (
     <>
       <CommandRegistration definition={{ id: "refresh", label: "Refresh", group: "General" }} />
-      <CommandRegistration definition={{ id: "dynamic", label: `Dynamic ${String(navigation)}` }} />
+      <CommandRegistration
+        definition={{ id: "dynamic", label: `Dynamic ${String(navigation)}` }}
+      />
       <button onClick={() => telemetry.event("click")}>go</button>
     </>
   )

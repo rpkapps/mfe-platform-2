@@ -1,0 +1,53 @@
+---
+title: Cross-tab storage
+description: Keep a preference in sync across browser tabs with a local-scope store.
+---
+
+```ts title="src/storage.ts"
+import { createPlatformStorage } from "@platform/react"
+import { z } from "zod"
+
+export const viewStore = createPlatformStorage({
+  scope: "local",
+  key: "asset-view",
+  schema: z.object({ mode: z.enum(["table", "map"]), showOffline: z.boolean() }),
+  defaults: { mode: "table", showOffline: true },
+  version: 1,
+})
+```
+
+```tsx title="src/routes/index.tsx"
+import { viewStore } from "../storage"
+
+function AssetListPage() {
+  const mode = viewStore.use((state) => state.mode)
+  return (
+    <ToggleGroup selectedKeys={[mode]} onSelectionChange={(keys) => viewStore.setKey("mode", [...keys][0] as "table" | "map")}>
+      <ToggleGroupItem id="table">Table</ToggleGroupItem>
+      <ToggleGroupItem id="map">Map</ToggleGroupItem>
+    </ToggleGroup>
+  )
+}
+```
+
+How the sync works:
+
+1. `setKey` validates and writes `platform:asset-tracker:local:asset-view` through the shell's storage backend.
+2. The backend notifies same-tab subscribers immediately.
+3. The browser fires a `storage` event in every other tab; the backend's single listener maps it to the namespaced key and the store re-reads and re-validates the value.
+4. Components subscribed with `use(selector)` rerender only when their slice changed.
+
+Notes:
+
+- `session` scope never syncs across tabs.
+- A tab running an older version of the remote with a different `version` runs its `migrate` or falls back to defaults; it never crashes on a newer envelope.
+- Nothing listens to `storage` events per MFE; the backend owns the one listener.
+
+Test it with the memory backend:
+
+```ts
+const bridge = createTestBridge({ mfeId: "asset-tracker" })
+renderMfe(definition, { bridge })
+bridge.storage.emitExternal("local", "platform:asset-tracker:local:asset-view", JSON.stringify({ v: 1, data: { mode: "map", showOffline: false }, updatedAt: Date.now() }))
+expect(viewStore.get().mode).toBe("map")
+```

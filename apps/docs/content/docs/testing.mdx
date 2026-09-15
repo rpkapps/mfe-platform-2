@@ -1,0 +1,59 @@
+---
+title: Testing
+description: The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers and the harness.
+---
+
+## What the platform suite covers
+
+Consuming MFEs do not duplicate any of this.
+
+| Area | Where |
+| --- | --- |
+| Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs | `internal/core` unit tests (Vitest) |
+| Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics | `packages/vite` unit tests + fixtures |
+| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries | `packages/react` unit tests (jsdom, React 18 and 19) |
+| CLI: scaffold, `platform lint` on a fresh project, every lint rule | `packages/cli` unit + fixture tests |
+| Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy | `packages/host` unit tests |
+| Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes) | `test/integration` (Vitest) |
+| Browser behaviour: HMR, isolation, overlays and modal ordering, palette, settings, storage, cross-tab updates, context, guards, breadcrumbs, runtime config, overrides, failures, retries, devtools lazy loading, React Flow graph | `test/e2e` (Playwright, Windows and Linux CI) against the [conformance apps](/docs/examples) |
+
+Run it with `pnpm test`, `pnpm test:integration` and `pnpm e2e` (after `pnpm build:all`).
+
+## What an MFE tests
+
+- **Unit**: components and hooks with `@platform/react/testing`.
+- **Integration**: routes and registrations rendered through `renderMfe` with a test bridge.
+- **E2E**: Playwright against the harness (`platform dev`), asserting the flows that matter to the product.
+
+`platform test` runs Vitest with the scaffolded configuration; `platform create` includes examples of all three.
+
+## `@platform/react/testing`
+
+```ts
+import { createTestBridge, renderMfe } from "@platform/react/testing"
+import definition from "../src/mfe"
+
+const bridge = createTestBridge({
+  mfeId: "asset-tracker",
+  user: { id: "u1", displayName: "Ada" },
+  permissionGroups: ["assets:read"],
+  env: { API_BASE_URL: "http://test", PAGE_SIZE: 10 },
+  capabilities: ["commands", "settings", "storage.local"],
+  navigation: "/asset-tracker/assets/pump-42", // initial location (memory navigation)
+})
+
+const app = renderMfe(definition, { bridge, path: "/assets/pump-42" })
+await screen.findByText("Pump 42")
+
+bridge.context.update({ permissionGroups: [] }) // guards re-run
+expect(bridge.registries.commands.list().map((c) => c.qualifiedId)).toContain("asset-tracker:new-asset")
+expect(bridge.storage.keys("local")).toEqual(["platform:asset-tracker:local:dashboard"])
+app.unmount()
+expect(bridge.registries.commands.list()).toHaveLength(0)
+```
+
+`createTestBridge` builds a full `HostBridge` with memory navigation, a memory storage backend, memory telemetry, real registries and a real overlay manager on the test document. `renderMfe` mounts through `definition.mount` (or `mountWidget` with `{ widget: { id, props } }`), exactly like the host.
+
+## Testing settings and storage
+
+Stores and settings groups validate with the same code paths in tests: write an invalid envelope into `bridge.storage` and assert the recovered value and the diagnostic in `bridge.diagnostics.events`.

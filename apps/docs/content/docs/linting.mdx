@@ -1,0 +1,104 @@
+---
+title: Linting
+description: The shareable ESLint plugin and flat config from @platform/cli/eslint, every platform rule with its rationale, and the generated eslint.config.ts.
+---
+
+## Setup
+
+`platform create` generates the configuration and the script; nothing is copied by hand:
+
+```ts title="eslint.config.ts"
+import { platformConfig } from "@platform/cli/eslint"
+
+export default platformConfig({
+  // typed configuration: every option is optional
+  tsconfig: "./tsconfig.json",
+  rules: { "platform/telemetry-context": "warn" }, // severity overrides
+  ignores: ["src/legacy/**"], // in addition to generated files
+})
+```
+
+```json title="package.json"
+{ "scripts": { "lint": "platform lint" }, "devDependencies": { "@platform/cli": "^0.1.0" } }
+```
+
+`platform lint` runs the same configuration CI uses. The config composes `@eslint/js`, `typescript-eslint` (strict, type-aware when `tsconfig` is given), `eslint-plugin-react-hooks`, `eslint-plugin-jsx-a11y`, `@tanstack/eslint-plugin-router` and the `platform` plugin, and excludes generated files (`routeTree.gen.ts`, `.platform/**`, `dist/**`).
+
+Every diagnostic links to the rule's section on this page.
+
+## Rules
+
+All rules are `error` by default unless noted.
+
+### no-raw-browser-storage
+
+Reports `window.localStorage`, `window.sessionStorage`, `localStorage.getItem(...)` and friends in MFE code. Raw storage bypasses namespacing, schema validation and diagnostics, and is invisible to the shell and the devtools. Use [`createPlatformStorage`](/docs/storage).
+
+### registration-cleanup
+
+Reports registration calls (`bridge.registries.*.register`, low-level `registerCommand`) outside `useRegisterCommand`/`useRegisterSettingsGroup`/`useRegisterHelp`/`useRegisterReleaseNotes` or a component-bound effect, and hook calls inside conditions or loops. Registrations must disappear with their owner; the hooks guarantee it.
+
+### no-undeclared-capability
+
+Reports SDK calls whose capability is removed in `mfe.config.ts` (`capabilities.remove`) or, when the manifest is available, absent from it. The call would fail at runtime with `CAPABILITY_UNAVAILABLE`.
+
+### valid-manifest-config
+
+Validates `mfe.config.ts` statically: unknown keys, `routePrefix` format, `navigation.title` required when `navigation` is present, `env` declarations with sensitive-looking names, `shared` entries that are not dependencies.
+
+### no-generated-file-edits
+
+Reports edits (any non-generated content) in `routeTree.gen.ts`, `.platform/*` and `platform-manifest.json`. Regenerate with the owning tool instead.
+
+### no-cross-root-components
+
+Reports passing a component or element where the platform expects data: widget props containing JSX, `registrations` in `createMfe` with component values, `content`/`renderer` values that are not converted by the SDK helpers. React values cannot cross [React roots](/docs/isolation/react-roots).
+
+### telemetry-context
+
+Default `warn`. Reports `telemetry.track`/`error`/`span` calls on a telemetry object that was not obtained from `useTelemetry()`, `context.platform.telemetry` or `platform.telemetry`, since such calls miss the automatic enrichment.
+
+### valid-route-prefix
+
+Reports `routePrefix` values that do not match the [prefix rules](/docs/route-prefixes) and route files whose path would collide with the prefix (`src/routes/asset-tracker/...` under `/asset-tracker`).
+
+### valid-mfe-id
+
+Reports `mfeId` values in `mfe.config.ts` or `createMfe` that are not kebab-case, differ from `.platform/identity.json` without an explicit config override, or are passed as non-literals.
+
+### no-unsupported-sharing
+
+Reports `shared` overrides that would break negotiation: sharing `@tecton/react` as a built module, `react` without `react-dom`, a `scope` that is not `default` or `react<major>`, or `singleton: true` on a package with several majors in the workspace.
+
+### no-direct-runtime-env
+
+Reports `import.meta.env.*` and `process.env.*` reads in MFE source (outside `vite.config.ts` and tests). Runtime values must come from `useRuntimeEnv()` so they can change per container; see [Runtime environment](/docs/runtime-environment).
+
+### no-module-federation-imports
+
+Reports imports of `@module-federation/*` and calls to `registerRemotes`/`loadRemote` in MFE code. Federation is platform infrastructure; see [Module Federation](/docs/module-federation).
+
+### valid-settings-definition
+
+Reports settings fields without `defaultValue`, fields using `value`, non-kebab-case keys, `managedBy: "mfe"` without `route`, schemas that are not Standard Schema objects, and predicates that are not synchronous functions.
+
+### valid-command-definition
+
+Reports commands without `label`, without `handler` or `route`, with malformed shortcuts, with duplicate ids in one module, or with non-literal ids that cannot be listed in the manifest.
+
+### stable-registration-keys
+
+Reports local ids and keys built from runtime values (``id: `cmd-${n}` ``). Keys must be stable across releases because storage, settings and command namespaces depend on them.
+
+## Local overrides
+
+```ts
+export default platformConfig({
+  rules: { "platform/telemetry-context": "off" },
+  overrides: [{ files: ["src/experimental/**"], rules: { "platform/no-direct-runtime-env": "warn" } }],
+})
+```
+
+## Tests
+
+Every rule has unit tests (`@typescript-eslint/rule-tester`), fixture projects (valid and invalid MFEs) and an integration test proving that `platform create` produces a project that passes `platform lint` without manual configuration.
