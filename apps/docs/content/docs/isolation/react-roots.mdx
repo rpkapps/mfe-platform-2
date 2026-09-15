@@ -1,0 +1,46 @@
+---
+title: React roots
+description: Every MFE and widget always renders in its own React root, even when React is shared. Nothing React-shaped crosses the boundary.
+---
+
+## Why
+
+- **Independence.** A React 18 remote and a React 19 remote mount on the same page. Each root uses its own React instance (or a shared instance within its version group), its own reconciler state and its own error boundaries.
+- **Failure isolation.** An error in one root cannot unwind another tree. The shell tree never contains remote elements.
+- **Independent upgrades.** A remote upgrades React, TanStack Router or Tecton on its own schedule; the [share scope](/docs/dependency-sharing) decides whether it gets a shared instance or its bundled copy.
+- **HMR isolation.** React Refresh is installed per React instance; editing a React 18 remote never re-renders the React 19 shell.
+
+## How a root is created
+
+```text
+host: <div data-platform-root data-mfe="asset-tracker" data-platform-instance="asset-tracker#1">
+        └─ definition.mount({ container, bridge })       // remote code, remote React
+             └─ createRoot(container).render(<Providers bridge={bridge}><RouterProvider/></Providers>)
+      dispose() → root.unmount(); registrations cleared; overlay root removed
+```
+
+The host only calls `mount` and `dispose` (and `setProps` for widgets). It never imports React from the remote and never renders remote components.
+
+## What cannot cross
+
+| Never crosses a root | Cross instead |
+| --- | --- |
+| React elements (`<Foo />`) | metadata + `mount(container) → { dispose }` (`MountableSurface`) |
+| Component values (`Foo`) | the SDK wraps components into mountable surfaces for you (`createWidget`, help `content`, settings `renderer`) |
+| Hooks, contexts, refs | plain data through the `HostBridge` and the context store |
+| Promises of elements | data promises |
+| Class instances with methods | serialisable objects and functions |
+
+The `HostBridge` is a plain object of data and functions: navigation, context store, capabilities, registries, breadcrumb store, storage backend, telemetry, overlay manager, diagnostics, notifications, settings value port and host flags. Because it contains no loader details, a test harness can build one as easily as Module Federation.
+
+## Surfaces that look like components
+
+Registering a custom settings renderer or a help panel feels like passing a component, and it is — inside your MFE. The SDK converts it to `{ mount(container, controller) { … } }` and the shell mounts it into its own element with your React. The `platform/no-cross-root-components` lint rule flags attempts to hand a component to a host API directly.
+
+## Sharing React does not merge roots
+
+Even when the shell and a remote share one React 19 instance, the remote still has its own root. Sharing removes duplicate bundles; it never makes the shell tree and the remote tree one tree. Contexts provided by the shell (theme, router, query client) are not visible inside a remote; the platform context is delivered through the bridge instead.
+
+## Diagnostics
+
+`mount.completed` reports `reactVersion` and `routerVersion` per instance; the [developer tools](/docs/developer-tools) list every root with its React version, share scope and mount state.

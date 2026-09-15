@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "types": ["node"], "lib": ["ES2022"] },
+  "include": ["src", "test", "tsdown.config.ts", "vitest.config.ts"],
+  "exclude": ["test/fixtures", "templates"]
+}

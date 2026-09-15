@@ -1,0 +1,4 @@
+dist
+test/fixtures/*/dist
+test/fixtures/*/.platform
+test/fixtures/*/src/routeTree.gen.ts

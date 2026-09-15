@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: A platform for independently deployed React micro-frontends and widgets that feel like ordinary TanStack Router applications.
+---
+
+**MFE Platform** lets teams ship React micro-frontends (MFEs) and widgets independently, load them at runtime into a shared shell, and keep them isolated from each other. MFE developers write ordinary TanStack Router file routes, React components and business logic. The platform owns everything else: Module Federation, remote loading, browser history, React root isolation, CSS scoping, storage namespacing, overlays, registrations and the shell chrome.
+
+## How it works
+
+```text
+┌──────────────────────────── Shell (@platform/host, React 19, SSR) ────────────────────────────┐
+│  history · context store · registries · overlay manager · breadcrumbs · runtime config · devtools │
+│                                                                                                  │
+│   /asset-tracker/*  ─►  <MfeOutlet>  ─►  fetch platform-manifest.json ─► validate ─► negotiate   │
+│                                            shared deps ─► load remote entry ─► mount(container)  │
+│                                                                                                  │
+│   ┌──────────────── React root: asset-tracker (React 19) ───────────────┐  ┌─ widget-b root ─┐  │
+│   │ <div data-mfe="asset-tracker">  TanStack Router + shell history     │  │ (React 18)      │  │
+│   │   routes/__root.tsx · routes/index.tsx · routes/assets/$assetId.tsx │  │ mountWidget()   │  │
+│   └─────────────────────────────────────────────────────────────────────┘  └─────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+        ▲ HostBridge: plain data + functions (navigation, context store, registries, storage,
+          telemetry, overlays, diagnostics). No React values cross a root boundary.
+```
+
+1. `@platform/vite` builds a remote: it generates `routeTree.gen.ts`, the isolated bootstrap entry, the Module Federation configuration and a typed **manifest** (`platform-manifest.json`) with routes, capabilities, registrations, shared dependency requests and runtime requirements.
+2. `@platform/host` resolves the manifest URL (local override → runtime configuration → registry → default), validates the manifest, checks the protocol version and permission groups, negotiates shared dependencies **by version group** and loads the remote entry.
+3. The remote's `createMfe()` definition is mounted into an owner-tagged container with its **own React root**. It receives a `HostBridge` of plain data and functions; hooks such as `usePlatform()` and `useRegisterCommand()` are built on it.
+4. Registrations (commands, settings, help, release notes, breadcrumbs) flow back to the shell as metadata plus `mount/dispose` callbacks and are cleaned up when the owner unmounts.
+
+## Packages
+
+| Package | Role | Where it runs |
+| --- | --- | --- |
+| [`@platform/react`](/docs/reference/platform-react) | MFE SDK: `createMfe`, `createWidget`, hooks, storage, registrations, testing helpers | browser (React 18 or 19) |
+| [`@platform/vite`](/docs/reference/platform-vite) | `platform()` Vite plugin: route tree, code splitting, manifest, inference, CSS scoping, Module Federation, dev endpoints | node |
+| [`@platform/cli`](/docs/reference/platform-cli) | `platform create/dev/build/manifest/validate/lint/test` and `@platform/cli/eslint` | node |
+| [`@platform/host`](/docs/reference/platform-host) | Shell runtime, React components, TanStack shell bridge, local harness, Docker entrypoint | browser + node |
+
+Private packages (`@platform-internal/core`, `module-federation`, `diagnostics`, `devtools`, `conformance`) are bundled into the public ones; you never install them.
+
+## Principles
+
+- **One canonical pattern per task.** Hooks are the primitives; components are thin wrappers. Every API takes an options object, infers what it can and exposes explicit overrides.
+- **Native TanStack Router.** `beforeLoad`, `redirect`, loaders, search params, pending and error components behave exactly as in a stand-alone app; the platform only injects `context.platform` and a shell-backed history.
+- **Isolation first.** Every MFE and widget has its own React root, scoped CSS and owner-tagged overlay roots. Dependencies are shared only within compatible version groups; React 19 never satisfies a React 18 request.
+- **Nothing is monkeypatched.** No patches of `history`, `pushState`, `popstate`, browser storage, `document.body` or React portals. Adapters and providers do the work.
+- **Actionable failures.** Every error is a `PlatformError` with a code, owner, source, override, hint and a link into these docs. See [Troubleshooting](/docs/troubleshooting).
+
+## Where to go next
+
+| Section | What it covers |
+| --- | --- |
+| [Create an MFE](/docs/getting-started/create-mfe) | `pnpm dlx @platform/cli create my-mfe`, the generated project, dev and build |
+| [Guides](/docs/guides) | Routing, widgets, isolation, manifests, commands, settings, storage, context, telemetry, configuration, operations |
+| [Recipes](/docs/recipes) | Short, copy-ready solutions for common tasks |
+| [Reference](/docs/reference) | Every export of the four packages, schemas, error codes, diagnostics |
+| [Examples](/docs/examples) | The conformance applications that exercise every feature |

@@ -1,0 +1,14 @@
+{
+  "title": "Recipes",
+  "pages": [
+    "index",
+    "permission-gated-route",
+    "widget-with-dialog",
+    "async-select-setting",
+    "cross-tab-storage",
+    "telemetry-span-in-loader",
+    "hidden-utility-mfe",
+    "local-override-against-staging",
+    "docker-runtime-config"
+  ]
+}

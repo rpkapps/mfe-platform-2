@@ -1,0 +1,91 @@
+---
+title: Folder routing
+description: MFE routes are ordinary TanStack Router file routes. The Vite plugin generates the route tree and code-splits every route.
+---
+
+## File routes
+
+Routes live under `src/routes` and follow TanStack Router's file conventions without any addition:
+
+```text
+src/routes/
+├── __root.tsx            → the MFE root (layout + context type)
+├── index.tsx             → /<prefix>
+├── settings.tsx          → /<prefix>/settings
+├── assets/
+│   ├── index.tsx         → /<prefix>/assets
+│   └── $assetId.tsx      → /<prefix>/assets/:assetId
+└── reports.$reportId.tsx → /<prefix>/reports/:reportId (flat syntax)
+```
+
+Paths inside the MFE are written relative to the MFE root (`/assets/$assetId`). The shell mounts the whole tree under the MFE's [route prefix](/docs/route-prefixes); `Link` and `navigate` inside the MFE keep using the relative form, and the shell-backed history translates them.
+
+```tsx title="src/routes/assets/index.tsx"
+import { createFileRoute, Link } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/assets/")({
+  staticData: { breadcrumb: "Assets", navigation: { title: "Assets", order: 1 } },
+  component: () => (
+    <ul>
+      <li>
+        <Link to="/assets/$assetId" params={{ assetId: "pump-42" }}>
+          Pump 42
+        </Link>
+      </li>
+    </ul>
+  ),
+})
+```
+
+## The generated route tree
+
+`@platform/vite` configures `@tanstack/router-plugin` with:
+
+```ts
+{
+  target: "react",
+  autoCodeSplitting: true,
+  routesDirectory: "src/routes",
+  generatedRouteTree: "src/routeTree.gen.ts",
+}
+```
+
+`src/routeTree.gen.ts` is regenerated on every change and is the single input of `createMfe({ routeTree })`. It is committed for readability and never edited. Route ids, params and search types flow from it, so `Link`, `useParams`, `useSearch`, `getRouteApi` and every other TanStack API stay fully typed.
+
+## Code splitting
+
+`autoCodeSplitting: true` splits each route's `component`, `pendingComponent`, `errorComponent`, `notFoundComponent` and loader-adjacent code into its own chunk. The Module Federation build keeps those chunks next to the remote entry, so a shell that mounts `/asset-tracker/assets/pump-42` downloads the remote entry, the shared-dependency negotiation result and the chunks of the matched routes only.
+
+Preloading works as in a stand-alone app: the router is created with `defaultPreload: "intent"`, and `Link preload="viewport"` is honoured.
+
+## Route metadata in the manifest
+
+The plugin statically reads each route file and writes route metadata into the manifest (`routes[]`): `path`, `fullPath`, `file`, `guarded` (whether `beforeLoad` is declared), and the `staticData` fields `breadcrumb`, `navigation` and `permissionGroups`. The shell uses it for the command palette, breadcrumbs and permission preflight without loading the remote.
+
+```ts
+staticData: {
+  breadcrumb: "Assets" | { label, dynamic?, hidden?, fromLoader?: "title" },
+  navigation: { title, description?, icon?, keywords?, order?, hidden? },
+  permissionGroups: ["assets:read"],
+}
+```
+
+The `StaticDataRouteOption` interface is augmented by `@platform/react`, so these keys are typed.
+
+## What the platform adds
+
+Nothing in the route files is platform-specific. The integration is supplied around them:
+
+- `createMfeRouter({ routeTree, bridge })` (called by `createMfe`) creates the router with a [shell-backed history](/docs/routing/shell-history), the route prefix as `basepath` and `context: { platform }`.
+- The root route type `MfeRouterContext` gives every `beforeLoad` and loader a typed `context.platform`; see [Route guards](/docs/routing/route-guards).
+- Route matches publish [breadcrumbs](/docs/routing/breadcrumbs) to the shell.
+
+## Advanced: creating the router yourself
+
+`createMfe` covers every normal case. When you need extra TanStack router options, pass them through `createMfe({ router })`; `createMfeRouter` is public for tests and unusual hosts:
+
+```ts
+import { createMfeRouter } from "@platform/react"
+
+const router = createMfeRouter({ routeTree, bridge, defaultPreloadStaleTime: 30_000 })
+```

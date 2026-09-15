@@ -1,0 +1,85 @@
+---
+title: Breadcrumbs
+description: Breadcrumbs come from ordinary TanStack route metadata. The shell renders them; MFEs only publish labels, links and states.
+---
+
+## Static labels
+
+```tsx
+export const Route = createFileRoute("/assets/")({
+  staticData: { breadcrumb: "Assets" },
+})
+```
+
+## Dynamic labels
+
+A function receives the route match (params, loader data, search) and returns the label. Mark it `dynamic` so the shell re-evaluates it on every navigation:
+
+```tsx
+export const Route = createFileRoute("/assets/$assetId")({
+  staticData: {
+    breadcrumb: { label: (match) => `Asset ${match.params.assetId}`, dynamic: true },
+  },
+})
+```
+
+## Loader-derived labels
+
+Point at a key of the loader data. While the loader is pending the entry is in the `loading` state; if the loader fails the entry becomes `unavailable`:
+
+```tsx
+export const Route = createFileRoute("/assets/$assetId")({
+  loader: ({ params }) => fetchAsset(params.assetId), // { name: "Pump 42", ... }
+  staticData: { breadcrumb: { fromLoader: "name" } },
+})
+```
+
+## Manual override
+
+For labels that depend on component state, `useBreadcrumb` overrides the current route's entry (pass `null` to fall back to the static data):
+
+```tsx
+import { useBreadcrumb } from "@platform/react"
+
+function AssetPage() {
+  const asset = Route.useLoaderData()
+  useBreadcrumb(asset.nickname ? { label: asset.nickname } : null)
+  return null
+}
+```
+
+## Links, hidden entries and the MFE root
+
+- Every entry links to its route's `fullPath` in the shell history; the last entry is rendered as text.
+- `hidden: true` keeps an entry out of the bar but in accessible announcements.
+- The MFE root entry (kind `mfe-root`) uses `manifest.breadcrumbs.rootLabel`, then `displayName`. Hidden MFEs still get root entries when they own routes.
+- Shell entries (`kind: "shell"`) come first and are set by the host with `breadcrumbs.setShell()`.
+
+## States
+
+| State | Rendered as | Announced as |
+| --- | --- | --- |
+| `ready` | label (link when not last) | `Pump 42` |
+| `loading` | skeleton | `… (loading)` |
+| `unavailable` | muted label | `Pump 42 (unavailable)` |
+
+## Truncation and announcements
+
+`<Breadcrumbs max={5} />` keeps the first entry and the last two and collapses the middle into an ellipsis menu (`truncateBreadcrumbs`). The full trail is announced through a polite live region (`announceBreadcrumbs`) whenever it changes: `Assets, Pump 42 (loading)`.
+
+## Custom renderer
+
+The shell renderer is the default. An MFE that must render its own trail sets `breadcrumbs.renderer: "mfe"` in `mfe.config.ts`; the shell hides its bar while that MFE is active and the MFE renders the Tecton `Breadcrumb` component itself. The shell keeps receiving the trail for announcements and the command palette.
+
+```ts title="mfe.config.ts"
+export default defineMfeConfig({ breadcrumbs: { renderer: "mfe", rootLabel: "Assets" } })
+```
+
+## How it flows
+
+1. `createMfeRouter` subscribes to the router's matches.
+2. For each match it builds a `BreadcrumbEntry` (`key`, `label`, `href`, `state`, `kind`, `hidden`) — plain data.
+3. The trail is published to `bridge.breadcrumbs` with the owner (`mfeId`, `instanceId`); the shell shows the active route MFE's trail after its own entries.
+4. On dispose the trail is cleared.
+
+Widgets do not publish breadcrumbs.

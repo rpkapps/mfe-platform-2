@@ -42,7 +42,9 @@
     "eslint-plugin-jsx-a11y": "catalog:",
     "@tanstack/eslint-plugin-router": "catalog:",
     "globals": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "jiti": "^2.7.0",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
     "eslint": "^9.0.0",
@@ -64,7 +66,6 @@
   "devDependencies": {
     "@platform/vite": "workspace:*",
     "tsdown": "catalog:",
-    "typescript": "catalog:",
     "vitest": "catalog:",
     "eslint": "catalog:",
     "@typescript-eslint/rule-tester": "catalog:",

@@ -36,7 +36,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && node ./scripts/build-harness.mjs",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
@@ -58,7 +58,8 @@
     "@tecton/react": "*",
     "react-aria-components": "^1.21.0",
     "lucide-react": "*",
-    "cn": "*"
+    "cn": "*",
+    "sonner": "^2.0.0"
   },
   "peerDependenciesMeta": {
     "@tanstack/react-router": {
@@ -83,6 +84,14 @@
     "react": "catalog:react19",
     "react-dom": "catalog:react19",
     "@types/react": "catalog:react19",
-    "@types/react-dom": "catalog:react19"
+    "@types/react-dom": "catalog:react19",
+    "vite": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "tailwindcss": "catalog:",
+    "sonner": "catalog:",
+    "next-themes": "catalog:",
+    "class-variance-authority": "catalog:",
+    "@tanstack/history": "catalog:"
   }
 }

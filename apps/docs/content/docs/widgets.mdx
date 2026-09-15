@@ -1,0 +1,96 @@
+---
+title: Widgets
+description: Widgets are React components that the shell or other surfaces mount into slots, each in its own React root, with typed props.
+---
+
+## Defining a widget
+
+```tsx title="src/widgets/asset-card.tsx"
+import { createWidget } from "@platform/react"
+import { z } from "zod"
+
+export const assetCard = createWidget({
+  id: "asset-card", // defaults to the export key in createMfe({ widgets })
+  title: "Asset card",
+  description: "Status and last reading of one asset.",
+  propsSchema: z.object({ assetId: z.string(), compact: z.boolean().default(false) }),
+  component: AssetCard,
+})
+
+function AssetCard({ assetId, compact }: { assetId: string; compact: boolean }) {
+  const { instanceId } = useMfeInstance()
+  return <Card data-instance={instanceId}>…</Card>
+}
+```
+
+## Registration
+
+Widgets are exported through the definition; the host looks them up by id when a slot asks for them.
+
+```tsx title="src/mfe.tsx"
+export default createMfe({
+  routeTree, // optional: a widget-only library omits it
+  widgets: { assetCard, kpiTile },
+})
+```
+
+The manifest lists every widget (`widgets[]`: `id`, `title`, `description`, `propsSchema` as JSON Schema, `permissionGroups`). A slot that requests an unknown id fails with `WIDGET_UNKNOWN`: export the widget from `createMfe({ widgets })` and rebuild.
+
+## Mounting from the shell
+
+```tsx title="apps/shell/src/routes/dashboard.tsx"
+import { WidgetSlot } from "@platform/host/react"
+
+<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "pump-42" }} />
+<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "valve-7", compact: true }} />
+```
+
+Each `WidgetSlot` produces a separate **instance** with its own React root, `instanceId`, overlay root and command namespace. Props are plain data, validated against `propsSchema` on mount and on every update; invalid props render the slot's error state without touching other instances.
+
+## Props
+
+- Props are validated synchronously with the Standard Schema you pass (Zod, Valibot, ArkType…). Without a schema they are passed through untyped.
+- Updates arrive through `WidgetHandle.setProps`; the component re-renders in place.
+- Props never contain React elements, callbacks that return elements, or class instances: they cross a root boundary as data.
+
+## Instances
+
+`useMfeInstance()` returns `{ mfeId, instanceId, widgetId, host }`. Anything the platform manages is namespaced per instance where it matters:
+
+| Surface | Namespace |
+| --- | --- |
+| Commands | `<mfeId>:<id>@<instanceId>` (widget commands are always instance-scoped) |
+| Storage | `platform:<mfeId>:<instanceId>:<scope>:<key>` when `instanceScoped: true` |
+| Overlays | owner-tagged root per instance (`data-platform-instance`) |
+| Telemetry | `instanceId` and `widgetId` attributes on every event |
+| Settings | shared per MFE; a second instance registering the same group is a no-op |
+
+## Overlays from widgets
+
+Widgets open ordinary Tecton dialogs, popovers and menus. The overlay manager creates a body-level, owner-tagged root per instance, so a dialog from a small card is never clipped and still receives the MFE's scoped styles. Two widgets opening dialogs at once stack deterministically; see [Modal ordering](/docs/overlays/modal-ordering).
+
+## Failure isolation
+
+A widget that throws during mount or render fails alone: the slot shows the error state with a retry button, `WIDGET_MOUNT_FAILED` is reported with the owner (`mfeId / widget <id> / instance <id>`), and every other widget, the route MFE and the shell keep running. Disposing a slot unmounts the root, clears its registrations and removes its overlay root.
+
+## Widget-only libraries
+
+A remote without routes is a widget library:
+
+```tsx title="src/mfe.tsx"
+export default createMfe({ widgets: { kpiTile, reportSummary } })
+```
+
+Its manifest has `kind: "widget-library"`, `hasRoutes: false` and no `routePrefix`; it is `discoverable: false` by default since the App Finder cannot open it. See [Hidden MFEs](/docs/hidden-mfes).
+
+## Testing a widget
+
+```ts
+import { renderMfe, createTestBridge } from "@platform/react/testing"
+import definition from "../src/mfe"
+
+const { container, unmount } = renderMfe(definition, {
+  widget: { id: "asset-card", props: { assetId: "pump-42" } },
+  bridge: createTestBridge({ mfeId: "asset-tracker", permissionGroups: ["assets:read"] }),
+})
+```

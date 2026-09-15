@@ -1,0 +1,6 @@
+# The scaffold template and the lint fixtures ship generated files on purpose:
+# the root ignore patterns for generated artefacts do not apply here.
+!templates/**/routeTree.gen.ts
+!test/fixtures/**/routeTree.gen.ts
+!test/fixtures/**/.platform/
+!templates/**/.platform/

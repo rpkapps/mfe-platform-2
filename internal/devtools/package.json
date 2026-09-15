@@ -30,7 +30,11 @@
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@tecton/react": "*",
+    "react-aria-components": "^1.21.0",
+    "lucide-react": "*",
+    "cn": "*"
   },
   "devDependencies": {
     "tsdown": "catalog:",
@@ -39,6 +43,15 @@
     "react": "catalog:react19",
     "react-dom": "catalog:react19",
     "@types/react": "catalog:react19",
-    "@types/react-dom": "catalog:react19"
+    "@types/react-dom": "catalog:react19",
+    "@tecton/react": "catalog:",
+    "react-aria-components": "catalog:",
+    "lucide-react": "catalog:",
+    "cn": "catalog:",
+    "class-variance-authority": "catalog:",
+    "jsdom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:"
   }
 }

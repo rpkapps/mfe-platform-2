@@ -1,0 +1,83 @@
+---
+title: Shell history
+description: The shell owns browser history. MFE routers use a private TanStack history adapter backed by the shell navigation contract, with no monkeypatching.
+---
+
+## The contract
+
+The host implements `ShellNavigation` (from the core contracts) once, for the whole page:
+
+```ts
+interface ShellNavigation {
+  getLocation(): ShellLocation // { pathname, search, hash, state?, key? }
+  push(href: string, options?: { replace?: boolean; state?: unknown }): void
+  replace(href: string, options?: NavigateOptions): void
+  back(): void
+  forward(): void
+  go(delta: number): void
+  reload(): void
+  subscribe(listener: (location: ShellLocation, action: "push" | "replace" | "pop") => void): () => void
+  canLeave?(next: string): boolean
+}
+```
+
+A TanStack Start or TanStack Router shell gets it for free from `@platform/host/tanstack`:
+
+```ts title="apps/shell/src/router.tsx"
+import { createTanStackShellNavigation } from "@platform/host/tanstack"
+
+const navigation = createTanStackShellNavigation(router)
+const host = createPlatformHost({ runtimeConfig, registry, navigation })
+```
+
+Shells without a router use `createBrowserNavigation()` (one `popstate` listener and ordinary `history.pushState` calls) and the local harness uses `createMemoryNavigation()`.
+
+## The adapter
+
+`createMfeRouter` wraps the bridge's navigation in a private TanStack history (`createShellHistory`) and passes it to `createRouter({ history, basepath: routePrefix })`. The adapter:
+
+- delegates every MFE navigation (`Link`, `navigate`, `redirect`) to `ShellNavigation.push`/`replace` with the route prefix added,
+- receives location changes from the shell (`subscribe`) and feeds them to the router as pops, so back/forward and cross-MFE navigations update the MFE,
+- implements `back`, `forward`, `go` and `reload` by delegation,
+- preserves TanStack semantics: `state`, `key`, blockers (`useBlocker` maps onto `canLeave`), scroll restoration and `replace`,
+- registers **no** `popstate` listener of its own and never touches `window.history`.
+
+Because the shell is the only writer, two MFEs and the shell never fight over an entry, and URLs outside the MFE prefix are simply not matched by the MFE router.
+
+## Semantics
+
+| MFE action | Shell effect |
+| --- | --- |
+| `navigate({ to: "/assets/1" })` | `push("/asset-tracker/assets/1")` |
+| `navigate({ to: "/assets", replace: true })` | `replace("/asset-tracker/assets")` |
+| `router.history.back()` | `back()` — may leave the MFE; the shell unmounts it on the next route match |
+| Shell navigates to `/reports` | MFE router receives a pop it does not match; the shell disposes the root |
+| Browser back into the MFE | Shell mounts the MFE and the adapter delivers the location as the initial entry |
+
+## Navigating outside the MFE
+
+`useNavigation()` gives the absolute form for cross-MFE links and the relative form for internal ones:
+
+```tsx
+import { useNavigation } from "@platform/react"
+
+function Links() {
+  const nav = useNavigation()
+  return (
+    <>
+      <button onClick={() => nav.navigateWithin("/assets/pump-42")}>Pump 42</button>
+      <button onClick={() => nav.navigate("/legacy/reports/daily-production")}>Daily report</button>
+    </>
+  )
+}
+```
+
+`nav.location` and `nav.subscribe` expose the shell location for components that need it without a router hook.
+
+## What is never done
+
+- No patching of `history.pushState`, `history.replaceState`, `window.history` or `popstate`.
+- No second `popstate` listener per MFE.
+- No global router registry; each MFE router is private to its root.
+
+The platform test suite asserts that `history.pushState === History.prototype.pushState` after every fixture has mounted.

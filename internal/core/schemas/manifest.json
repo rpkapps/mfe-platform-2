@@ -776,6 +776,12 @@
         },
         "configHash": {
           "type": "string"
+        },
+        "restartRequired": {
+          "type": "boolean"
+        },
+        "restartReason": {
+          "type": "string"
         }
       },
       "required": [

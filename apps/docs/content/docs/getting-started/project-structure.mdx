@@ -1,0 +1,154 @@
+---
+title: Project structure
+description: Predictable file locations and one canonical pattern for every task, so humans and coding agents always know where things go.
+---
+
+The scaffold has exactly one place for each concern. Add features by adding files in those places; do not introduce a second bootstrap, a second router, a second registration style or a second storage helper.
+
+## File locations
+
+| Concern | Location | Canonical API |
+| --- | --- | --- |
+| Bootstrap | `src/mfe.tsx` | `createMfe({ routeTree, widgets })` (default export) |
+| Routes | `src/routes/**` | `createFileRoute` / `createRootRouteWithContext<MfeRouterContext>` |
+| Route tree | `src/routeTree.gen.ts` | generated; never edited |
+| Widgets | `src/widgets/*.tsx` | `createWidget({ component, propsSchema })` |
+| Commands | `src/commands.tsx` (or next to the feature) | `useRegisterCommand` |
+| Settings | `src/settings.ts` | `useRegisterSettingsGroup` |
+| Storage | `src/storage.ts` | `createPlatformStorage` |
+| Help, release notes | `src/help.ts`, `src/release-notes.ts` | `useRegisterHelp`, `useRegisterReleaseNotes` |
+| Runtime env typing | `src/env.d.ts` | `declare module "@platform/react" { interface Register { env } }` |
+| Configuration | `mfe.config.ts` | `defineMfeConfig` |
+| Identity | `.platform/identity.json` | generated once; committed |
+| Styles | `src/styles.css` | `@import "@tecton/react/globals.css"` |
+
+## Bootstrap
+
+```tsx title="src/mfe.tsx"
+import { createMfe } from "@platform/react"
+
+import { routeTree } from "./routeTree.gen"
+import { assetCard } from "./widgets/asset-card"
+
+export default createMfe({
+  routeTree,
+  widgets: { assetCard },
+  errorComponent: MfeError, // optional: defaults to the platform boundary
+})
+```
+
+## Root route
+
+The root route declares the platform context type. Everything under it gets `context.platform` in `beforeLoad` and loaders.
+
+```tsx title="src/routes/__root.tsx"
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
+import type { MfeRouterContext } from "@platform/react"
+
+export const Route = createRootRouteWithContext<MfeRouterContext>()({
+  component: () => <Outlet />,
+})
+```
+
+## A route
+
+```tsx title="src/routes/assets/$assetId.tsx"
+import { createFileRoute, redirect } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/assets/$assetId")({
+  beforeLoad: ({ context }) => {
+    if (!context.platform.permissions.hasGroup("assets:read")) throw redirect({ to: "/" })
+  },
+  loader: async ({ context, params }) => {
+    const span = context.platform.telemetry.span("load-asset", { assetId: params.assetId })
+    try {
+      return await fetchAsset(context.platform.runtime.env.API_BASE_URL, params.assetId)
+    } finally {
+      span.end()
+    }
+  },
+  staticData: {
+    breadcrumb: { fromLoader: "name" },
+    permissionGroups: ["assets:read"],
+  },
+  component: AssetPage,
+})
+```
+
+## A command
+
+```tsx title="src/commands.tsx"
+import { useRegisterCommand } from "@platform/react"
+
+export function AssetCommands() {
+  useRegisterCommand({
+    id: "new-asset",
+    label: "New asset",
+    group: "Assets",
+    shortcut: "mod+shift+n",
+    permissionGroups: ["assets:write"],
+    handler: ({ platform }) => platform.navigation.navigateWithin("/assets/new"),
+  })
+  return null
+}
+```
+
+## A settings group
+
+```ts title="src/settings.ts"
+import { useRegisterSettingsGroup } from "@platform/react"
+import { z } from "zod"
+
+export function useDisplaySettings() {
+  return useRegisterSettingsGroup({
+    key: "display",
+    title: "Display",
+    fields: {
+      density: {
+        defaultValue: "comfortable",
+        schema: z.enum(["comfortable", "compact"]),
+        options: [
+          { value: "comfortable", label: "Comfortable" },
+          { value: "compact", label: "Compact" },
+        ],
+      },
+      showArchived: { defaultValue: false },
+    },
+  })
+}
+```
+
+## A storage store
+
+```ts title="src/storage.ts"
+import { createPlatformStorage } from "@platform/react"
+import { z } from "zod"
+
+export const dashboardStore = createPlatformStorage({
+  scope: "local",
+  key: "dashboard",
+  schema: z.object({ columns: z.array(z.string()) }),
+  defaults: { columns: ["name", "status"] },
+})
+```
+
+## A widget
+
+```tsx title="src/widgets/asset-card.tsx"
+import { createWidget } from "@platform/react"
+import { z } from "zod"
+
+export const assetCard = createWidget({
+  id: "asset-card",
+  title: "Asset card",
+  propsSchema: z.object({ assetId: z.string() }),
+  component: ({ assetId }) => <AssetCard assetId={assetId} />,
+})
+```
+
+## Conventions
+
+- Local ids and keys (`new-asset`, `display`, `dashboard`) are kebab-case. The platform namespaces them with the `mfeId` and, for widgets, the `instanceId`.
+- Hooks register from a component that lives as long as the feature; registration is removed on unmount.
+- Never read `window.localStorage`, `import.meta.env` or `@module-federation/*` in MFE code. The [lint rules](/docs/linting) flag it.
+- Generated files (`routeTree.gen.ts`, `.platform/*`, `dist/platform-manifest.json`) are inspectable but never edited.

@@ -188,6 +188,10 @@ export const devInfoSchema = z.object({
   refreshPreamble: z.string().optional(),
   /** Value that changes when a restart-requiring input changed (manifest, shared versions, federation config, route tree). */
   configHash: z.string().optional(),
+  /** True once a restart-requiring input changed after the server started; hosts show a diagnostic instead of a stale remote. */
+  restartRequired: z.boolean().optional(),
+  /** Human-readable reason for `restartRequired` (which file changed). */
+  restartReason: z.string().optional(),
 })
 
 export const mfeManifestSchema = z.object({

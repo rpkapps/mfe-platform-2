@@ -1,0 +1,71 @@
+---
+title: CSS isolation
+description: Build-time selector scoping keeps MFE styles under an owner attribute, while Tecton foundation styles, fonts and tokens load once at the shell.
+---
+
+## Write normal CSS
+
+MFE developers use ordinary Tecton components and normal Tailwind classes. No prefix, no CSS modules, no Shadow DOM.
+
+```tsx
+<Button className="mt-4 bg-blue-120 text-blue-830">Save</Button>
+```
+
+## What the build does
+
+`@platform/vite` runs a PostCSS pass over every emitted stylesheet (Tailwind output, component CSS, CSS imported by MFE code) and scopes it under the owner attribute:
+
+```css
+/* source */
+.mt-4 { margin-top: 1rem }
+[data-slot="button"] { … }
+:root { --primary: … }
+@keyframes pulse { … }
+
+/* emitted for mfeId "asset-tracker" */
+[data-mfe="asset-tracker"] .mt-4 { margin-top: 1rem }
+[data-mfe="asset-tracker"] [data-slot="button"] { … }
+[data-mfe="asset-tracker"] { --primary: … }
+@keyframes asset-tracker-pulse { … }  /* and animation-name references are rewritten */
+```
+
+Scoped:
+
+- utility selectors,
+- component selectors (`[data-slot]`, Tecton components),
+- custom properties declared on `:root`, `html` or `.dark` (moved onto the owner attribute and its `.dark` variant),
+- `@keyframes` names and their references,
+- theme overrides and `@layer` blocks,
+- CSS generated from MFE code.
+
+The owner attribute is set on the MFE root element and on every owner-tagged overlay root, so a dialog portalled to `document.body` still matches.
+
+## Foundation styles
+
+Fonts, base resets, Tecton tokens and the theme are loaded **once** by the shell (`@import "@tecton/react/globals.css"` in the shell stylesheet). Remotes built with `css.foundation: "shell"` (the default) drop `@font-face` and base rules from their bundles; the manifest records `tecton.foundation = "shell"` and `tecton.cssProtocol` so the host can check that its foundation is compatible.
+
+`css.foundation: "bundled"` keeps everything in the remote. Use it only for remotes that run in a shell without Tecton.
+
+## Options
+
+```ts title="mfe.config.ts"
+export default defineMfeConfig({
+  css: {
+    scope: true, // false disables scoping (not recommended)
+    ownerAttribute: "data-mfe", // must match the host's overlay manager and root attribute
+    foundation: "shell", // or "bundled"
+  },
+})
+```
+
+## Limits
+
+- Selectors that target `html` or `body` directly cannot be scoped; the build reports them as warnings and leaves them out.
+- Styles injected at runtime by third-party libraries (`style` tags created in JavaScript) are not scoped. Prefer libraries that ship CSS files.
+- Two remotes with the same `mfeId` would collide; the host refuses to register duplicates.
+- Scoping raises specificity by one attribute selector. Component libraries that rely on exact specificity ordering keep working because every rule is raised equally.
+- Shadow DOM is not used by default: Tecton overlays, fonts, focus management and theming need the light DOM. It is not offered as an option.
+
+## Verifying
+
+`platform build` prints the number of scoped rules and any skipped selectors. The E2E suite mounts two remotes with conflicting global class names and asserts that each keeps its own colours.
