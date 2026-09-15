@@ -56,6 +56,14 @@ export const DEFAULT_SHARED_PACKAGES = [
 /** Source packages (TSX, compiled by the consumer) cannot be shared as built modules. */
 export const SOURCE_PACKAGES = new Set(["@tecton/react"])
 
+/**
+ * Packages every remote bundles for itself even though they are inferred: the SDK
+ * binds React contexts and the UI-library stack (React Aria portal context via
+ * `@platform/react/tecton`) of the remote it is built into, so one copy per remote
+ * is the only safe resolution. Isolation, not sharing, is the SDK's job.
+ */
+export const PER_REMOTE_PACKAGES = new Set(["@platform/react"])
+
 /** Subpath entries of the SDK shared together with the main entry. */
 export const SDK_SUBPATHS = ["@platform/react/tecton"] as const
 
@@ -193,8 +201,8 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       pairedWith: PAIRED_PACKAGES[name],
     })
   }
-  // The SDK ships subpath entries that import its internal chunks; they must resolve
-  // from the same copy as the main entry, so they are shared alongside it.
+  // A remote may opt the SDK into sharing explicitly (`shared: { "@platform/react": true }`);
+  // its subpath entries then share with it so both resolve from one copy.
   const sdk = requests.find((request) => request.name === "@platform/react" && request.shared)
   if (sdk) {
     for (const subpath of SDK_SUBPATHS) {
