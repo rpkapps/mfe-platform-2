@@ -92,7 +92,7 @@ const sourceRules: SourceRule[] = [
     dir: "packages/host/src",
     banned: FRAMEWORK,
     enforced: false,
-    todo: "A1 deletes src/harness*; A3 moves src/react/ and src/tanstack.ts out",
+    todo: "A3 moves src/react/ and src/tanstack.ts out",
   },
   {
     // May use React — that is its job — but never a design system.

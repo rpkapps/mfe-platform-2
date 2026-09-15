@@ -54,7 +54,7 @@ function applyOverride(
   return { ...entry, ...override }
 }
 
-/** Build the trail for the current matches (pure; exported for tests and the host harness). */
+/** Build the trail for the current matches (pure; exported for tests). */
 export function buildBreadcrumbTrail(
   scope: MountScope,
   matches: Match[],

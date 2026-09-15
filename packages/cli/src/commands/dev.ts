@@ -6,8 +6,6 @@ export interface DevOptions {
   port?: number
   host?: string | boolean
   open?: boolean
-  /** Serve the local shell harness at `/__platform/harness/` (default true). */
-  harness?: boolean
   log?: (message: string) => void
   /** Forward SIGINT/SIGTERM to the server (default true in the CLI). */
   signals?: boolean
@@ -22,7 +20,6 @@ export interface DevResult {
     config: { server: { port?: number } }
   }
   origin: string
-  harnessUrl: string
   manifestUrl: string
   close(): Promise<void>
 }
@@ -37,11 +34,10 @@ interface ViteModule {
   }>
 }
 
-/** `platform dev`: the project's own Vite dev server with its own vite.config, plus the harness URLs. */
+/** `platform dev`: the project's own Vite dev server with its own vite.config, plus the development manifest URL. */
 export async function dev(options: DevOptions = {}): Promise<DevResult> {
   const root = requireProjectRoot(options.cwd ?? process.cwd())
   const log = options.log ?? ((message: string) => console.log(message))
-  if (options.harness === false) process.env.PLATFORM_HARNESS = "false"
   const vite = await loadProjectModule<ViteModule>(root, "vite", "run the development server")
   const server = await vite.createServer({
     root,
@@ -57,11 +53,9 @@ export async function dev(options: DevOptions = {}): Promise<DevResult> {
   const origin =
     server.resolvedUrls?.local[0]?.replace(/\/$/, "") ??
     `http://localhost:${server.config.server.port ?? 5173}`
-  const harnessUrl = `${origin}/__platform/harness/`
   const manifestUrl = `${origin}/platform-manifest.json`
   server.printUrls()
-  if (options.harness !== false) log(`  ➜  harness:   ${harnessUrl}`)
-  log(`  ➜  manifest:  ${manifestUrl}  (use it as a manifest override in an SSR shell)`)
+  log(`  ➜  manifest:  ${manifestUrl}  (use it as a manifest override in a shell)`)
 
   const close = async () => {
     await server.close()
@@ -73,5 +67,5 @@ export async function dev(options: DevOptions = {}): Promise<DevResult> {
     process.once("SIGINT", stop)
     process.once("SIGTERM", stop)
   }
-  return { server, origin, harnessUrl, manifestUrl, close }
+  return { server, origin, manifestUrl, close }
 }

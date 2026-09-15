@@ -3,8 +3,8 @@ import { useRuntimeEnv } from "@platform/react"
 /**
  * Data access. The API base URL is a runtime environment value (mfe.config.ts → env,
  * injected per deployment by the host) read with `useRuntimeEnv()` in components and
- * `context.platform.runtime.env` in loaders. Sample data keeps the harness working
- * without a backend.
+ * `context.platform.runtime.env` in loaders. Sample data stands in for a backend that
+ * is not running yet.
  */
 export interface Asset {
   id: string

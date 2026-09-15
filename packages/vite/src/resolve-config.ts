@@ -86,7 +86,6 @@ export interface ResolvedPlatformConfig {
   manifestFileName: string
   federation?: (config: ModuleFederationOptions) => ModuleFederationOptions
   runtime: ResolvedRuntime
-  harness: { enabled: boolean; dir?: string }
   packageJson: PackageJson
   installed: Record<string, string>
   /** `mfe.config.*` path when present. */
@@ -213,7 +212,6 @@ export async function resolvePlatformConfig(
     pick(options.displayName, config.displayName) ?? navigation?.title ?? mfeId
   const cssOptions = { ...(config.css ?? {}), ...(options.css ?? {}) }
   const runtimeOverrides = { ...(config.runtime ?? {}), ...(options.runtime ?? {}) }
-  const harnessOptions = { ...(config.harness ?? {}), ...(options.harness ?? {}) }
 
   const reactRange = runtimeOverrides.react ?? rangeFor("react", packageJson, installed)
   const reactMajor = majorFor(reactRange, installed.react, shared.reactMajor)
@@ -309,10 +307,6 @@ export async function resolvePlatformConfig(
       pick(options.manifest?.fileName, config.manifest?.fileName) ?? DEFAULT_MANIFEST_FILE_NAME,
     federation: pick(options.federation, config.federation),
     runtime,
-    harness: {
-      enabled: harnessOptions.enabled ?? true,
-      dir: harnessOptions.dir ? toAbsolute(root, harnessOptions.dir) : undefined,
-    },
     packageJson,
     installed,
     configFile: loaded.file,

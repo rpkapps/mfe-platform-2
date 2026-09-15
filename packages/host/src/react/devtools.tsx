@@ -7,7 +7,7 @@ import { usePlatformHost } from "./context"
 
 export interface PlatformDevtoolsProps {
   defaultOpen?: boolean
-  /** Force-enable regardless of the flag (harness); policy `never` still wins. */
+  /** Force-enable regardless of the flag; policy `never` still wins. */
   force?: boolean
   className?: string
 }

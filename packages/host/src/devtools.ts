@@ -78,7 +78,7 @@ export async function loadDevtools(host: PlatformHost): Promise<DevtoolsModule> 
   return pending
 }
 
-/** Set or clear the local-storage flag (harness toggle). */
+/** Set or clear the local-storage flag behind the developer-tools toggle. */
 export function setDevtoolsFlag(
   enabled: boolean,
   win: Window | undefined = typeof window !== "undefined" ? window : undefined

@@ -113,7 +113,6 @@ export default defineMfeConfig({ routePrefix: "/from-config", description: "conf
     expect(config.entry).toBe(join(root, "src/mfe.tsx"))
     expect(config.generatedEntry).toBe(join(root, ".platform/entry.tsx"))
     expect(config.manifestFileName).toBe("platform-manifest.json")
-    expect(config.harness).toEqual({ enabled: true, dir: undefined })
   })
 
   it("fails on invalid ids and prefixes with PlatformErrors", async () => {

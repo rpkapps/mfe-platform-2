@@ -1,23 +1,17 @@
-import { existsSync, readFileSync, statSync } from "node:fs"
+import { existsSync } from "node:fs"
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { basename, dirname, extname, join, normalize, relative, resolve, sep } from "node:path"
+import { basename, join, relative, resolve } from "node:path"
 
 import { PlatformError, type MfeManifest } from "@platform-internal/core"
 import pc from "picocolors"
 import type { Plugin, ViteDevServer } from "vite"
 
 import { generateManifest } from "../manifest"
-import { findPackageJson } from "../project"
-import {
-  buildFederationConfig,
-  resolvePlatformConfig,
-  type ResolvedPlatformConfig,
-} from "../resolve-config"
+import { buildFederationConfig, resolvePlatformConfig } from "../resolve-config"
 import { computeConfigHash, restartError, type PlatformContext } from "./context"
 
 export const DEV_MANIFEST_PATH = "/platform-manifest.json"
 export const REFRESH_PREAMBLE_PATH = "/@platform/refresh-preamble"
-export const HARNESS_PATH = "/__platform/harness"
 export const RESTART_EVENT = "platform:restart-required"
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -60,73 +54,6 @@ export default true
 `
 }
 
-export function resolveHarnessDir(root: string, explicit?: string): string | undefined {
-  if (explicit) return existsSync(explicit) ? explicit : undefined
-  const hostPackage = findPackageJson(root, "@platform/host")
-  if (!hostPackage) return undefined
-  const dir = join(dirname(hostPackage), "dist", "harness")
-  return existsSync(join(dir, "index.html")) ? dir : undefined
-}
-
-export function injectHarnessConfig(
-  html: string,
-  config: { manifestUrl: string; mfeId: string; origin?: string }
-): string {
-  const script = `<script>window.__PLATFORM_HARNESS__ = ${JSON.stringify(config)}</script>`
-  return html.includes("</head>")
-    ? html.replace("</head>", `${script}\n</head>`)
-    : `${script}\n${html}`
-}
-
-export function renderFallbackHarness(
-  config: ResolvedPlatformConfig,
-  manifestUrl: string
-): string {
-  const title = `${config.displayName} — platform harness`
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${escapeHtml(title)}</title>
-<script>window.__PLATFORM_HARNESS__ = ${JSON.stringify({ manifestUrl, mfeId: config.mfeId })}</script>
-<style>
-body { font: 14px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 60rem; padding: 0 1rem; color: #1a1a1a; }
-code, pre { font-family: ui-monospace, monospace; }
-pre { background: #f4f4f5; padding: 1rem; overflow: auto; border-radius: 6px; }
-.notice { border-left: 4px solid #d97706; background: #fffbeb; padding: 0.75rem 1rem; }
-</style>
-</head>
-<body>
-<h1>${escapeHtml(config.displayName)} <small>(${escapeHtml(config.mfeId)})</small></h1>
-<div class="notice">
-<p><strong>The local shell harness is not installed.</strong> <code>@platform/host</code> (which ships the harness in <code>dist/harness</code>) is not resolvable from this project. Install it as a dev dependency (<code>pnpm add -D @platform/host</code>) or point <code>harness.dir</code> in <code>mfe.config.ts</code> at a built harness.</p>
-<p>This remote is still fully usable from an SSR shell in development: point a manifest override at <a href="${escapeHtml(manifestUrl)}"><code>${escapeHtml(manifestUrl)}</code></a>.</p>
-</div>
-<h2>Development manifest</h2>
-<pre id="manifest">loading…</pre>
-<script type="module">
-const pre = document.getElementById("manifest")
-try {
-  const response = await fetch(${JSON.stringify(manifestUrl)}, { cache: "no-store" })
-  pre.textContent = JSON.stringify(await response.json(), null, 2)
-} catch (error) {
-  pre.textContent = "Could not load the manifest: " + (error && error.message ? error.message : String(error))
-}
-</script>
-</body>
-</html>
-`
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(
-    /[&<>"']/g,
-    (char) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char] ?? char
-  )
-}
-
 function send(
   res: ServerResponse,
   status: number,
@@ -165,9 +92,8 @@ export interface DevState {
 }
 
 /**
- * Dev endpoints (`/platform-manifest.json`, `/@platform/refresh-preamble`,
- * `/__platform/harness/`), restart diagnostics for manifest-affecting changes
- * and the startup summary.
+ * Dev endpoints (`/platform-manifest.json`, `/@platform/refresh-preamble`),
+ * restart diagnostics for manifest-affecting changes and the startup summary.
  */
 export function platformDevPlugin(context: PlatformContext): Plugin {
   return {
@@ -179,9 +105,6 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
       let manifestCache: { origin: string | undefined; manifest: MfeManifest } | undefined
       let manifestPromise: Promise<MfeManifest> | undefined
       const manifestUrl = `${server.config.base.replace(/\/$/, "")}${DEV_MANIFEST_PATH}`
-      const harnessDir = config.harness.enabled
-        ? resolveHarnessDir(config.root, config.harness.dir)
-        : undefined
 
       const devManifest = async (origin: string | undefined): Promise<MfeManifest> => {
         if (manifestCache && manifestCache.origin === origin) return manifestCache.manifest
@@ -278,9 +201,7 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         const path = base && url.startsWith(base) ? url.slice(base.length) || "/" : url
         if (
           req.method === "OPTIONS" &&
-          (path === DEV_MANIFEST_PATH ||
-            path === REFRESH_PREAMBLE_PATH ||
-            path.startsWith(`${HARNESS_PATH}/`))
+          (path === DEV_MANIFEST_PATH || path === REFRESH_PREAMBLE_PATH)
         ) {
           send(res, 204, "", "text/plain", {
             "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -315,65 +236,6 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
           )
           return
         }
-        if (path === HARNESS_PATH) {
-          res.statusCode = 302
-          res.setHeader("Location", `${base}${HARNESS_PATH}/`)
-          res.end()
-          return
-        }
-        if (path.startsWith(`${HARNESS_PATH}/`)) {
-          if (!config.harness.enabled) {
-            send(
-              res,
-              404,
-              "The platform harness is disabled (harness.enabled = false).",
-              CONTENT_TYPES[".txt"]!
-            )
-            return
-          }
-          const relativePath =
-            decodeURIComponent(path.slice(HARNESS_PATH.length + 1)) || "index.html"
-          if (!harnessDir) {
-            if (relativePath === "index.html")
-              send(
-                res,
-                200,
-                renderFallbackHarness(config, manifestUrl),
-                CONTENT_TYPES[".html"]!
-              )
-            else send(res, 404, "Not found", CONTENT_TYPES[".txt"]!)
-            return
-          }
-          const target = normalize(join(harnessDir, relativePath))
-          if (
-            !target.startsWith(`${normalize(harnessDir)}${sep}`) &&
-            target !== normalize(harnessDir)
-          ) {
-            send(res, 403, "Forbidden", CONTENT_TYPES[".txt"]!)
-            return
-          }
-          let file = target
-          if (!existsSync(file) || statSync(file).isDirectory())
-            file = join(harnessDir, "index.html")
-          if (!existsSync(file)) {
-            send(res, 404, "Not found", CONTENT_TYPES[".txt"]!)
-            return
-          }
-          const type = CONTENT_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream"
-          if (basename(file) === "index.html") {
-            send(
-              res,
-              200,
-              injectHarnessConfig(readFileSync(file, "utf8"), {
-                manifestUrl,
-                mfeId: config.mfeId,
-                origin: requestOrigin(server, req),
-              }),
-              type
-            )
-          } else send(res, 200, readFileSync(file), type)
-          return
-        }
         next()
       })
 
@@ -393,7 +255,6 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
           `  capabilities   ${manifestCache?.manifest.capabilities.join(", ") ?? "(inferred on first request)"}`,
           `  tecton         ${config.tecton ? `on${config.tectonVersion ? ` (${config.tectonVersion})` : ""}` : "off"}${config.tailwind ? "  tailwind on" : ""}`,
           `  manifest       ${origin ?? ""}${manifestUrl}`,
-          `  harness        ${config.harness.enabled ? `${origin ?? ""}${base(server)}${HARNESS_PATH}/${harnessDir ? "" : pc.dim("  (@platform/host not installed: fallback page)")}` : "disabled"}`,
         ]
         server.config.logger.info(`\n${lines.join("\n")}\n`)
       }
@@ -417,8 +278,4 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         server.httpServer.once("listening", () => setTimeout(summarize, 100))
     },
   }
-}
-
-function base(server: ViteDevServer): string {
-  return server.config.base.replace(/\/$/, "")
 }

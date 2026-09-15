@@ -48,7 +48,7 @@ export function parseHref(href: string): ShellLocation {
   return { pathname: pathname || "/", search, hash }
 }
 
-/** In-memory implementation for tests and the local harness (no `window` needed). */
+/** In-memory implementation for tests and server rendering (no `window` needed). */
 export function createMemoryNavigation(
   initial = "/"
 ): ShellNavigation & { entries: ShellLocation[]; index: number } {
@@ -99,9 +99,9 @@ export function createMemoryNavigation(
 }
 
 /**
- * Browser implementation used by shells without a router (and by the
- * harness). Uses the History API through ordinary calls and one `popstate`
- * listener — it never patches `pushState`, `replaceState` or `history`.
+ * Browser implementation used by shells without a router. Uses the History API
+ * through ordinary calls and one `popstate` listener — it never patches
+ * `pushState`, `replaceState` or `history`.
  */
 export function createBrowserNavigation(
   win: Window = window

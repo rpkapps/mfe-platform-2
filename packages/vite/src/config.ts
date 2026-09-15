@@ -8,7 +8,6 @@ export type {
   CssOptions,
   ManifestOptions,
   RuntimeOverrides,
-  HarnessOptions,
   SharedOptions,
 } from "./options"
 

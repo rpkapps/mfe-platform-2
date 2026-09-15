@@ -340,7 +340,7 @@ importers:
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -434,7 +434,7 @@ importers:
         version: 1.168.54(esbuild@0.28.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -498,7 +498,7 @@ importers:
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -656,7 +656,7 @@ importers:
         version: 1.168.54(esbuild@0.28.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(rolldown@1.2.8)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -771,7 +771,7 @@ importers:
     devDependencies:
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2
@@ -947,9 +947,6 @@ importers:
       '@platform-internal/module-federation':
         specifier: workspace:*
         version: link:../../internal/module-federation
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       '@tanstack/history':
         specifier: 'catalog:'
         version: 1.162.4
@@ -958,7 +955,7 @@ importers:
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2
@@ -980,9 +977,6 @@ importers:
       '@types/react-dom':
         specifier: catalog:react19
         version: 19.3.0(@types/react@19.3.0)
-      '@vitejs/plugin-react':
-        specifier: 'catalog:'
-        version: 6.1.1(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
@@ -1010,18 +1004,12 @@ importers:
       sonner:
         specifier: 'catalog:'
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      tailwindcss:
-        specifier: 'catalog:'
-        version: 4.3.3
       tsdown:
         specifier: 'catalog:'
         version: 0.23.0(typescript@6.0.3)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
       vitest:
         specifier: 'catalog:'
         version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -1046,7 +1034,7 @@ importers:
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@tecton/react':
         specifier: 'catalog:'
-        version: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
+        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2
@@ -2168,8 +2156,8 @@ packages:
     resolution: {integrity: sha512-uhOeFyxLcU41HzvrxsGpiWdcMbScY1EDgbZ5K7DVRMYInbLYWAC0EA/kx9wXAoSM8q82bUG2hRl8+EAjE6XAbA==}
     engines: {node: '>=20.19'}
 
-  '@tecton/react@https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react':
-    resolution: {gitHosted: true, path: packages/tecton-react, tarball: https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c}
+  '@tecton/react@git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react':
+    resolution: {commit: 363b5374b19846f00647be06c73b418f8039253c, path: packages/tecton-react, repo: git@github.com:rpkapps/tecton-ui-1.git, type: git}
     version: 0.0.0
 
   '@testing-library/dom@10.4.2':
@@ -6937,7 +6925,7 @@ snapshots:
 
   '@tanstack/virtual-file-routes@1.162.0': {}
 
-  '@tecton/react@https://codeload.github.com/rpkapps/tecton-ui-1/tar.gz/363b5374b19846f00647be06c73b418f8039253c#path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)':
+  '@tecton/react@git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)':
     dependencies:
       '@base-ui/react': 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@fontsource/figtree': 5.3.0

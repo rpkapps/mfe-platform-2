@@ -102,7 +102,7 @@ describe("build output", () => {
       const main = readFileSync(`${dist}index.js`, "utf8")
       expect(main).not.toContain("@xyflow")
       expect(main).not.toContain("DevtoolsPanel")
-      for (const entry of ["react.js", "tanstack.js", "harness.js"]) {
+      for (const entry of ["react.js", "tanstack.js"]) {
         if (existsSync(`${dist}${entry}`))
           expect(readFileSync(`${dist}${entry}`, "utf8")).not.toContain("@xyflow")
       }
