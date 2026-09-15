@@ -36,12 +36,16 @@ The host keeps the shell context in a store; each instance gets a derived read-o
 
 ## Outside React
 
+Route guards, loaders and command handlers receive the same context without a hook: `context.platform` (route context) exposes `getState()` and `subscribe()`, and its `revision` re-runs loaders after a change:
+
 ```ts
-const platform = usePlatform()
-const unsubscribe = platform.subscribe(() => console.log(platform.getState().project))
+loader: ({ context }) => {
+  const unsubscribe = context.platform.subscribe(() => console.log(context.platform.getState().project))
+  …
+}
 ```
 
-Route loaders get the same through `context.platform.getState()` and `context.platform.subscribe()`.
+`usePlatform()` returns plain data (`PlatformContextValue`); it has no `subscribe` of its own.
 
 ## Tests
 
@@ -52,9 +56,9 @@ const bridge = createTestBridge({
   mfeId: "asset-tracker",
   user: { id: "u1", displayName: "Ada" },
 })
-const { rerenders } = renderMfe(definition, { bridge })
-bridge.context.update({ theme: "light" }) // UserName does not rerender
-bridge.context.update({ user: { id: "u1", displayName: "Grace" } }) // it does
+const mounted = renderMfe(definition, { bridge })
+bridge.setContext({ theme: "light", resolvedTheme: "light" }) // UserName does not rerender
+bridge.setContext({ user: { id: "u1", displayName: "Grace" } }) // it does
 ```
 
-The conformance app exposes a render counter (`asset-tracker-render-count`) that the E2E suite watches while switching the theme and the project.
+Count renders with a `useRef` counter in the component under test. The conformance app exposes such a counter (`asset-tracker-render-count`) that the E2E suite watches while switching the theme and the project: the count is unchanged, and increases by one when the user changes.

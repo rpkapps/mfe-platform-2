@@ -50,14 +50,14 @@ While the shell URL is **outside the MFE's prefix** — another MFE or a shell p
 
 ## Semantics
 
-| MFE action                                                     | Shell effect                                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `<Link to="/assets/$assetId" params={{ assetId: "1" }}>`       | `push("/asset-tracker/assets/1")`                                                     |
-| `navigate({ to: "/assets", replace: true })` (TanStack router) | `replace("/asset-tracker/assets")`                                                    |
-| `useNavigation().navigateWithin("/assets/1")`                  | `push("/asset-tracker/assets/1")`                                                     |
+| MFE action                                                     | Shell effect                                                                           |
+| -------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `<Link to="/assets/$assetId" params={{ assetId: "1" }}>`       | `push("/asset-tracker/assets/1")`                                                      |
+| `navigate({ to: "/assets", replace: true })` (TanStack router) | `replace("/asset-tracker/assets")`                                                     |
+| `useNavigation().navigateWithin("/assets/1")`                  | `push("/asset-tracker/assets/1")`                                                      |
 | `useNavigation().navigate("/legacy/reports")`                  | `push("/legacy/reports")` — leaves the MFE; the shell's `$` route swaps the outlet     |
-| `useNavigation().back()`                                       | `back()` — may leave the MFE; the shell disposes the root on the next route match     |
-| Shell navigates to `/dashboard`                                | MFE router sees the inactive location; the shell disposes the root                    |
+| `useNavigation().back()`                                       | `back()` — may leave the MFE; the shell disposes the root on the next route match      |
+| Shell navigates to `/dashboard`                                | MFE router sees the inactive location; the shell disposes the root                     |
 | Browser back into the MFE                                      | The shell mounts the MFE; the adapter delivers the current location as the first entry |
 
 ## Navigating outside the MFE

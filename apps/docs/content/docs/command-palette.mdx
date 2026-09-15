@@ -21,17 +21,25 @@ Permission groups filter results: a command or route the user cannot use is not 
 ```tsx title="apps/shell/src/routes/__root.tsx"
 import { CommandPalette } from "@platform/host/react"
 
-;<CommandPalette shortcut="mod+k" placeholder="Search commands, pages and settings…" />
+;<CommandPalette
+  hotkey="mod+k"
+  placeholder="Search commands, pages, settings…"
+  settingsPath="/settings"
+  helpPath="/help"
+  releaseNotesPath="/release-notes"
+/>
 ```
 
-The component is Tecton's `Command` inside a `CommandDialog`, grouped by source and MFE display name, with running and failed states for async commands.
+Props: `hotkey` (default `mod+k`; `null` disables the shortcut), `placeholder`, `open` / `onOpenChange` for a controlled dialog, `settingsPath` (setting results navigate to `<settingsPath>?group=<key>&field=<key>`), `helpPath`, `releaseNotesPath` and `limit`. The component is a Tecton command dialog over the host search index, grouped by source (`command`, `navigate`, `setting`, `help`, `release-note`, `breadcrumb`), with running, failed and done badges for async commands. Shortcuts are dispatched by the single keyboard listener `PlatformProvider` installs.
 
 ## Programmatic access
 
 ```ts
-host.commands.run("asset-tracker:new-asset", { source: "api" })
-host.commands.list() // RegisteredCommand[]
-host.commands.conflicts() // ShortcutConflict[]
+await host.commands.run("asset-tracker:slow-sync", { source: "api" }) // { qualifiedId, outcome, durationMs, error? }
+host.commands.abort("asset-tracker:slow-sync")
+host.commands.running() // qualified ids
+host.registries.commands.list() // RegisteredCommand[]
+host.registries.commands.conflicts() // { shortcut, holder, rejected }[]
 ```
 
 ## Not business data

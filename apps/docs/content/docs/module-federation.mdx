@@ -26,7 +26,7 @@ MFE application code never:
 - configures remote containers or shared dependencies for the normal case,
 - imports `@module-federation/*`.
 
-The `platform/no-module-federation-imports` lint rule fails such imports. The `federation(config)` option in `mfe.config.ts` is the only escape hatch and applies to the generated configuration, not to your code.
+The [`@platform/no-direct-module-federation`](/docs/linting#no-direct-module-federation) lint rule fails such imports and runtime calls. The `federation(config)` option in `mfe.config.ts` is the only escape hatch and applies to the generated configuration, not to your code.
 
 ## Generated configuration
 

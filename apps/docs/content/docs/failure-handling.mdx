@@ -30,7 +30,7 @@ Negotiation never fails the load: packages without a compatible provider fall ba
 
 ### Mounting
 
-`definition.mount()` runs inside a try/catch and a React error boundary of its own React. A throw during mount (`MOUNT_FAILED`) renders the platform boundary inside the MFE container with the message and _Retry_ (which disposes and mounts again). The shell tree is unaffected.
+`definition.mount()` runs inside a try/catch and a `MfeErrorBoundary` of its own React. A throw during mount (`MOUNT_FAILED`) is rendered by the outlet's error state with the message and _Retry_ (which retries the remote and mounts again); a render error after mounting is caught by the boundary inside the MFE root, which offers its own _Retry_. The shell tree is unaffected.
 
 ### Widget mounting
 
@@ -38,7 +38,7 @@ Each `WidgetSlot` is its own boundary: invalid props, an unknown widget (`WIDGET
 
 ### Route loading and guards
 
-Inside the MFE, TanStack Router semantics apply: `pendingComponent`, `errorComponent`, `notFoundComponent`, redirects. Uncaught route errors reach `createMfe({ errorComponent })` and then the platform boundary at the MFE root, which renders a Tecton alert with _Retry_ (`router.invalidate()`). See [Route guards](/docs/routing/route-guards#where-failures-land).
+Inside the MFE, TanStack Router semantics apply: `pendingComponent`, `errorComponent`, `notFoundComponent`, redirects. Uncaught route errors reach `createMfe({ errorComponent })` and then the platform default, a plain fallback with _Retry_ (`router.invalidate()`). See [Route guards](/docs/routing/route-guards#where-failures-land).
 
 ### Commands
 
@@ -66,26 +66,28 @@ A failing devtools chunk or panel records `devtools: failed`; the toggle stays a
 
 ## States by surface
 
-| Surface                    | Loading                            | Error                            | Unavailable                   | Retry                                         |
-| -------------------------- | ---------------------------------- | -------------------------------- | ----------------------------- | --------------------------------------------- |
-| `MfeOutlet`                | skeleton with the MFE display name | alert with code, hint, docs link | _Remote unavailable_ + URL    | re-resolve manifest, invalidate loader, mount |
-| `WidgetSlot`               | skeleton sized by the slot         | inline alert                     | inline notice                 | remount the instance                          |
-| Command                    | running spinner                    | failed row with message          | hidden when permission denied | next invocation                               |
-| Settings field             | control skeleton                   | validation message               | stale selection notice        | reset / retry options                         |
-| Help / release notes entry | skeleton                           | entry error                      | —                             | reopen                                        |
-| Breadcrumb entry           | skeleton                           | —                                | muted label                   | next loader run                               |
+| Surface                    | Loading                            | Error                                                                                | Unavailable                   | Retry                                         |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------- | --------------------------------------------- |
+| `MfeOutlet`                | skeleton with the MFE display name | alert with code, hint, docs link; `denied` and `disabled` states have their own copy | _unavailable_ + URL           | re-resolve manifest, invalidate loader, mount |
+| `WidgetSlot`               | skeleton sized by the slot         | inline alert                                                                         | inline notice                 | remount the instance                          |
+| Command                    | running spinner                    | failed row with message                                                              | hidden when permission denied | next invocation                               |
+| Settings field             | control skeleton                   | validation message                                                                   | stale selection notice        | reset / retry options                         |
+| Help / release notes entry | skeleton                           | entry error                                                                          | —                             | reopen                                        |
+| Breadcrumb entry           | skeleton                           | —                                                                                    | muted label                   | next loader run                               |
 
 ## Customising the states
 
 ```tsx
 <MfeOutlet
   mfeId="asset-tracker"
-  loading={<AppSkeleton />}
-  error={({ error, retry }) => <ErrorPanel error={error} onRetry={retry} />}
-  unavailable={({ error, retry }) => <Offline onRetry={retry} />}
-  forbidden={<NoAccess />}
+  routePrefix="/asset-tracker"
+  fallback={<AppSkeleton />}
+  errorFallback={(error, retry) => <ErrorPanel error={error} onRetry={retry} />}
+  onStateChange={(state) => track(state)} // "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled"
 />
 ```
+
+`outletStateFor(error)` maps a `PlatformError` to the state (`MANIFEST_FETCH_FAILED`, `REMOTE_LOAD_FAILED` → `unavailable`; `PERMISSION_DENIED` → `denied`; `REMOTE_DISABLED` → `disabled`), and `RemoteErrorState` / `LoadingState` are the default renderers. `WidgetSlot` takes the same `fallback` and `errorFallback`.
 
 Inside an MFE, `<MfeErrorBoundary fallback={…}>` and `<MfeLoading />` are the platform-styled boundary and skeleton for your own subtrees.
 

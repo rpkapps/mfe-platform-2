@@ -11,23 +11,35 @@ Docker images are built once and started many times with different manifest URLs
 
 `@platform/host` ships `platform-host-entrypoint`:
 
-```dockerfile title="Dockerfile"
-FROM node:22-alpine
-COPY .output ./.output
-COPY node_modules ./node_modules
-CMD ["sh", "-c", "platform-host-entrypoint --out ./.output/public/platform-config.json && node ./.output/server/index.mjs"]
+```text
+platform-host-entrypoint --out <file> [--base <json file>] [--known <mfeId,...>] [--print]
+```
+
+The conformance shell is the reference: its Dockerfile builds the assets once and starts `scripts/start.mjs`, which runs the entrypoint and then serves the built shell (`vite preview` there; a deployment hosts `dist/server/server.js` with its own Node adapter):
+
+```js title="apps/conformance-shell/scripts/start.mjs"
+const out = join(app, "dist", "client", "platform-config.json")
+const generated = spawnSync(process.execPath, [entrypoint, "--out", out], { stdio: "inherit" })
+if (generated.status !== 0) process.exit(generated.status ?? 1)
+spawn(
+  process.execPath,
+  [vite, "preview", "--port", port, "--strictPort", "--host", "0.0.0.0"],
+  {
+    env: { ...process.env, PLATFORM_CONFIG_PATH: out },
+  }
+)
 ```
 
 ```json title="package.json (shell)"
 {
   "scripts": {
-    "config:generate": "platform-host-entrypoint --out ./public/platform-config.json",
-    "start:prod": "node ./scripts/start.mjs"
+    "config:generate": "platform-host-entrypoint --out ./dist/client/platform-config.json",
+    "start": "node ./scripts/start.mjs"
   }
 }
 ```
 
-The entrypoint reads only `PLATFORM_*` variables, merges them over an optional base document (`--base ./platform-config.base.json`), validates the result against the schema and writes it. It exits non-zero on validation errors and prints which variable produced which key.
+The entrypoint reads only `PLATFORM_*` variables, merges them over an optional base document (`--base`), validates the result against the schema, writes it with `$schema` (`--out`) and/or prints it (`--print`). It exits non-zero on validation errors (`RUNTIME_CONFIG_INVALID`) and logs which variable produced which key and which variables were refused. `generateRuntimeConfigFile()` from `@platform/host/entrypoint` does the same programmatically.
 
 ## `PLATFORM_*` variables
 
@@ -82,12 +94,19 @@ Schema: [`/schemas/runtime-config.json`](/schemas/runtime-config.json), referenc
 
 ## Loading
 
-The shell passes the document to `createPlatformHost({ runtimeConfig })`:
+`createPlatformHost({ runtimeConfig })` takes a validated document. `loadRuntimeConfig()` from `@platform/host` obtains it, in this order: `inline` option → `<script id="platform-config" type="application/json">` or `window.__PLATFORM_CONFIG__` → same-origin fetch of `/platform-config.json` (`cache: "no-store"`, a 404 is tolerated) → `fallback` → schema defaults.
 
-- **SSR inline**: the server reads the generated file at request time and inlines it into the document, so the client starts with no extra round trip.
-- **Same-origin JSON**: pass the URL (`runtimeConfig: "/platform-config.json"`) and the host fetches it before starting.
+- **SSR inline** (the conformance shell): the root route loader calls a TanStack Start server function that reads the generated file (`PLATFORM_CONFIG_PATH`, then `dist/client/platform-config.json`, then `public/platform-config.json`; in development it derives the document from the same `PLATFORM_*` variables on every request). The file-system code lives in a `.server.ts` module that never reaches the client bundle; the browser receives the document in the initial HTML and passes it as `loadRuntimeConfig({ inline })`.
+- **Same-origin JSON**: serve `/platform-config.json` and call `loadRuntimeConfig()` without `inline`.
 
-A fetch failure raises `RUNTIME_CONFIG_FETCH_FAILED`: serve `/platform-config.json` from the same origin or inline it. The document's origin is recorded as `source` (`entrypoint`, `inline`, `fetch`, `static`, `test`) in the `runtime-config.loaded` diagnostic.
+```ts title="src/lib/runtime-config.ts"
+export const getRuntimeConfig = createServerFn({ method: "GET" }).handler(async () => {
+  const { readRuntimeConfig } = await import("./runtime-config.server")
+  return readRuntimeConfig()
+})
+```
+
+A fetch failure raises `RUNTIME_CONFIG_FETCH_FAILED`: serve `/platform-config.json` from the same origin or inline it. The effective origin is recorded in `config.source` and in the `runtime-config.loaded` diagnostic.
 
 ## Validation
 
@@ -95,7 +114,7 @@ The document is validated before the platform starts, in the entrypoint and agai
 
 ## Per-MFE enablement
 
-`mfes.<mfeId>.enabled: false` disables a remote everywhere: `MfeOutlet` shows the _disabled_ state, widgets from it do not mount, the App Finder hides it and its static registrations are not listed. Loading it raises `REMOTE_DISABLED`; re-enable with `PLATFORM_MFE_<ID>_ENABLED=true`. Remotes absent from `mfes` are enabled by default when the registry knows them.
+`mfes.<mfeId>.enabled: false` (or `enabled: false` on the registry entry) disables a remote everywhere: `MfeOutlet` shows the _disabled_ state, widgets from it do not mount, the App Finder hides it and it is never preloaded. Loading it raises `REMOTE_DISABLED`; re-enable with `PLATFORM_MFE_<ID>_ENABLED=true`. Remotes absent from `mfes` are enabled by default when the registry knows them. The conformance failure lab shows the state for `disabled-remote`.
 
 ## Precedence
 
@@ -110,7 +129,7 @@ generated manifest default   (remote.baseUrl, loadPolicy, preload, allowedOrigin
 
 ## Refresh
 
-`host.runtimeConfig.refresh()` re-fetches the document (same-origin mode) and applies changes that are safe at runtime: enablement, environment values (subscribers update through the context store), preload hints and allowed origins. Manifest URL changes apply to the next load of a remote; already mounted instances keep running until they are unmounted.
+`host.config.refresh()` re-fetches `/platform-config.json` (or calls the `refreshRuntimeConfig` option), validates it, emits `config.changed` with the list of changed keys (`diffRuntimeConfig`) and applies changes that are safe at runtime: enablement, environment values (subscribers update through the context store), preload hints and allowed origins. `host.config.get()` and `host.config.subscribe()` expose the current document. Manifest URL changes apply to the next load of a remote; already mounted instances keep running until they are unmounted.
 
 ## Cache
 
@@ -122,4 +141,4 @@ Variables whose names match `SECRET`, `PASSWORD`, `PASSWD`, `TOKEN`, `PRIVATE`, 
 
 ## Local development
 
-The harness generates a configuration from `mfe.config.ts` (`env` defaults) and the harness panel; the SSR shell in dev reads `platform-config.local.json` when present. See [Local development](/docs/local-development).
+The harness builds its own document (`environment: "local"`, devtools always on, no manifest cache) and its _Remotes_ page has an editor for each remote's allow-listed `env`; `mfe.config.ts` `default` values apply when a key is omitted. The conformance shell in development derives the document from `PLATFORM_*` variables on every request (`scripts/dev-conformance.mjs` sets them). See [Local development](/docs/local-development).

@@ -18,7 +18,7 @@ All three exist in the platform monorepo and are generated into every scaffolded
 
 ## Predictable structure
 
-- one bootstrap file (`src/mfe.tsx`), one routes directory, one file per widget, one place each for commands, settings, storage, help and release notes ([Project structure](/docs/getting-started/project-structure)),
+- one bootstrap file (`src/mfe.tsx`), one routes directory, one file per widget, one place for storage (`src/lib/storage.ts`) and data access (`src/lib/api.ts`), registrations next to the feature that owns them ([Project structure](/docs/getting-started/project-structure)),
 - one canonical pattern per task: a hook (with a thin component wrapper) and no alternatives,
 - options objects everywhere, inference first, explicit overrides second,
 - generated files that are inspectable (`routeTree.gen.ts`, `platform-manifest.json`, `.platform/*`) but never edited.
@@ -39,4 +39,4 @@ Editors get completion from `"$schema": "https://platform.docs.local/schemas/man
 
 ## Scaffold contents
 
-`platform create` produces a working MFE with examples of every feature (command, settings group with async options, storage, slice subscription, permission guard, telemetry, breadcrumb metadata, widget, help, release notes), strict TypeScript, Prettier, ESLint with the platform rules, unit, integration and Playwright tests, `AGENTS.md`, `llm.txt` and `llms.txt`. The examples are the canonical patterns; copying them is the right thing to do.
+`platform create` produces a working MFE with examples of every feature (command with a shortcut, settings group with async options, storage with a migration, slice subscription, permission guard, telemetry span, breadcrumb metadata, widget with a dialog, static help and release notes), the typed-router and `Register` augmentations in `src/platform.d.ts`, strict TypeScript, Prettier, ESLint with the platform rules, a Vitest unit test and a Playwright test against the harness, `AGENTS.md`, `llm.txt`, `llms.txt` and a README. The examples are the canonical patterns; copying them is the right thing to do.

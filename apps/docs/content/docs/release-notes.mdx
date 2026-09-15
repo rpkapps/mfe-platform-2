@@ -35,7 +35,7 @@ function AssetReleaseNotes() {
 
 ## Release information
 
-The manifest's `release` block (`version`, `buildId`, `commit`, `builtAt`, `channel`) is inferred from `package.json` and the build environment (`PLATFORM_BUILD_ID`, `PLATFORM_COMMIT`, `PLATFORM_CHANNEL`). The shell shows it next to the notes and in the developer tools; telemetry carries it as `remoteRelease`. `usePlatform((p) => p.remoteRelease)` reads it inside the MFE.
+The manifest's `release` block (`version`, `buildId`, `commit`, `builtAt`) is inferred from `package.json`, `PLATFORM_BUILD_ID` and the commit (`GITHUB_SHA`, `CI_COMMIT_SHA`, `PLATFORM_COMMIT_SHA` or git). The developer tools show it per remote; `usePlatform((p) => p.remoteRelease)` reads it inside the MFE.
 
 ## Static entries
 

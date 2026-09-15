@@ -86,7 +86,12 @@ The SDK never imports Grafana Faro. A shell that uses it writes the adapter:
 
 ```ts title="apps/shell/src/telemetry.ts"
 import { faro } from "@grafana/faro-web-sdk"
-import type { TelemetryAdapter } from "@platform/host"
+import type { PlatformHostOptions } from "@platform/host"
+
+type TelemetryAdapter = Extract<
+  NonNullable<PlatformHostOptions["telemetry"]>,
+  { spanStart?: unknown }
+>
 
 export const faroAdapter: TelemetryAdapter = {
   track: (event, attributes) => faro.api.pushEvent(event, stringify(attributes)),
@@ -112,7 +117,7 @@ const stringify = (a: TelemetryAttributes) =>
   Object.fromEntries(Object.entries(a).map(([k, v]) => [k, String(v)]))
 ```
 
-Pass it to `createPlatformHost({ telemetry: composeTelemetryAdapters(faroAdapter, memoryAdapter) })`.
+Pass it to `createPlatformHost({ telemetry: faroAdapter })`. The console and memory adapters (`createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`) live in the internal core package; the conformance shell composes them from the workspace, they are not exported by `@platform/host` yet. `host.telemetryEvents()` returns the events recorded by the host.
 
 ## Failure isolation
 

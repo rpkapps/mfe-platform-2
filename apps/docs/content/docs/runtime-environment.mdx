@@ -21,7 +21,7 @@ The declaration is an **allow-list**: only these keys reach the MFE, with `defau
 
 ## Type them
 
-```ts title="src/env.d.ts"
+```ts title="src/platform.d.ts"
 import "@platform/react"
 
 declare module "@platform/react" {
@@ -52,18 +52,18 @@ In loaders: `context.platform.runtime.env.API_BASE_URL`. In command handlers and
 
 ## Where values come from
 
-| Source            | Example                                                               |
-| ----------------- | --------------------------------------------------------------------- |
-| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com` |
-| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`      |
-| Local harness     | `harness.env` in the harness panel or `mfe.config.ts` defaults        |
-| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`          |
+| Source            | Example                                                                   |
+| ----------------- | ------------------------------------------------------------------------- |
+| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com`     |
+| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`          |
+| Local harness     | the env editor on the harness _Remotes_ page, or `mfe.config.ts` defaults |
+| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`              |
 
 See [Runtime configuration](/docs/runtime-configuration).
 
 ## Build-time variables
 
-`import.meta.env.VITE_*` still works for values that are genuinely build constants, but it cannot change per container. The `platform/no-direct-runtime-env` [lint rule](/docs/linting#no-direct-runtime-env) reports `import.meta.env` and `process.env` reads in MFE code that look like runtime configuration (URLs, flags, tenant ids), pointing at `useRuntimeEnv`.
+`import.meta.env.VITE_*` still works for values that are genuinely build constants, but it cannot change per container. The [`@platform/no-unsafe-runtime-env-access`](/docs/linting#no-unsafe-runtime-env-access) lint rule reports `import.meta.env`, `process.env`, `window.__PLATFORM_CONFIG__` and `/platform-config.json` reads in MFE code, pointing at `useRuntimeEnv`.
 
 ## Never secrets
 

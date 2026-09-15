@@ -35,7 +35,7 @@ The `HostBridge` is a plain object of data and functions: navigation, context st
 
 ## Surfaces that look like components
 
-Registering a custom settings renderer or a help panel feels like passing a component, and it is — inside your MFE. The SDK converts it to `{ mount(container, controller) { … } }` and the shell mounts it into its own element with your React. The `platform/no-cross-root-components` lint rule flags attempts to hand a component to a host API directly.
+Registering a custom settings renderer or a help panel feels like passing a component, and it is — inside your MFE. The SDK converts it to `{ mount(container, controller) { … } }` and the shell mounts it into its own element with your React. The [`@platform/no-cross-root-component-passing`](/docs/linting#no-cross-root-component-passing) lint rule flags attempts to hand a component to a host API directly.
 
 ## Sharing React does not merge roots
 

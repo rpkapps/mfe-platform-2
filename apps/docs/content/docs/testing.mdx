@@ -7,15 +7,15 @@ description: The comprehensive suite belongs to the platform repository. An MFE 
 
 Consuming MFEs do not duplicate any of this.
 
-| Area                                                                                                                                                                                                                    | Where                                                                                        |
-| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs                                                                           | `internal/core` unit tests (Vitest)                                                          |
-| Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics                                                                                                           | `packages/vite` unit tests + fixtures                                                        |
-| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                              | `packages/react` unit tests (jsdom)                                                          |
-| CLI: scaffold, `platform validate`, every lint rule                                                                                                                                                                     | `packages/cli` unit + fixture tests                                                          |
-| Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy                                                                                                | `packages/host` unit tests                                                                   |
-| Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes)                                                                                                      | `test/integration` (Vitest)                                                                  |
-| Browser behaviour: smoke (isolated roots, native history, CSS scoping, runtime env), commands and shortcuts, shell history and breadcrumbs, guards and slice subscriptions, widgets and modal ordering, settings and storage, failure lab and overrides, devtools, HMR | `test/e2e` (Playwright) against the [conformance apps](/docs/examples)                   |
+| Area                                                                                                                                                                                                                                                                   | Where                                                                  |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Contracts: manifest schema, runtime config, identity, registries, storage store, telemetry wrapper, negotiation, overlay manager, breadcrumbs                                                                                                                          | `internal/core` unit tests (Vitest)                                    |
+| Vite plugin: inference, manifest generation, CSS scoping, generated entry, dev endpoints, restart diagnostics                                                                                                                                                          | `packages/vite` unit tests + fixtures                                  |
+| SDK: `createMfe`, `createWidget`, hooks, shell history adapter, boundaries                                                                                                                                                                                             | `packages/react` unit tests (jsdom)                                    |
+| CLI: scaffold, `platform validate`, every lint rule                                                                                                                                                                                                                    | `packages/cli` unit + fixture tests                                    |
+| Host: resolution precedence, retry, origin validation, preflight, mounting, registries, settings values, devtools policy                                                                                                                                               | `packages/host` unit tests                                             |
+| Package and runtime boundaries (React 18 + 19 coexistence, no History API or storage monkeypatching, share scopes)                                                                                                                                                     | `test/integration` (Vitest)                                            |
+| Browser behaviour: smoke (isolated roots, native history, CSS scoping, runtime env), commands and shortcuts, shell history and breadcrumbs, guards and slice subscriptions, widgets and modal ordering, settings and storage, failure lab and overrides, devtools, HMR | `test/e2e` (Playwright) against the [conformance apps](/docs/examples) |
 
 Run it with `pnpm test`, `pnpm test:integration` and `pnpm e2e` (after `pnpm build:all`).
 
@@ -44,7 +44,9 @@ const mounted = renderMfe(definition, { bridge, path: "/asset-tracker/assets/pum
 await within(mounted.container).findByText("Pump 42")
 
 expect(mounted.container.querySelector('[data-mfe="asset-tracker"]')).not.toBeNull()
-expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain("say-hello")
+expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain(
+  "say-hello"
+)
 
 bridge.setContext({ permissionGroups: [] }) // shell context change: guards and loaders re-run
 mounted.navigate("/asset-tracker/assets") // through the memory navigation
@@ -61,9 +63,18 @@ expect(bridge.registries.commands.list()).toEqual([])
 ## Widgets
 
 ```ts
-const bridge = createTestBridge({ mfeId: "asset-tracker", widgetId: "asset-card", routePrefix: null })
+const bridge = createTestBridge({
+  mfeId: "asset-tracker",
+  widgetId: "asset-card",
+  routePrefix: null,
+})
 const container = document.body.appendChild(document.createElement("div"))
-const handle = definition.mountWidget({ container, bridge, widgetId: "asset-card", props: { assetId: "pump-42" } })
+const handle = definition.mountWidget({
+  container,
+  bridge,
+  widgetId: "asset-card",
+  props: { assetId: "pump-42" },
+})
 handle.setProps({ assetId: "valve-7" })
 handle.dispose()
 ```
@@ -76,7 +87,9 @@ import { PlatformTestProvider } from "@platform/react/testing"
 
 const bridge = createTestBridge({ mfeId: "asset-tracker" })
 const { result } = renderHook(() => usePlatform((p) => p.user?.displayName), {
-  wrapper: ({ children }) => <PlatformTestProvider bridge={bridge}>{children}</PlatformTestProvider>,
+  wrapper: ({ children }) => (
+    <PlatformTestProvider bridge={bridge}>{children}</PlatformTestProvider>
+  ),
 })
 ```
 

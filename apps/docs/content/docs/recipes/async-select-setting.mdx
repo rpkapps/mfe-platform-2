@@ -3,7 +3,7 @@ title: Async select setting
 description: A select setting whose options come from an API, with cancellation, caching, retry and a dependent field.
 ---
 
-```ts title="src/settings.ts"
+```ts title="src/lib/settings.ts"
 import { useRegisterSettingsGroup } from "@platform/react"
 import { z } from "zod"
 
@@ -49,7 +49,7 @@ export function useReportSettings() {
 }
 ```
 
-Mount the hook in a component that lives with the feature (the settings page or the root layout):
+Call the hook from a component that lives with the feature; the root layout keeps the group registered whenever the MFE is mounted, including the shell settings page's headless mounts:
 
 ```tsx title="src/routes/__root.tsx"
 function RootLayout() {

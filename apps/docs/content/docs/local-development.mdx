@@ -55,9 +55,9 @@ Only manifests produced by a development server carry a `dev` block. Production 
 
 ## Ports
 
-| App                                                       | Port                                                              |
-| --------------------------------------------------------- | ----------------------------------------------------------------- |
-| Harness (inside the remote's dev server)                  | the remote's port (5173 by default), `/__platform/harness/`       |
-| Conformance shell (production build / dev)                | 4100 / 4110                                                       |
-| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite          |
-| Unavailable-remote fixture                                | 4999 (nothing listens)                                            |
+| App                                                       | Port                                                        |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| Harness (inside the remote's dev server)                  | the remote's port (5173 by default), `/__platform/harness/` |
+| Conformance shell (production build / dev)                | 4100 / 4110                                                 |
+| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite    |
+| Unavailable-remote fixture                                | 4999 (nothing listens)                                      |

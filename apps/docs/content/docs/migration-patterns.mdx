@@ -10,7 +10,7 @@ description: Moving an existing application onto the platform, from a single SPA
 1. Create the shell with `@platform/host` around the existing chrome (navigation, header, auth). Keep the existing router as the shell router and add `createTanStackShellNavigation(router)`.
 2. Pick one feature area with its own URL prefix. `pnpm dlx @platform/cli create <area>` next to the monolith, move its route files under `src/routes` (they are TanStack routes already or become ones: `createFileRoute("/list")` instead of `<Route path="list">`).
 3. Replace global state access with `usePlatform()` and route context; replace direct storage with `createPlatformStorage`; replace the app's own command and settings registries with the platform hooks.
-4. Mount it: `<MfeOutlet mfeId="<area>" />` on the shell route `/<area>/$`, and remove the monolith's routes for that prefix.
+4. Mount it: add a `$` catch-all route that resolves the remote with `mfeRouteHelpers({ host }).matchMfeForPath(pathname)` and renders `<MfeOutlet mfeId routePrefix />` (the conformance shell's `src/routes/$.tsx`), and remove the monolith's routes for that prefix.
 5. Repeat per area. Shared UI stays in `@tecton/react` (or a shared package published to your registry) — never in a cross-MFE import.
 
 What changes for developers: routes keep their code; links across areas use `useNavigation().navigate("/other-area/...")` instead of relative routes.

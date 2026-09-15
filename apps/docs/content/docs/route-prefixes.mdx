@@ -36,9 +36,9 @@ Invalid prefixes fail the build with `ROUTE_PREFIX_INVALID` and are rejected by 
 assets                ✗ missing leading slash
 ```
 
-## Conflicts
+## Matching in the shell
 
-The shell registry rejects two enabled remotes whose prefixes are equal or nested (`/reports` and `/reports/legacy`) with a `REMOTE_UNKNOWN`-style diagnostic naming both owners, because the router could not decide which remote owns a URL. Choose distinct top-level segments per MFE.
+`host.remotes.matchRoute(pathname)` and `mfeRouteHelpers({ host }).matchMfeForPath(pathname)` pick the **longest** registered prefix (from loaded manifests, then registry entries); widget libraries never match. Nested prefixes (`/reports` and `/reports/legacy`) therefore resolve to the more specific remote, but choose distinct top-level segments per MFE to keep URLs readable.
 
 ## Inside the MFE
 

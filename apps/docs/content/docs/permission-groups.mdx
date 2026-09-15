@@ -30,7 +30,7 @@ function Actions() {
 
 ## Preflight
 
-The shell performs a coarse check **before loading a remote** using the manifest's `permissionGroups` (from `mfe.config.ts` and route `staticData.permissionGroups`). A user without a required group never downloads the remote: `MfeOutlet` renders the _forbidden_ state and the host records `preflight.denied` with the missing groups (`PERMISSION_DENIED`). Widgets declaring `permissionGroups` are preflighted the same way per slot.
+The shell performs a coarse check **before loading a remote** using the manifest's `permissionGroups` (from `mfe.config.ts` and route `staticData.permissionGroups`) when `policy.preflight` is on (the default). A user without a required group never downloads the remote: `MfeOutlet` renders the _denied_ state and the host records `preflight.denied` with the missing groups (`PERMISSION_DENIED`). The conformance failure lab's `restricted-remote` requires a `superadmin` group nobody has.
 
 Preflight is for efficiency and for a clean empty state; it does not replace guards.
 

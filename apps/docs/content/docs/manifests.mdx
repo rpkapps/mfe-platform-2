@@ -25,7 +25,7 @@ The JSON Schema is published at [`/schemas/manifest.json`](/schemas/manifest.jso
 | `permissionGroups`                                                  | groups required to load the remote                                                                                    | config + routes                      |
 | `capabilities`                                                      | requested capability ids                                                                                              | SDK usage inference                  |
 | `commands[]`, `settings[]`, `help[]`, `releaseNotes[]`, `widgets[]` | static contributions                                                                                                  | registration calls, `createWidget`   |
-| `breadcrumbs`                                                       | `{ rootLabel?, renderer }`                                                                                            | config                               |
+| `breadcrumbs`                                                       | `{ rootLabel?, renderer }`, always `{ renderer: "shell" }` today                                                      | schema default                       |
 | `shared[]`                                                          | requested shared dependencies with ranges, scopes and reasons                                                         | `package.json` + overrides           |
 | `runtime`                                                           | `{ react, reactDom?, tanstackRouter?, platformReact? }` with `requiredVersion`, `major`, `builtWith`                  | `package.json` + `runtime` overrides |
 | `tecton`                                                            | `{ enabled, version?, cssProtocol?, tokens?, foundation }`                                                            | dependency + config                  |
@@ -71,4 +71,4 @@ A hidden remote is still a complete platform remote: it can own deep-linkable ro
 
 - `pnpm manifest` in the remote project.
 - `curl https://remotes.example.com/asset-tracker/platform-manifest.json`.
-- Developer tools → _Remotes_: effective manifest URL, its source and the loaded manifest.
+- Developer tools → _Overview_: effective manifest URL, its source and the loaded manifest.

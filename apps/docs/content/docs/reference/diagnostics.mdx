@@ -50,10 +50,12 @@ Every event carries `id`, `at`, `level` and, when known, `mfeId`, `instanceId` a
 ## Consuming
 
 ```ts
-host.diagnostics.subscribe((event) => {
-  if (event.level === "error") report(event)
+host.diagnostics.subscribe(() => {
+  /* the ring buffer changed */
 })
-const snapshot = host.diagnostics.snapshot() // remotes, instances, registrations, shared, overlays, events
+const snapshot = host.snapshot() // remotes, instances, registrations, shared, overlays, events
 ```
+
+In React, `useHostDiagnostics(selector)` from `@platform/host/react` subscribes to the events.
 
 Inside an MFE, `bridge.diagnostics.emit()` is used by the SDK; MFE code reports through telemetry instead.

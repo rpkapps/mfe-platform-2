@@ -52,7 +52,9 @@ export const Route = createFileRoute("/assets/$assetId")({
       throw redirect({ to: "/", search: { denied: params.assetId } })
     }
     if (params.assetId === "restricted" && !context.platform.permissions.hasGroup("admin")) {
-      throw new Error("Only admins may open the restricted asset (guard error stays inside the MFE).")
+      throw new Error(
+        "Only admins may open the restricted asset (guard error stays inside the MFE)."
+      )
     }
   },
 })
@@ -111,12 +113,12 @@ loader: ({ context }) => queryClient.ensureQueryData(assetsQuery(context.platfor
 
 ## Where failures land
 
-| Failure                                                          | Handled by                                                                             |
-| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Manifest missing, invalid, protocol mismatch, remote unreachable | Shell boundary around `MfeOutlet` ([Failure handling](/docs/failure-handling))         |
-| Manifest permission preflight denied                             | Shell (`PERMISSION_DENIED`), remote not loaded                                         |
-| `beforeLoad` redirect or throw                                   | MFE router, inside the MFE root                                                        |
-| Loader error, `notFound()`                                       | Nearest MFE `errorComponent` / `notFoundComponent`                                     |
-| Render error in a route component                                | MFE `errorComponent`, then `createMfe({ errorComponent })`, then `MfeErrorBoundary`   |
+| Failure                                                          | Handled by                                                                          |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Manifest missing, invalid, protocol mismatch, remote unreachable | Shell boundary around `MfeOutlet` ([Failure handling](/docs/failure-handling))      |
+| Manifest permission preflight denied                             | Shell (`PERMISSION_DENIED`), remote not loaded                                      |
+| `beforeLoad` redirect or throw                                   | MFE router, inside the MFE root                                                     |
+| Loader error, `notFound()`                                       | Nearest MFE `errorComponent` / `notFoundComponent`                                  |
+| Render error in a route component                                | MFE `errorComponent`, then `createMfe({ errorComponent })`, then `MfeErrorBoundary` |
 
 A failing guard never unmounts the MFE or touches the shell. Client-side checks are for routing and UX only; backend services remain authoritative.

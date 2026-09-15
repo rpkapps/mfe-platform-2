@@ -3,7 +3,7 @@ title: Cross-tab storage
 description: Keep a preference in sync across browser tabs with a local-scope store.
 ---
 
-```ts title="src/storage.ts"
+```ts title="src/lib/storage.ts"
 import { createPlatformStorage } from "@platform/react"
 import { z } from "zod"
 
@@ -17,7 +17,7 @@ export const viewStore = createPlatformStorage({
 ```
 
 ```tsx title="src/routes/index.tsx"
-import { viewStore } from "../storage"
+import { viewStore } from "@/lib/storage"
 
 function AssetListPage() {
   const mode = viewStore.use((state) => state.mode)
@@ -50,11 +50,12 @@ Test it with the memory backend:
 
 ```ts
 const bridge = createTestBridge({ mfeId: "asset-tracker" })
-renderMfe(definition, { bridge })
+const mounted = renderMfe(definition, { bridge })
 bridge.storage.emitExternal(
   "local",
   "platform:asset-tracker:local:asset-view",
   JSON.stringify({ v: 1, data: { mode: "map", showOffline: false }, updatedAt: Date.now() })
 )
-expect(viewStore.get().mode).toBe("map")
+expect(viewStore.bind({ bridge }).get().mode).toBe("map") // outside a mount, bind the store to the bridge
+mounted.dispose()
 ```

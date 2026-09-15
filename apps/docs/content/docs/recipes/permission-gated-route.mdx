@@ -62,6 +62,6 @@ Test it with a bridge without the group:
 
 ```ts
 const bridge = createTestBridge({ mfeId: "asset-tracker", permissionGroups: ["assets:read"] })
-renderMfe(definition, { bridge, path: "/assets/pump-42/edit" })
-expect(bridge.navigation.getLocation().search).toContain("denied=assets%3Awrite")
+const mounted = renderMfe(definition, { bridge, path: "/asset-tracker/assets/pump-42/edit" })
+await waitFor(() => expect(mounted.location().search).toContain("denied=assets%3Awrite"))
 ```

@@ -51,7 +51,7 @@ Everything is plain data or plain functions: no React values, so it can cross th
 | Route guards and loaders | `context.platform` ([Route guards](/docs/routing/route-guards))                                                                           |
 | Command handlers         | `platform` in the handler context                                                                                                         |
 | Async option providers   | `platform` in the provider context                                                                                                        |
-| Tests                    | `createTestBridge({ user, permissionGroups, env, capabilities })`                                                                         |
+| Tests                    | `createTestBridge({ user, permissionGroups, env, capabilities, context })`, then `bridge.setContext(partial)`                             |
 
 ## Changes
 
@@ -74,7 +74,7 @@ function Toolbar() {
 }
 ```
 
-Calling an API whose capability was not approved fails with `CAPABILITY_UNAVAILABLE` (the hook throws with the owner and the capability id; the failure is isolated by the nearest error boundary). To avoid it, feature-detect with `useCapability` or `usePlatform((p) => p.capabilities)`, or request the capability explicitly with `capabilities: { add: ["notifications"] }` in `mfe.config.ts`.
+Calling an API whose capability was not approved fails with `CAPABILITY_UNAVAILABLE`, isolated by the nearest error boundary. To avoid it, feature-detect with `useCapability` or `usePlatform((p) => p.capabilities)`, or request the capability explicitly with `capabilities: { add: ["notifications"] }` in `mfe.config.ts`. The `@platform/valid-capability-usage` lint rule reports SDK calls whose capability `mfe.config.ts` removes.
 
 | Capability                                       | Granted for                                                                    |
 | ------------------------------------------------ | ------------------------------------------------------------------------------ |
@@ -97,4 +97,4 @@ const { notify } = useNotifications()
 notify({ title: "Asset saved", kind: "success" })
 ```
 
-Toasts render in the shell's `NotificationHost` (Tecton `Toaster`), outside every MFE root.
+Toasts render in the shell's `NotificationHost` (Tecton `Toaster`), outside every MFE root: the shell passes `notifications: createSonnerNotificationPort()` to `createPlatformHost`. Without a notification port `notify` is a no-op that records a warning diagnostic.

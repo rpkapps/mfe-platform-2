@@ -25,22 +25,22 @@ Widget libraries (no route tree) are hidden by default.
 
 ## What still works
 
-| Feature                                         | Hidden remote                                        |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| Routes under the prefix                         | ✓ deep-linkable, guarded, breadcrumbed               |
-| Widgets                                         | ✓ mountable from any slot                            |
-| Commands                                        | ✓ listed in the palette (static ones before loading) |
-| Settings                                        | ✓ groups appear in the settings host                 |
-| Help and release notes                          | ✓                                                    |
-| Runtime configuration and environment           | ✓                                                    |
-| Loading as a dependency (`loadPolicy: "eager"`) | ✓                                                    |
-| App Finder entry                                | ✗                                                    |
+| Feature                                    | Hidden remote                                        |
+| ------------------------------------------ | ---------------------------------------------------- |
+| Routes under the prefix                    | ✓ deep-linkable, guarded, breadcrumbed               |
+| Widgets                                    | ✓ mountable from any slot                            |
+| Commands                                   | ✓ listed in the palette (static ones before loading) |
+| Settings                                   | ✓ groups appear in the settings host                 |
+| Help and release notes                     | ✓                                                    |
+| Runtime configuration and environment      | ✓                                                    |
+| Preloading (`preload: "entry" \| "eager"`) | ✓                                                    |
+| App Finder entry                           | ✗                                                    |
 
 The App Finder consumes only `discoverable: true` entries; nothing else in the host filters on the flag.
 
 ## Loading hidden remotes
 
-A hidden remote loads when a URL under its prefix is visited, when a `WidgetSlot` asks for one of its widgets, or eagerly when its `loadPolicy`/`preload` says so. To make a utility remote's commands available at all times, set `loadPolicy: "eager"` or expose the commands statically through `createMfe({ registrations: { commands } })`, which the palette can list without loading the remote. See the [hidden utility MFE recipe](/docs/recipes/hidden-utility-mfe).
+A hidden remote loads when a URL under its prefix is visited, when a `WidgetSlot` asks for one of its widgets, when the shell mounts it headlessly, or at startup when `preload` says so (`registry.preload`, or `mfes.<id>.preload` in the runtime configuration: `entry` fetches the entry, `eager` also evaluates the definition). Commands, help and release notes declared statically through `createMfe({ registrations })` are listed by the palette from the manifest without loading the remote; commands with handlers need a mount (visible or headless). See the [hidden utility MFE recipe](/docs/recipes/hidden-utility-mfe).
 
 ## Diagnostics
 

@@ -34,40 +34,40 @@ Internal packages (@platform-internal/core, module-federation, diagnostics, devt
 ## Creating and running an MFE
 
 pnpm dlx @platform/cli create my-mfe   # scaffold (routes, widget, commands, settings, storage, tests, lint, AGENTS.md, llm.txt, llms.txt)
-pnpm dev        # platform dev: Vite + local shell harness at /__platform/harness/ (HMR, context, failure toggles)
+pnpm dev        # platform dev: Vite + local shell harness at http://localhost:5173/__platform/harness/ (HMR, context, failure lab)
 pnpm build      # platform build: dist/remoteEntry.js + dist/platform-manifest.json
-pnpm manifest | pnpm validate | pnpm lint | pnpm test
+pnpm manifest | pnpm validate | pnpm lint | pnpm test | pnpm test:e2e
 
 ## File locations (scaffold)
 
-src/mfe.tsx                 bootstrap: export default createMfe({ routeTree, widgets })
-src/routes/__root.tsx       createRootRouteWithContext<MfeRouterContext>()
-src/routes/**               TanStack file routes (relative to the route prefix)
+src/mfe.tsx                 bootstrap: export default createMfe({ routeTree, widgets, registrations })
+src/routes/__root.tsx       createRootRouteWithContext<MfeRouterContext>(), staticData.breadcrumb root label
+src/routes/**               TanStack file routes (relative to the route prefix); registrations next to the feature
 src/routeTree.gen.ts        generated
-src/widgets/*.tsx           createWidget({ id, component, propsSchema })
-src/commands.tsx            useRegisterCommand
-src/settings.ts             useRegisterSettingsGroup
-src/storage.ts              createPlatformStorage
-src/help.ts, src/release-notes.ts
-src/env.d.ts                declare module "@platform/react" { interface Register { env; featureFlags } }
-mfe.config.ts               defineMfeConfig({ ... }) overrides (routePrefix, navigation, env, shared, capabilities, css, tecton)
+src/widgets/*.tsx           widget components; createWidget({ component, propsSchema }) under a kebab-case key in src/mfe.tsx
+src/lib/storage.ts          createPlatformStorage stores
+src/lib/api.ts              data access using useRuntimeEnv().API_BASE_URL
+src/platform.d.ts           declare module "@platform/react" { interface Register { env; featureFlags } }
+                            declare module "@tanstack/react-router" { interface Register { router: MfeRouter<typeof routeTree> } }
+src/__tests__/, e2e/        Vitest (renderMfe, createTestBridge) and Playwright against the harness
+mfe.config.ts               defineMfeConfig({ ... }) overrides (routePrefix, navigation, env, shared, capabilities, css, tecton, harness)
 .platform/identity.json     { mfeId } persisted; committed
-vite.config.ts              plugins: [platform()]
+vite.config.ts              plugins: [platform()]    vitest.config.ts: the same call (identity defines only)
 eslint.config.ts            platformConfig() from @platform/cli/eslint
 
 ## Canonical patterns
 
 Bootstrap (src/mfe.tsx):
-  import { createMfe } from "@platform/react"
+  import { createMfe, createWidget } from "@platform/react"
   import { routeTree } from "./routeTree.gen"
-  export default createMfe({ routeTree, widgets: { assetCard } })
+  export default createMfe({ routeTree, widgets: { "asset-card": createWidget({ component: AssetCard, propsSchema }) } })
 
 Route with guard, loader, breadcrumb (src/routes/assets/$assetId.tsx):
   export const Route = createFileRoute("/assets/$assetId")({
     beforeLoad: ({ context }) => { if (!context.platform.permissions.hasGroup("assets:read")) throw redirect({ to: "/" }) },
-    loader: ({ context, params }) => { const span = context.platform.telemetry.span("load-asset"); return fetchAsset(params.assetId).finally(() => span.end()) },
-    staticData: { breadcrumb: { fromLoader: "name" }, navigation: { title: "Asset" }, permissionGroups: ["assets:read"] },
-    component: AssetPage,
+    loader: async ({ context, params }) => { const span = context.platform.telemetry.span("asset.load"); const asset = await fetchAsset(params.assetId); span.end(); return { asset, breadcrumb: asset.name } },
+    staticData: { breadcrumb: { fromLoader: "breadcrumb" }, navigation: { title: "Asset" }, permissionGroups: ["assets:read"] },
+    component: AssetPage,   // Route.useLoaderData() is typed through the Register augmentation
   })
 
 Command:
@@ -82,30 +82,34 @@ Settings group (defaultValue, never value; Standard Schema / Zod):
 
 Storage:
   export const store = createPlatformStorage({ scope: "local", key: "dashboard", schema, defaults, version: 1, migrate })
-  store.use((s) => s.columns); store.set(...); store.setKey("columns", ...); store.reset()
+  store.use((s) => s.columns); store.get(); store.set(...); store.setKey("columns", ...); store.reset(); store.bind({ bridge }) in tests
 
 Widget:
-  export const assetCard = createWidget({ id: "asset-card", propsSchema: z.object({ assetId: z.string() }), component: AssetCard })
+  widgets: { "asset-card": createWidget({ propsSchema: z.object({ assetId: z.string() }), component: AssetCard }) }
   // shell: <WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId }} />
 
 Context:
   usePlatform()                        full context (user, permissionGroups, permissions, tenant, project, job, locale, timezone,
                                        theme, featureFlags, capabilities, runtime, telemetry, navigation, revision)
   usePlatform((p) => p.user?.displayName)   slice subscription (no rerender when unrelated state changes)
-  usePermissions(), useCapability(id), useRuntimeEnv(), useTelemetry(), useNavigation(), useNotifications(), useMfeInstance()
+  usePermissions(), useCapability(id), useRuntimeEnv(), useTelemetry(), useNavigation(), useNotifications(), useMfeInstance(),
+  useOverlayContainer() (portal target), useMountDisposer(), useStorageDiagnostics()
 
 Help / release notes: useRegisterHelp([...]), useRegisterReleaseNotes([...]); static ones via createMfe({ registrations })
 Breadcrumbs: staticData.breadcrumb ("Label" | { label, dynamic, hidden, fromLoader }); useBreadcrumb(override) for manual cases
-Overlays: ordinary Tecton Dialog/Popover/Menu; no configuration (PortalProvider adapter + shell overlay manager)
+Overlays: ordinary Tecton Dialog/Popover/Menu; no configuration (withTecton PortalProvider + shell overlay manager); plain React: createPortal(el, useOverlayContainer())
 Runtime env: declare in mfe.config.ts env: { API_BASE_URL: { required: true } }; type via Register; read with useRuntimeEnv()
+Testing (@platform/react/testing): createTestBridge({ mfeId, user, permissionGroups, env }), renderMfe(definition, { bridge, path }) -> { container, navigate, location, dispose }; PlatformTestProvider for hooks
 
 ## Shell (host) essentials
 
-createPlatformHost({ runtimeConfig, registry, loader?, telemetry?, storage?, navigation?, context?, policy? })
-@platform/host/react: PlatformProvider, MfeOutlet, WidgetSlot, CommandPalette, SettingsHost, HelpSlot, ReleaseNotesSlot, Breadcrumbs, AppFinder, PlatformDevtools, NotificationHost
-@platform/host/tanstack: createTanStackShellNavigation(router), mfeRoute({ mfeId })
+createPlatformHost({ runtimeConfig, navigation, registry?, context?, notifications: createSonnerNotificationPort(), telemetry?, storage?, loader?, policy?, devtools?, hostKind? })
+  -> host.remotes.{list,get,mount,mountWidget,retry,setLocalOverride,matchRoute,sharedReport,register}, host.commands.{run,abort,running}, host.config.{get,subscribe,refresh}, host.snapshot()
+@platform/host/react: PlatformProvider (installs the shortcut listener), MfeOutlet (headless for settings owners), WidgetSlot, CommandPalette, SettingsHost, HelpSlot, ReleaseNotesSlot, Breadcrumbs, AppFinder, NotificationHost, PlatformDevtools, ShellOverlayProvider
+@platform/host/tanstack: createTanStackShellNavigation(router), mfeRouteHelpers({ host }).matchMfeForPath(pathname) in the shell's $ catch-all route
+Runtime config in an SSR shell: root loader -> server function -> .server.ts reads the entrypoint output -> loadRuntimeConfig({ inline }) on the client (apps/conformance-shell)
 Manifest URL precedence: ?platform.override.<mfeId>= / localStorage["platform:manifest-overrides"] > runtime config (mfes.<id>.manifestUrl) > registry > default
-Runtime config: platform-host-entrypoint --out platform-config.json from PLATFORM_* variables
+Runtime config: platform-host-entrypoint --out platform-config.json [--base] [--known] [--print] from PLATFORM_* variables
   (PLATFORM_ENVIRONMENT, PLATFORM_MFE_<ID>_MANIFEST_URL|ENABLED|PRELOAD|ALLOWED_ORIGINS|ENV_<KEY>, PLATFORM_SHARED_<KEY>, PLATFORM_ALLOWED_ORIGINS, PLATFORM_DEVTOOLS_POLICY); sensitive names refused
 Devtools: localStorage["platform:devtools"] = "1" + policy (flag|always|never) + environment; lazy chunk; React Flow dependency graph
 

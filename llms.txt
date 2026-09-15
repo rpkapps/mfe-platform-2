@@ -85,8 +85,8 @@ Four public packages: @platform/react (MFE SDK), @platform/vite (Vite plugin), @
 
 - [Reference](https://platform.docs.local/docs/reference): Every public export of the four packages, the published schemas, the error codes and the diagnostic events.
 - [@platform/react](https://platform.docs.local/docs/reference/platform-react): The MFE-facing SDK. Every export with its signature and a short description.
-- [@platform/vite](https://platform.docs.local/docs/reference/platform-vite): The platform() Vite plugin and the mfe.config.ts helper.
-- [@platform/cli](https://platform.docs.local/docs/reference/platform-cli): The platform command line and the shareable ESLint configuration.
+- [@platform/vite](https://platform.docs.local/docs/reference/platform-vite): The platform() Vite plugin, the mfe.config.ts helper and the programmatic API (manifest generation, config resolution, CSS scoping).
+- [@platform/cli](https://platform.docs.local/docs/reference/platform-cli): The platform command line and the shareable ESLint plugin and flat config.
 - [@platform/host](https://platform.docs.local/docs/reference/platform-host): Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.
 - [Manifest schema](https://platform.docs.local/docs/reference/manifest-schema): Fields of platform-manifest.json. The JSON Schema is published at /schemas/manifest.json.
 - [Runtime config schema](https://platform.docs.local/docs/reference/runtime-config-schema): Fields of platform-config.json. The JSON Schema is published at /schemas/runtime-config.json.

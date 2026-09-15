@@ -20,35 +20,44 @@ The chosen URL and its source (`query`, `override`, `runtime-config`, `registry`
 https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
 ```
 
-The override is stored in `localStorage["platform:manifest-overrides"]` for the session, so it survives navigation, and the parameter is removed from the URL. Clear it from the devtools _Remotes_ panel or with `platform.clearOverrides()` on the host object.
-
-Query overrides are honoured only when the host policy allows them (`policy.allowLocalOverrides`, default `true` outside `production`).
+The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("asset-tracker", null)`, from the harness _Remotes_ page, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
 
 ## Developer tools
 
-_Remotes_ lists every known `mfeId` with the effective URL, its source and an _Override_ field. Saving writes `localStorage["platform:manifest-overrides"]` and invalidates the loader cache for that remote.
+The _Overview_ tab lists every known `mfeId` with the effective URL and its source; the harness _Remotes_ page adds an override editor. Setting an override invalidates the loader cache for that remote.
 
 ## Registry
 
-```ts title="apps/shell/src/platform.ts"
+```ts title="apps/shell/src/lib/registry.ts"
+export const registry = [
+  {
+    mfeId: "asset-tracker",
+    manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json",
+    displayName: "Asset Tracker",
+  },
+  {
+    mfeId: "legacy-reports",
+    manifestUrl: "https://legacy.example.com/reports/platform-manifest.json",
+    displayName: "Legacy Reports",
+  },
+  {
+    mfeId: "widget-a",
+    manifestUrl: "/mfes/widget-a/platform-manifest.json",
+    displayName: "Widget Library A",
+    discoverable: false,
+  },
+  { mfeId: "old-remote", manifestUrl: "…", enabled: false },
+]
+
 const host = createPlatformHost({
   runtimeConfig,
-  registry: {
-    baseUrl: "https://remotes.example.com",
-    remotes: {
-      "asset-tracker": {
-        manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json",
-      },
-      "legacy-reports": {
-        manifestUrl: "https://legacy.example.com/reports/platform-manifest.json",
-        allowedOrigins: ["https://legacy.example.com"],
-      },
-    },
-  },
+  registry,
+  navigation,
+  policy: { allowedOrigins: ["https://legacy.example.com"] },
 })
 ```
 
-Requesting an `mfeId` that is in neither the registry nor the runtime configuration fails with `REMOTE_UNKNOWN`.
+A `RegistryEntry` is `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`; without `manifestUrl` the default is `/mfes/<mfeId>/platform-manifest.json` (`defaultManifestUrl` option). `host.remotes.register(entry)` adds or refreshes an entry at runtime (the harness does this for every connected manifest). Requesting an `mfeId` that is in neither the registry nor the runtime configuration fails with `REMOTE_UNKNOWN`.
 
 ## Cache busting
 
@@ -63,9 +72,9 @@ Manifests are fetched with `cache: "no-store"` semantics bounded by `cache.manif
 Before fetching, the host checks the manifest URL's origin, and after loading it checks `remote.baseUrl`, against the allowed set:
 
 - the shell's own origin,
-- `allowedOrigins` from the runtime configuration (global and per MFE),
+- `allowedOrigins` from the runtime configuration (global and per MFE) and from `policy.allowedOrigins`,
 - `remote.allowedOrigins` declared in the manifest (for asset origins only, once the manifest itself came from an allowed origin),
-- `localhost` / `127.0.0.1` when `host.dev` is true.
+- `localhost` / `127.0.0.1` in non-production environments.
 
 Anything else fails with `MANIFEST_ORIGIN_DENIED` naming the origin. Add it to `allowedOrigins` (`PLATFORM_ALLOWED_ORIGINS` or `PLATFORM_MFE_<ID>_ALLOWED_ORIGINS`) or serve the manifest from the shell origin.
 

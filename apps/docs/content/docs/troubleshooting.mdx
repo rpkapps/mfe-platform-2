@@ -60,9 +60,9 @@ The full list with hints is generated from the source of truth: [Error codes](/d
 
 ## Common situations
 
-**The remote loads in the harness but not in the shell.** Check the _Remotes_ panel: is the effective URL the one you expect, and what is its source? A stale `localStorage["platform:manifest-overrides"]` entry from a previous session is the usual cause.
+**The remote loads in the harness but not in the shell.** Check the devtools _Overview_ tab: is the effective URL the one you expect, and what is its source? A stale `localStorage["platform:manifest-overrides"]` entry from a previous session is the usual cause.
 
-**My change does not appear.** The loaded remote may be a production artefact (`vite preview`) rather than the dev server; the harness labels remotes `HMR` or `artefact`. Or a restart is required (`DEV_RESTART_REQUIRED`).
+**My change does not appear.** The loaded remote may be a production artefact (`vite preview`) rather than the dev server; only dev manifests carry a `dev` block and the harness `HMR` badge. Or a restart is required (`DEV_RESTART_REQUIRED`).
 
 **A dialog is unstyled or clipped.** The overlay root is missing the owner attribute (`OVERLAY_FAILED`) or the remote was built with `css.scope: false`. Inspect `[data-platform-overlay-root]` elements on `body`.
 

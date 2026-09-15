@@ -9,19 +9,23 @@ CSS is scoped under `[data-mfe="asset-tracker"]` and the MFE root is a `div` som
 
 ## The adapter
 
-`withTecton(definition)` (from `@platform/react/tecton`, applied automatically by the generated entry when Tecton is enabled) wraps the MFE tree in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with a container obtained from the overlay manager:
+`withTecton(definition)` (from `@platform/react/tecton`, applied automatically by the generated entry when Tecton is enabled) adds an enhancer that wraps every root of the MFE in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with the per-mount container from `useOverlayContainer()`:
 
 ```tsx
-// what the generated entry does, conceptually
-const root = bridge.overlays.createRoot({ owner: { mfeId, instanceId, widgetId }, attributes: { class: theme } })
-<PortalProvider getContainer={() => root.element}>{children}</PortalProvider>
+// what withTecton does
+function TectonPortal({ children }) {
+  const container = useOverlayContainer() // created lazily by the shell overlay manager, disposed with the mount
+  return <PortalProvider container={container}>{children}</PortalProvider>
+}
 ```
+
+Non-Tecton MFEs use the same hook directly: `createPortal(<Modal />, useOverlayContainer())` takes part in the global modal ordering (the React 18 fixtures do this).
 
 React Aria components (`Dialog`, `Popover`, `Menu`, `Tooltip`, `ComboBox` listbox, `Select` popover, Tecton `Command` dialogs) read the portal container from that provider. Because the root element carries `data-mfe`, `data-platform-instance` and the theme class, scoped selectors, custom properties and dark-mode tokens match inside it exactly as inside the MFE container.
 
 ## Theme sync
 
-`withTecton` also mirrors the shell theme (`resolvedTheme` from the platform context) onto the MFE root and the overlay root, so a shell theme switch restyles open dialogs immediately.
+The `dark` class of the MFE root and of its overlay root follows `resolvedTheme` from the platform context (kept in step by the mount scope, independently of `withTecton`), so a shell theme switch restyles open dialogs immediately.
 
 ## Widgets
 

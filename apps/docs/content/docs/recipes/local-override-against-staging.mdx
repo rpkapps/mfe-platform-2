@@ -11,30 +11,30 @@ description: Develop one MFE locally while everything else comes from the stagin
 pnpm dev
 ```
 
-The dev manifest is served at `http://localhost:4201/platform-manifest.json` with `dev.hmr = true` and a `dev.refreshPreamble`.
+The dev manifest is served at `http://localhost:5173/platform-manifest.json` with `dev.hmr = true` and a `dev.refreshPreamble` (`platform dev --port` picks another port).
 
 <Step>Open the staging shell with an override</Step>
 
 ```text
-https://shell.staging.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
+https://shell.staging.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:5173/platform-manifest.json
 ```
 
-The shell stores the override in `localStorage["platform:manifest-overrides"]`, removes the parameter from the URL and loads your local remote; every other remote, the context, permissions and runtime configuration are staging's.
+The shell stores the override in `localStorage["platform:manifest-overrides"]` and loads your local remote; every other remote, the context, permissions and runtime configuration are staging's.
 
 <Step>Confirm in the developer tools</Step>
 
-Enable them once (`localStorage.setItem("platform:devtools", "1")`, allowed in staging by the default policy). _Remotes_ shows `asset-tracker` with source `override`, the local URL and the `HMR` badge.
+Enable them once (`localStorage.setItem("platform:devtools", "1")`, allowed in staging by the default policy). The _Overview_ tab shows `asset-tracker` with source `override`, the local URL and `dev.hmr`.
 
 <Step>Clear the override</Step>
 
-Use _Clear_ in the _Remotes_ panel, or run `localStorage.removeItem("platform:manifest-overrides")`.
+Run `localStorage.removeItem("platform:manifest-overrides")` (or `host.remotes.setLocalOverride("asset-tracker", null)` from the shell).
 
 </Steps>
 
 Requirements and gotchas:
 
-- `localhost` origins are accepted only when the shell runs with `host.dev` or lists them in `allowedOrigins` (`PLATFORM_ALLOWED_ORIGINS=http://localhost:4201` on the staging shell), otherwise `MANIFEST_ORIGIN_DENIED`.
-- The dev server sends CORS headers for the shell origin (`platform dev --cors https://shell.staging.example.com` or `server.cors` in `vite.config.ts`).
+- `localhost` origins are accepted in non-production environments; a production shell must list them in `allowedOrigins` (`PLATFORM_ALLOWED_ORIGINS=http://localhost:5173`), otherwise `MANIFEST_ORIGIN_DENIED`.
+- The dev server answers with CORS headers for any origin (`platform()` sets `server.cors: true` unless your `vite.config.ts` overrides it).
 - Your local remote must be protocol-compatible with the staging shell (same major).
-- If the _Remotes_ panel shows `artefact` instead of `HMR`, the URL points at a `vite preview` build, not the dev server.
+- If the manifest has no `dev` block, the URL points at a `vite preview` build, not the dev server.
 - A restart-required diagnostic means you changed `mfe.config.ts`, shared versions or the route tree; restart `pnpm dev`.

@@ -94,7 +94,9 @@ export default createMfe({
   },
   registrations: {
     help: [{ id: "getting-started", title: "My MFE: getting started", route: "/" }],
-    releaseNotes: [{ id: "v0-1-0", version: "0.1.0", title: "My MFE 0.1.0", summary: "Initial release." }],
+    releaseNotes: [
+      { id: "v0-1-0", version: "0.1.0", title: "My MFE 0.1.0", summary: "Initial release." },
+    ],
   },
 })
 ```
@@ -129,17 +131,17 @@ Keep `env` in step with `mfe.config.ts → env`.
 
 ## Scripts
 
-| Script           | Runs                                                                                  |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `pnpm dev`       | `platform dev` — Vite dev server + harness with HMR                                   |
-| `pnpm build`     | `platform build` — production remote, manifest validation and summary                 |
-| `pnpm preview`   | `vite preview` — serve `dist/` as a production artefact                               |
-| `pnpm manifest`  | `platform manifest` — print the manifest inferred from the sources                    |
-| `pnpm validate`  | `platform validate` — structure, identity, configuration, generated files, manifest   |
-| `pnpm lint`      | `platform lint` — the shareable ESLint config                                         |
-| `pnpm test`      | `platform test` — Vitest (`src/**/*.test.{ts,tsx}`)                                   |
-| `pnpm test:e2e`  | `playwright test` — `e2e/` against the harness                                        |
-| `pnpm typecheck` | `tsc --noEmit`                                                                        |
+| Script           | Runs                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `pnpm dev`       | `platform dev` — Vite dev server + harness with HMR                                 |
+| `pnpm build`     | `platform build` — production remote, manifest validation and summary               |
+| `pnpm preview`   | `vite preview` — serve `dist/` as a production artefact                             |
+| `pnpm manifest`  | `platform manifest` — print the manifest inferred from the sources                  |
+| `pnpm validate`  | `platform validate` — structure, identity, configuration, generated files, manifest |
+| `pnpm lint`      | `platform lint` — the shareable ESLint config                                       |
+| `pnpm test`      | `platform test` — Vitest (`src/**/*.test.{ts,tsx}`)                                 |
+| `pnpm test:e2e`  | `playwright test` — `e2e/` against the harness                                      |
+| `pnpm typecheck` | `tsc --noEmit`                                                                      |
 
 ## Next steps
 

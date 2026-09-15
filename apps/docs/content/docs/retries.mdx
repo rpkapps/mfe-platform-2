@@ -37,8 +37,8 @@ The runtime configuration sets the policy for the whole shell:
 Every boundary state has a _Retry_ action. Programmatically:
 
 ```ts
-await host.remotes.retry("asset-tracker") // re-resolve, refetch, invalidate the loader, remount
-host.remotes.invalidate("asset-tracker") // drop caches without remounting
+await host.remotes.retry("asset-tracker") // re-resolve the URL, refetch the manifest, invalidate the loader and load again
+await host.remotes.loadManifest("asset-tracker", { force: true }) // refetch the manifest only
 ```
 
-In development, the harness _Failure toggles_ simulate unavailable remotes and slow manifests to exercise these states.
+`MfeOutlet` and `WidgetSlot` call `retry` from their _Retry_ buttons and mount again. In development, the harness _Failure lab_ simulates manifest 404s, unavailable remotes, dropped capabilities, denied permission groups and incompatible shared dependencies to exercise these states.

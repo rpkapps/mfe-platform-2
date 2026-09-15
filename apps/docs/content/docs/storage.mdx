@@ -20,10 +20,17 @@ export const dashboardStorage = createPlatformStorage({
   version: 2,
   // v1 stored a bare array of columns; invalid data without a migration resets to defaults.
   migrate: (stored) =>
-    Array.isArray(stored) ? { columns: stored as string[], density: "comfortable" as const } : undefined,
+    Array.isArray(stored)
+      ? { columns: stored as string[], density: "comfortable" as const }
+      : undefined,
 })
 
-export const sessionNotes = createPlatformStorage({ scope: "session", key: "notes", schema: z.string(), defaults: "" })
+export const sessionNotes = createPlatformStorage({
+  scope: "session",
+  key: "notes",
+  schema: z.string(),
+  defaults: "",
+})
 ```
 
 The definition is plain data; it is bound to a mount lazily when first used, so it knows its `mfeId` (and `instanceId` for `instanceScoped: true` stores).
@@ -35,20 +42,22 @@ function ColumnPicker() {
   const columns = dashboardStorage.use((state) => state.columns) // selector subscription
   const addColumn = () =>
     dashboardStorage.setKey("columns", (current) => [...current, `col${current.length + 1}`])
-  return <ColumnMenu columns={columns} onAdd={addColumn} onReset={() => dashboardStorage.reset()} />
+  return (
+    <ColumnMenu columns={columns} onAdd={addColumn} onReset={() => dashboardStorage.reset()} />
+  )
 }
 ```
 
-| API                                 | Description                                                                                            |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `use(selector?, equals?)`           | React subscription; rerenders only when the selected slice changes (shallow equality by default)       |
-| `get()`                             | Current validated value                                                                                |
-| `set(value \| updater)`             | Replace the value (validated before writing; `STORAGE_INVALID` is thrown and nothing is written)       |
-| `setKey(key, value \| updater)`     | Update one key of an object value                                                                      |
-| `reset()`                           | Remove the stored value; readers see `defaults`                                                        |
-| `subscribe(listener)`               | Non-React subscription (`listener(value)`)                                                             |
-| `bind({ bridge })`                  | The underlying `StorageStore` for a specific mount or bridge (tests, code outside a mount)             |
-| `options`                           | The definition                                                                                         |
+| API                             | Description                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `use(selector?, equals?)`       | React subscription; rerenders only when the selected slice changes (shallow equality by default) |
+| `get()`                         | Current validated value                                                                          |
+| `set(value \| updater)`         | Replace the value (validated before writing; `STORAGE_INVALID` is thrown and nothing is written) |
+| `setKey(key, value \| updater)` | Update one key of an object value                                                                |
+| `reset()`                       | Remove the stored value; readers see `defaults`                                                  |
+| `subscribe(listener)`           | Non-React subscription (`listener(value)`)                                                       |
+| `bind({ bridge })`              | The underlying `StorageStore` for a specific mount or bridge (tests, code outside a mount)       |
+| `options`                       | The definition                                                                                   |
 
 `get`, `set`, `setKey`, `reset` and `subscribe` resolve the store of the **current mount** — call them from components, effects, handlers and loaders of the mounted MFE. Outside a mount they throw `INTERNAL` (use `bind`). `usePlatformStorage(store, selector?)` is the hook form; `useStorageDiagnostics()` lists the validation problems recorded for this mount.
 

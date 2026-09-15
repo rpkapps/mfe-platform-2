@@ -22,9 +22,7 @@ Two widgets on a dashboard open dialogs one after the other: the second dialog i
 ## Host configuration
 
 ```ts
-createPlatformHost({
-  overlays: { baseZIndex: 2000, ownerAttribute: "data-mfe" },
-})
+createPlatformHost({ overlays: { baseZIndex: 2000 } }) // also `document` for tests
 ```
 
-Keep the shell's own overlays (its command palette, its dialogs) on the same manager by rendering them inside a shell-owned root (`owner: { mfeId: "shell", instanceId: "shell" }`), so ordering is global rather than per origin.
+Keep the shell's own overlays (its command palette, its dialogs) on the same manager by wrapping the shell tree in `<ShellOverlayProvider>` from `@platform/host/react`, which gives the shell a root of its own, so ordering is global rather than per origin. The E2E suite opens a React 19 dialog, a nested dialog, then a React 18 plain modal, and asserts the layers (`data-platform-layer`) in opening order.

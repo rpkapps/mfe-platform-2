@@ -5,69 +5,85 @@ description: Widgets are React components that the shell or other surfaces mount
 
 ## Defining a widget
 
+A widget is an ordinary component. `createWidget` attaches its metadata and props schema; the definition lives in `src/mfe.tsx` under a kebab-case key that becomes the widget id:
+
 ```tsx title="src/widgets/asset-card.tsx"
-import { createWidget } from "@platform/react"
-import { z } from "zod"
+import { useMfeInstance, useNavigation, useRegisterCommand } from "@platform/react"
 
-export const assetCard = createWidget({
-  id: "asset-card", // defaults to the export key in createMfe({ widgets })
-  title: "Asset card",
-  description: "Status and last reading of one asset.",
-  propsSchema: z.object({ assetId: z.string(), compact: z.boolean().default(false) }),
-  component: AssetCard,
-})
-
-function AssetCard({ assetId, compact }: { assetId: string; compact: boolean }) {
-  const { instanceId } = useMfeInstance()
-  return <Card data-instance={instanceId}>…</Card>
+export function AssetCard({ assetId, compact }: { assetId: string; compact?: boolean }) {
+  const navigation = useNavigation()
+  const { instanceId, routePrefix } = useMfeInstance()
+  useRegisterCommand({
+    id: "open-asset",
+    label: `Open ${assetId}`,
+    handler: () => navigation.navigate(`${routePrefix ?? ""}/assets/${assetId}`),
+  })
+  return (
+    <Card data-instance={instanceId} className={compact ? "py-2" : undefined}>
+      …
+    </Card>
+  )
 }
 ```
 
-## Registration
-
-Widgets are exported through the definition; the host looks them up by id when a slot asks for them.
-
 ```tsx title="src/mfe.tsx"
+import { createMfe, createWidget } from "@platform/react"
+import { z } from "zod"
+
 export default createMfe({
-  routeTree, // optional: a widget-only library omits it
-  widgets: { assetCard, kpiTile },
+  routeTree, // omit it for a widget-only library
+  widgets: {
+    "asset-card": createWidget({
+      title: "Asset card",
+      description: "Summary card for one asset with a details dialog.",
+      component: AssetCard,
+      propsSchema: z.object({ assetId: z.string(), compact: z.boolean().optional() }),
+    }),
+  },
 })
 ```
 
-The manifest lists every widget (`widgets[]`: `id`, `title`, `description`, `propsSchema` as JSON Schema, `permissionGroups`). A slot that requests an unknown id fails with `WIDGET_UNKNOWN`: export the widget from `createMfe({ widgets })` and rebuild.
+`createWidget({ id?, component, propsSchema?, title?, description? })`: `id` defaults to the record key (it is required in the array form `widgets: [createWidget({ id, … })]`).
+
+## Registration
+
+The definition lists every widget (`widgets[]`: `id`, `title`, `description`); the manifest lists the ones written as inline `createWidget` calls, so the shell knows about them before loading. A slot that requests an unknown id fails with `WIDGET_UNKNOWN`: export the widget from `createMfe({ widgets })` and rebuild (the conformance dashboard mounts `does-not-exist` on purpose to show the isolated error state).
 
 ## Mounting from the shell
 
 ```tsx title="apps/shell/src/routes/dashboard.tsx"
 import { WidgetSlot } from "@platform/host/react"
 
-<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "pump-42" }} />
-<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "valve-7", compact: true }} />
+<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" slot="dashboard-asset-card" props={{ assetId: "pump-42" }} />
+<WidgetSlot mfeId="widget-a" widgetId="kpi-tile" slot="kpi-1" props={{ label: "Production", value: kpi, unit: "bbl/d" }} />
+<WidgetSlot mfeId="widget-b" widgetId="counter-widget" slot="counter-0" props={{ label: "Counter 1", step: 1 }} />
 ```
 
-Each `WidgetSlot` produces a separate **instance** with its own React root, `instanceId`, overlay root and command namespace. Props are plain data, validated against `propsSchema` on mount and on every update; invalid props render the slot's error state without touching other instances.
+`WidgetSlot` props: `mfeId`, `widgetId`, `props?`, `slot?` (a stable name for the instance, reported in diagnostics), `fallback?`, `errorFallback?(error, retry)`, `className?`. Each slot produces a separate **instance** with its own React root, `instanceId`, overlay root and command namespace. Props are plain data, validated against `propsSchema` on mount and on every update; invalid props render the slot's error state (`data-platform-widget-state="error"`) without touching other instances. Programmatically: `host.remotes.mountWidget(mfeId, widgetId, { container, props, slot? })` returns a `WidgetInstance` with `setProps(props)` and `dispose()`.
 
 ## Props
 
 - Props are validated synchronously with the Standard Schema you pass (Zod, Valibot, ArkType…). Without a schema they are passed through untyped.
-- Updates arrive through `WidgetHandle.setProps`; the component re-renders in place.
-- Props never contain React elements, callbacks that return elements, or class instances: they cross a root boundary as data.
+- Updates arrive through `WidgetHandle.setProps`; the component re-renders in place (the conformance dashboard bumps a KPI prop).
+- Props never contain React elements, callbacks that return elements, or class instances: they cross a root boundary as data (`@platform/no-cross-root-component-passing`).
 
 ## Instances
 
-`useMfeInstance()` returns `{ mfeId, instanceId, widgetId, host }`. Anything the platform manages is namespaced per instance where it matters:
+`useMfeInstance()` returns `{ mfeId, instanceId, widgetId, routePrefix?, displayName?, host }`. Anything the platform manages is namespaced per instance where it matters:
 
-| Surface   | Namespace                                                                 |
-| --------- | ------------------------------------------------------------------------- |
-| Commands  | `<mfeId>:<id>@<instanceId>` (widget commands are always instance-scoped)  |
-| Storage   | `platform:<mfeId>:<instanceId>:<scope>:<key>` when `instanceScoped: true` |
-| Overlays  | owner-tagged root per instance (`data-platform-instance`)                 |
-| Telemetry | `instanceId` and `widgetId` attributes on every event                     |
-| Settings  | shared per MFE; a second instance registering the same group is a no-op   |
+| Surface   | Namespace                                                                         |
+| --------- | --------------------------------------------------------------------------------- |
+| Commands  | `<mfeId>:<id>@<instanceId>` (widget commands are always instance-scoped)          |
+| Storage   | `platform:<mfeId>:<instanceId>:<scope>:<key>` when `instanceScoped: true`         |
+| Overlays  | owner-tagged root per instance (`data-platform-instance`, `data-platform-widget`) |
+| Telemetry | `instanceId` and `widgetId` attributes on every event                             |
+| Settings  | shared per MFE; a second instance registering the same group is a no-op           |
+
+The `counter-widget` fixture (React 18, `widget-b`) mounts several times on the conformance dashboard with an instance-scoped session store; every instance keeps its own count.
 
 ## Overlays from widgets
 
-Widgets open ordinary Tecton dialogs, popovers and menus. The overlay manager creates a body-level, owner-tagged root per instance, so a dialog from a small card is never clipped and still receives the MFE's scoped styles. Two widgets opening dialogs at once stack deterministically; see [Modal ordering](/docs/overlays/modal-ordering).
+Widgets open ordinary Tecton dialogs, popovers and menus. The overlay manager creates a body-level, owner-tagged root per instance, so a dialog from a small card is never clipped and still receives the MFE's scoped styles. Dialogs from different widgets — even React 18 and React 19 ones — stack in opening order; see [Modal ordering](/docs/overlays/modal-ordering).
 
 ## Failure isolation
 
@@ -78,19 +94,33 @@ A widget that throws during mount or render fails alone: the slot shows the erro
 A remote without routes is a widget library:
 
 ```tsx title="src/mfe.tsx"
-export default createMfe({ widgets: { kpiTile, reportSummary } })
+export default createMfe({
+  widgets: { "kpi-tile": createWidget({ … }), "modal-widget": createWidget({ … }) },
+  registrations: { commands: [{ id: "refresh-kpis", label: "Refresh KPIs", group: "Widgets" }], help: [{ id: "kpi-tiles", title: "KPI tiles" }] },
+})
 ```
 
-Its manifest has `kind: "widget-library"`, `hasRoutes: false` and no `routePrefix`; it is `discoverable: false` by default since the App Finder cannot open it. See [Hidden MFEs](/docs/hidden-mfes).
+Its manifest has `kind: "widget-library"`, `hasRoutes: false` and no `routePrefix`; `mount()` fails with `MOUNT_FAILED` because there is no route tree. Set `discoverable: false` in `mfe.config.ts` so the App Finder skips it ([Hidden MFEs](/docs/hidden-mfes)); the `$` route helper never matches it. Under Vite, a project without `src/routes` gets no router plugin and no route tree.
 
 ## Testing a widget
 
 ```ts
-import { renderMfe, createTestBridge } from "@platform/react/testing"
-import definition from "../src/mfe"
+import { createTestBridge } from "@platform/react/testing"
+import definition from "../mfe"
 
-const { container, unmount } = renderMfe(definition, {
-  widget: { id: "asset-card", props: { assetId: "pump-42" } },
-  bridge: createTestBridge({ mfeId: "asset-tracker", permissionGroups: ["assets:read"] }),
+const bridge = createTestBridge({
+  mfeId: "asset-tracker",
+  widgetId: "asset-card",
+  routePrefix: null,
 })
+const container = document.body.appendChild(document.createElement("div"))
+const handle = definition.mountWidget({
+  container,
+  bridge,
+  widgetId: "asset-card",
+  props: { assetId: "pump-42" },
+})
+expect(container.querySelector('[data-platform-widget="asset-card"]')).not.toBeNull()
+handle.setProps({ assetId: "valve-7" })
+handle.dispose()
 ```

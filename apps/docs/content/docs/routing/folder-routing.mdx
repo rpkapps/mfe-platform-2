@@ -104,6 +104,11 @@ Nothing in the route files is platform-specific. The integration is supplied aro
 ```ts
 import { createMfeRouter } from "@platform/react"
 
-const router = createMfeRouter({ routeTree, bridge, displayName: "Assets", defaultPreloadStaleTime: 30_000 })
+const router = createMfeRouter({
+  routeTree,
+  bridge,
+  displayName: "Assets",
+  defaultPreloadStaleTime: 30_000,
+})
 // later: disposeMfeRouter(router)
 ```

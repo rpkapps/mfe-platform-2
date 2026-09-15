@@ -26,7 +26,13 @@ export function useDisplaySettings() {
           { value: "compact", label: "Compact" },
         ],
       },
-      pageSize: { defaultValue: 25, schema: z.number().int().min(5).max(200), min: 5, max: 200, step: 5 },
+      pageSize: {
+        defaultValue: 25,
+        schema: z.number().int().min(5).max(200),
+        min: 5,
+        max: 200,
+        step: 5,
+      },
       showOffline: { defaultValue: true, description: "Include offline assets in lists" },
     },
   })

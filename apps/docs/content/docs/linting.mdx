@@ -28,7 +28,12 @@ platformConfig({
   rules: { "@platform/require-telemetry-context": "off" }, // severity overrides, applied last
   ignores: ["src/legacy/**"], // in addition to the generated files
   tsconfigRootDir: import.meta.dirname, // for typed linting (default: process.cwd())
-  extends: [{ files: ["src/experimental/**"], rules: { "@platform/no-unsafe-runtime-env-access": "warn" } }],
+  extends: [
+    {
+      files: ["src/experimental/**"],
+      rules: { "@platform/no-unsafe-runtime-env-access": "warn" },
+    },
+  ],
 })
 ```
 

@@ -27,9 +27,9 @@ export default defineConfig({
 | Shared dependency inference    | `package.json` dependencies → shared requests by version group                                                                                                         |
 | Generated entry                | `.platform/entry.tsx`: imports `src/mfe.tsx`, applies `withTecton`, exports the definition                                                                             |
 | `@module-federation/vite`      | `name: federationName(mfeId)`, `filename: "remoteEntry.js"`, `exposes: { "./mfe": ".platform/entry.tsx" }`, `shared` with share scopes, `manifest: true`, `dts: false` |
-| Dev endpoints                  | `/platform-manifest.json`, `/@platform/refresh-preamble`, `/__platform/harness/` (the built harness from `@platform/host`, or a fallback page)                          |
+| Dev endpoints                  | `/platform-manifest.json`, `/@platform/refresh-preamble`, `/__platform/harness/` (the built harness from `@platform/host`, or a fallback page)                         |
 | Restart diagnostics            | Detects manifest-affecting changes and flags `dev.restartRequired`                                                                                                     |
-| Vite defaults                  | `server.cors: true`, `build.target: "es2022"`, `build.cssCodeSplit: false`, the generated entry as build input, `resolve.dedupe` for React, the router and the SDK       |
+| Vite defaults                  | `server.cors: true`, `build.target: "es2022"`, `build.cssCodeSplit: false`, the generated entry as build input, `resolve.dedupe` for React, the router and the SDK     |
 
 You never write Module Federation configuration. `federation(config)` exists as an escape hatch for the rare case where the generated configuration needs a tweak.
 
@@ -86,12 +86,12 @@ All options are optional.
 
 Plugin-only options (not read from `mfe.config.ts`):
 
-| Option     | Type                          | Default                                                        |
-| ---------- | ----------------------------- | -------------------------------------------------------------- |
-| `root`     | `string`                      | `process.cwd()`; must equal Vite's `root`                      |
-| `react`    | `false \| ReactPluginOptions` | `@vitejs/plugin-react` with defaults                           |
-| `tailwind` | `boolean \| "auto"`           | `"auto"`                                                       |
-| `test`     | `boolean`                     | `true` under Vitest: identity defines only, see above          |
+| Option     | Type                          | Default                                               |
+| ---------- | ----------------------------- | ----------------------------------------------------- |
+| `root`     | `string`                      | `process.cwd()`; must equal Vite's `root`             |
+| `react`    | `false \| ReactPluginOptions` | `@vitejs/plugin-react` with defaults                  |
+| `tailwind` | `boolean \| "auto"`           | `"auto"`                                              |
+| `test`     | `boolean`                     | `true` under Vitest: identity defines only, see above |
 
 ## What is inferred
 
