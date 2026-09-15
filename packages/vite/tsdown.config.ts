@@ -8,5 +8,6 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   fixedExtension: false,
-  noExternal: [/^@platform-internal\//],
+  checks: { pluginTimings: false },
+  deps: { alwaysBundle: [/^@platform-internal\//] },
 })

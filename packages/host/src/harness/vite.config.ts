@@ -12,6 +12,15 @@ export default defineConfig({
   base: "./",
   plugins: [react(), tailwindcss()],
   resolve: { dedupe: ["react", "react-dom", "react-aria-components", "react-aria"] },
-  build: { outDir, emptyOutDir: true, sourcemap: true, target: "es2022" },
+  // The harness is a single self-contained page that compiles React and the
+  // whole Tecton stack in on purpose, so the default 500 kB chunk hint only
+  // ever fires on the entry chunk.
+  build: {
+    outDir,
+    emptyOutDir: true,
+    sourcemap: true,
+    target: "es2022",
+    chunkSizeWarningLimit: 1200,
+  },
   server: { fs: { allow: [fileURLToPath(new URL("../../../../", import.meta.url))] } },
 })

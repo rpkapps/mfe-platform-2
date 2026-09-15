@@ -6,5 +6,6 @@ export default defineConfig({
   dts: true,
   platform: "neutral",
   clean: true,
-  noExternal: [/^@platform-internal\//],
+  checks: { pluginTimings: false },
+  deps: { alwaysBundle: [/^@platform-internal\//] },
 })

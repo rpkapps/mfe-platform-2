@@ -1,6 +1,6 @@
 import { defineConfig } from "tsdown"
 
-const external = [
+const neverBundle = [
   "react",
   "react-dom",
   "react-dom/client",
@@ -31,8 +31,8 @@ export default defineConfig([
     platform: "browser",
     clean: true,
     sourcemap: true,
-    noExternal: [/^@platform-internal\//],
-    external,
+    checks: { pluginTimings: false },
+    deps: { alwaysBundle: [/^@platform-internal\//], neverBundle },
     copy: [{ from: "src/styles.css", to: "dist" }],
   },
   {
@@ -42,8 +42,8 @@ export default defineConfig([
     platform: "node",
     clean: false,
     sourcemap: true,
-    noExternal: [/^@platform-internal\//],
-    external: ["zod"],
+    checks: { pluginTimings: false },
+    deps: { alwaysBundle: [/^@platform-internal\//], neverBundle: ["zod"] },
     fixedExtension: false,
     banner: { js: "#!/usr/bin/env node" },
   },

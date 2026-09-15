@@ -8,6 +8,8 @@ This is the platform monorepo for independently deployed React micro-frontends: 
 - Build order matters: `pnpm build` builds `internal/*` then `packages/*` (tsdown, `dist/`). Apps consume `dist/`, so rebuild a package after editing it (`pnpm --filter @platform/react build`) or run `pnpm --filter <pkg> dev` for watch mode.
 - `pnpm check` = format + lint + typecheck + unit tests. `pnpm e2e` runs Playwright against the conformance apps (build first with `pnpm build:all`).
 - Scripts are Node (`.mjs`) so they run on Windows and Linux; never add bash-only scripts.
+- A package that publishes a `bin` points it at a checked-in stub (`packages/*/bin.js`) that imports the build output. pnpm links bins during `pnpm install`, before `dist/` exists in a fresh clone; a `bin` pointing straight at `dist/` is skipped with a warning and the command is missing for the rest of the CI run.
+- `.gitattributes` checks every text file out with LF. Prettier is configured with `endOfLine: "lf"` and CI verifies on Windows, where Git would otherwise convert the tree to CRLF and fail `pnpm format:check` on every file.
 
 ## Layout
 

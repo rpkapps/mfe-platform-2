@@ -4,7 +4,7 @@
   "type": "module",
   "description": "Shell-side runtime: remote registry, runtime configuration, Module Federation loading, version-group dependency sharing, isolated mounting, shell-backed history, command palette, settings host, help and release notes, breadcrumbs, overlay manager, telemetry, diagnostics and lazy developer tools.",
   "bin": {
-    "platform-host-entrypoint": "./dist/entrypoint.js"
+    "platform-host-entrypoint": "./bin.js"
   },
   "exports": {
     ".": {
@@ -33,6 +33,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
+    "bin.js",
     "dist"
   ],
   "scripts": {

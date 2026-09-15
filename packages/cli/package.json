@@ -4,7 +4,7 @@
   "type": "module",
   "description": "platform create | dev | build | manifest | validate | lint | test, plus the shareable ESLint plugin and flat config (@platform/cli/eslint).",
   "bin": {
-    "platform": "./dist/bin.js"
+    "platform": "./bin.js"
   },
   "exports": {
     ".": {
@@ -20,6 +20,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
+    "bin.js",
     "dist",
     "templates"
   ],

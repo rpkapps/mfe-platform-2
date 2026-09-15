@@ -15,5 +15,14 @@ export default defineConfig({
   // Vite's dev optimizer does not discover it. An installed `@platform/host` is
   // pre-bundled together with its dependencies and needs no such entry.
   optimizeDeps: { include: ["@tecton/react > react-aria"] },
+  build: {
+    // The shell compiles React, TanStack Start, Tecton and the platform host
+    // into one entry on purpose; routes and the developer tools are the parts
+    // that code-split. The default 500 kB hint only ever fires on that entry.
+    chunkSizeWarningLimit: 900,
+    // Rolldown's plugin-timing hint reports the cost of Start and Tailwind on
+    // every build and says nothing actionable.
+    rolldownOptions: { checks: { pluginTimings: false } },
+  },
   plugins: [tailwindcss(), tanstackStart(), viteReact()],
 })

@@ -17,7 +17,6 @@ import { ids } from "./helpers"
 test.describe.configure({ mode: "serial" })
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
-const shell = process.platform === "win32"
 const cli = join(root, "packages/cli/dist/bin.js")
 const children: ChildProcess[] = []
 const edited: [string, string][] = []
@@ -37,7 +36,7 @@ test.beforeAll(async () => {
     }),
   }
   const start = (cwd: string, args: string[]) => {
-    const child = spawn(process.execPath, args, { cwd, env, stdio: "pipe", shell })
+    const child = spawn(process.execPath, args, { cwd, env, stdio: "pipe" })
     child.stdout?.on("data", (chunk) =>
       process.stdout.write(`[${cwd.split(/[\\/]/).pop()}] ${chunk}`)
     )

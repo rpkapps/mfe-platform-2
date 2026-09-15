@@ -11,7 +11,6 @@ import { serveStatic } from "../../scripts/serve-static.mjs"
 import { waitFor } from "../../scripts/wait-for.mjs"
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
-const shellOnWindows = process.platform === "win32"
 
 declare global {
   var __platformE2E: { servers: { close(): void }[]; children: ChildProcess[] } | undefined
@@ -73,7 +72,6 @@ export default async function globalSetup() {
       cwd: shellDir,
       env: { ...env, PLATFORM_CONFIG_PATH: configPath },
       stdio: "pipe",
-      shell: shellOnWindows,
     }
   )
   child.stdout?.on("data", (chunk) => process.stdout.write(`[shell] ${chunk}`))

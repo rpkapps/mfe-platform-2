@@ -18,6 +18,9 @@ const config = defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  // Rolldown's plugin-timing hint reports the cost of the MDX, Start and
+  // Tailwind plugins on every build and says nothing actionable.
+  build: { rolldownOptions: { checks: { pluginTimings: false } } },
   plugins: [
     // Must run before tanstackStart/react so .mdx and `fumadocs-mdx/macro` calls are transformed first.
     fumadocsMdx({ index: false }),

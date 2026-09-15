@@ -7,5 +7,6 @@ export default defineConfig({
   platform: "browser",
   clean: true,
   sourcemap: true,
-  external: [/^@module-federation\//],
+  checks: { pluginTimings: false },
+  deps: { neverBundle: [/^@module-federation\//] },
 })

@@ -7,4 +7,5 @@ export default defineConfig({
   platform: "neutral",
   clean: true,
   sourcemap: true,
+  checks: { pluginTimings: false },
 })

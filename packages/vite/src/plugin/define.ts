@@ -44,6 +44,17 @@ export function platformDefinePlugin(context: PlatformContext): Plugin {
         // Tecton's sources are served as-is in development; the packages they import
         // are pre-bundled explicitly (see `tectonOptimizeIncludes`).
         optimizeDeps: config.tecton ? { include: tectonOptimizeIncludes(config.root) } : {},
+        build: {
+          // The platform pipeline (Module Federation, Tailwind, the router plugin)
+          // accounts for most of a remote build, so rolldown's plugin-timing hint
+          // fires on every build and says nothing actionable. Opt back in with
+          // `build.rolldownOptions.checks.pluginTimings: true`.
+          rolldownOptions: {
+            checks: {
+              pluginTimings: userConfig.build?.rolldownOptions?.checks?.pluginTimings ?? false,
+            },
+          },
+        },
         define: {
           [MFE_ID_DEFINE]: JSON.stringify(config.mfeId),
           [ROUTE_PREFIX_DEFINE]: JSON.stringify(config.routePrefix),
