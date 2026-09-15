@@ -35,10 +35,39 @@
   height: 100%;
   min-height: 0;
 }
+/*
+ * Tecton fixes a tab list at one row's height. The panel has outgrown one row,
+ * and a wrapped second row overflows that fixed height and paints over the
+ * content below, so the height is released to follow however many rows the tabs
+ * take. Scrolling the row instead would hide tabs and let focus drag the whole
+ * panel sideways.
+ */
 .platform-devtools-tablist {
+  /* Height follows the rows, rather than Tecton's single-row height. */
+  height: auto;
+  min-height: 2rem;
+  /* The panel is a flex column; without this the list is shrunk to fit it. */
+  flex: none;
   flex-wrap: wrap;
+  justify-content: flex-start;
+  /* Each tab sizes to its own text; stretching fills the whole line instead. */
+  align-items: center;
+  align-content: flex-start;
+  row-gap: 0.25rem;
   padding: 0.5rem 0.75rem 0;
   border-bottom: 1px solid var(--border);
+}
+/*
+ * Tecton sizes a tab to the full height of its list, which cannot resolve once
+ * the list height follows the tabs. Each tab takes its own text's height
+ * instead, so a second row is a second row and not a stretched first one.
+ */
+.platform-devtools-tablist > [data-slot="tabs-trigger"] {
+  height: auto;
+  align-self: center;
+  /* Tecton grows each tab to share the row; a lone tab on a wrapped second row
+     would then span it and centre its own label, far from the tabs above. */
+  flex: none;
 }
 .platform-devtools-content {
   min-height: 0;
@@ -180,4 +209,10 @@
 }
 .platform-devtools-faults-row > strong {
   min-width: 10rem;
+}
+/* A switch and the label that names it; the label is a sibling, never a child. */
+.platform-devtools-faults-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }

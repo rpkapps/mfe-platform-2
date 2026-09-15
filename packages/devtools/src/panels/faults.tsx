@@ -1,10 +1,47 @@
+import type { ReactNode } from "react"
+
 import { CAPABILITY_IDS, type CapabilityId } from "@platform-internal/core"
 
 import { Button } from "@tecton/react/components/button"
+import { Label } from "@tecton/react/components/label"
 import { Switch } from "@tecton/react/components/switch"
 
 import type { DevtoolsPanelRenderProps } from "../registry"
 import { Empty, Section } from "../ui"
+
+/**
+ * A labelled switch. Tecton's `Switch` renders its children *inside* the pill
+ * track, which is a fixed 34x16 box — a text label passed as children spills
+ * across the panel. The label is a sibling, tied to the switch by id, which is
+ * how the shell's settings host renders its boolean fields too.
+ */
+function FaultSwitch({
+  id,
+  label,
+  isSelected,
+  onChange,
+}: {
+  id: string
+  label: ReactNode
+  isSelected: boolean
+  onChange: (on: boolean) => void
+}) {
+  const inputId = `platform-fault-${id.replace(/[^\w.-]+/g, "-")}`
+  const labelId = `${inputId}-label`
+  return (
+    <span className="platform-devtools-faults-toggle">
+      <Switch
+        id={inputId}
+        aria-labelledby={labelId}
+        isSelected={isSelected}
+        onChange={onChange}
+      />
+      <Label id={labelId} htmlFor={inputId}>
+        {label}
+      </Label>
+    </span>
+  )
+}
 
 /** A manifest URL that will not resolve, so the remote fails at the manifest step. */
 function missingManifestUrl(mfeId: string): string {
@@ -52,16 +89,18 @@ export function FaultsPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
             {snapshot.remotes.map((remote) => (
               <div key={remote.mfeId} className="platform-devtools-faults-row">
                 <strong>{remote.displayName ?? remote.mfeId}</strong>
-                <Switch
+                <FaultSwitch
+                  id={`unavailable-${remote.mfeId}`}
+                  label="Unavailable (REMOTE_LOAD_FAILED)"
                   isSelected={faults.unavailable.includes(remote.mfeId)}
                   onChange={(on) =>
                     setFault("unavailable", toggleIn(faults.unavailable, remote.mfeId, on))
                   }
-                >
-                  Unavailable (REMOTE_LOAD_FAILED)
-                </Switch>
+                />
                 {remotes.setLocalOverride ? (
-                  <Switch
+                  <FaultSwitch
+                    id={`manifest-404-${remote.mfeId}`}
+                    label="Manifest 404 (MANIFEST_FETCH_FAILED)"
                     isSelected={isMissing(remote.mfeId)}
                     onChange={(on) =>
                       remotes.setLocalOverride?.(
@@ -69,9 +108,7 @@ export function FaultsPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
                         on ? missingManifestUrl(remote.mfeId) : null
                       )
                     }
-                  >
-                    Manifest 404 (MANIFEST_FETCH_FAILED)
-                  </Switch>
+                  />
                 ) : null}
               </div>
             ))}
@@ -82,20 +119,20 @@ export function FaultsPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
       <Section title="Shell-wide">
         <div className="platform-devtools-faults">
           <div className="platform-devtools-faults-row">
-            <Switch
+            <FaultSwitch
+              id="deny-groups"
+              label="Deny every permission group (preflight → PERMISSION_DENIED)"
               isSelected={faults.denyGroups}
               onChange={(on) => setFault("denyGroups", on)}
-            >
-              Deny every permission group (preflight → PERMISSION_DENIED)
-            </Switch>
+            />
           </div>
           <div className="platform-devtools-faults-row">
-            <Switch
+            <FaultSwitch
+              id="incompatible-shared"
+              label="Pin every shared dependency to an impossible range (DEPENDENCY_INCOMPATIBLE)"
               isSelected={faults.incompatibleShared}
               onChange={(on) => setFault("incompatibleShared", on)}
-            >
-              Pin every shared dependency to an impossible range (DEPENDENCY_INCOMPATIBLE)
-            </Switch>
+            />
           </div>
         </div>
       </Section>
@@ -104,7 +141,9 @@ export function FaultsPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
         <div className="platform-devtools-faults">
           {CAPABILITY_IDS.map((capability: CapabilityId) => (
             <div key={capability} className="platform-devtools-faults-row">
-              <Switch
+              <FaultSwitch
+                id={`capability-${capability}`}
+                label={<code>{capability}</code>}
                 isSelected={faults.droppedCapabilities.includes(capability)}
                 onChange={(on) =>
                   setFault(
@@ -112,9 +151,7 @@ export function FaultsPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
                     toggleIn(faults.droppedCapabilities, capability, on)
                   )
                 }
-              >
-                <code>{capability}</code>
-              </Switch>
+              />
             </div>
           ))}
         </div>
