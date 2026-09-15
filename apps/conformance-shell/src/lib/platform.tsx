@@ -56,7 +56,9 @@ export function createShellHost({
       createConsoleTelemetryAdapter("[shell telemetry]")
     ),
     policy: { permissionGroups: "all", preflight: true },
-    devtools: runtimeConfig.devtools,
+    // The shell decides which developer tools to load; the host never imports them,
+    // so they stay a separate chunk that a production shell can leave out entirely.
+    devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
     hostKind: "shell",
   })
 }

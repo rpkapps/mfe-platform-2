@@ -33,6 +33,8 @@ import type {
   SnapshotShareRow,
 } from "@platform-internal/diagnostics"
 
+import type { DevtoolsLoader } from "./devtools"
+
 export type { ManifestUrlSource, RemoteInstanceState }
 
 /** Static registry of remotes known to the shell (the platform registry precedence level). */
@@ -64,6 +66,12 @@ export interface HostPolicy {
 export interface DevtoolsOptions {
   policy?: "flag" | "always" | "never"
   environments?: string[]
+  /**
+   * How the shell loads its developer-tools module, e.g.
+   * `() => import("@platform/devtools")`. Without it the tools cannot open.
+   * A function, so it never enters the serialisable runtime configuration.
+   */
+  load?: DevtoolsLoader
 }
 
 export interface PlatformHostOptions {
@@ -265,7 +273,8 @@ export interface PlatformHost {
   readonly commands: CommandRunner
   readonly events: Emitter<HostEvents>
   readonly policy: Required<Pick<HostPolicy, "permissionGroups" | "preflight">> & HostPolicy
-  readonly devtools: Required<DevtoolsOptions>
+  readonly devtools: Required<Pick<DevtoolsOptions, "policy" | "environments">> &
+    Pick<DevtoolsOptions, "load">
   /** Subscribe to any host state change (remotes, instances, config). */
   subscribe(listener: () => void): () => void
   snapshot(): DiagnosticSnapshot

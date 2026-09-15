@@ -1,3 +1,5 @@
+import { PlatformError } from "@platform-internal/core"
+
 import type { PlatformHost } from "./types"
 
 export const DEVTOOLS_FLAG_KEY = "platform:devtools"
@@ -53,29 +55,69 @@ export function shouldLoadDevtools(host: PlatformHost, win?: Window | null): boo
   return decision.allowed
 }
 
-export type DevtoolsModule = typeof import("./devtools-entry")
+/**
+ * What a developer-tools module has to provide. Declared structurally, and in
+ * terms the host already knows, so `@platform/host` never imports a UI package
+ * — the shell decides which one to load:
+ *
+ * ```ts
+ * createPlatformHost({
+ *   devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
+ * })
+ * ```
+ *
+ * `@platform/devtools` satisfies it; so does a shell's own implementation.
+ */
+export interface DevtoolsModule {
+  DevtoolsPanel: (props: {
+    host: PlatformHost
+    defaultTab?: string
+    refreshMs?: number
+    className?: string
+  }) => unknown
+}
 
-let pending: Promise<DevtoolsModule> | null = null
+/** Loader a shell supplies through `devtools.load`. */
+export type DevtoolsLoader = () => Promise<DevtoolsModule>
 
-/** Lazy-load the developer tools chunk (never statically imported from the main entries). */
+const pending = new WeakMap<PlatformHost, Promise<DevtoolsModule>>()
+
+/**
+ * Load the shell's developer-tools module, once per host. The import lives in
+ * the shell, so the tools stay a separate chunk and a shell that never calls
+ * this never pays for them.
+ */
 export async function loadDevtools(host: PlatformHost): Promise<DevtoolsModule> {
-  if (!pending) {
-    pending = import("./devtools-entry")
-      .then((module) => {
-        host.diagnostics.emit({ type: "devtools", action: "loaded" })
-        return module
-      })
-      .catch((error: unknown) => {
-        pending = null
-        host.diagnostics.emit({
-          type: "devtools",
-          action: "failed",
-          reason: error instanceof Error ? error.message : String(error),
-        })
-        throw error
-      })
+  const existing = pending.get(host)
+  if (existing) return existing
+  const load = host.devtools.load
+  if (!load) {
+    const error = new PlatformError({
+      code: "INTERNAL",
+      message:
+        'The developer tools are enabled but no loader was supplied. Pass `devtools.load` to createPlatformHost, for example `load: () => import("@platform/devtools")`.',
+      source: "@platform/host",
+      override: "createPlatformHost → devtools.load",
+    })
+    host.diagnostics.emit({ type: "devtools", action: "failed", reason: error.message })
+    throw error
   }
-  return pending
+  const promise = load()
+    .then((module) => {
+      host.diagnostics.emit({ type: "devtools", action: "loaded" })
+      return module
+    })
+    .catch((error: unknown) => {
+      pending.delete(host)
+      host.diagnostics.emit({
+        type: "devtools",
+        action: "failed",
+        reason: error instanceof Error ? error.message : String(error),
+      })
+      throw error
+    })
+  pending.set(host, promise)
+  return promise
 }
 
 /** Set or clear the local-storage flag behind the developer-tools toggle. */

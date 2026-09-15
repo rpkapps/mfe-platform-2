@@ -1,14 +1,15 @@
 {
-  "name": "@platform-internal/devtools",
+  "name": "@platform/devtools",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Lazy-loaded developer tools UI (React 19 + React Flow) rendered by the host on demand.",
+  "description": "Developer tools panel for a platform shell: remotes, routes, dependency graph, diagnostics and telemetry. The shell lazy-loads it; the host never imports it.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -24,8 +25,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@platform-internal/core": "workspace:*",
-    "@platform-internal/diagnostics": "workspace:*",
     "@xyflow/react": "catalog:"
   },
   "peerDependencies": {
@@ -37,6 +36,8 @@
     "cn": "*"
   },
   "devDependencies": {
+    "@platform-internal/core": "workspace:*",
+    "@platform-internal/diagnostics": "workspace:*",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",

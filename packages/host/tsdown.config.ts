@@ -8,7 +8,6 @@ const neverBundle = [
   /^@tanstack\//,
   /^@tecton\//,
   /^@module-federation\//,
-  /^@xyflow\//,
   "react-aria-components",
   "react-aria",
   "lucide-react",

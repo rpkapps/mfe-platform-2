@@ -312,6 +312,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
   const devtools: PlatformHost["devtools"] = {
     policy: options.devtools?.policy ?? options.runtimeConfig.devtools.policy,
     environments: options.devtools?.environments ?? options.runtimeConfig.devtools.environments,
+    load: options.devtools?.load,
   }
 
   // --- loader ------------------------------------------------------------

@@ -8,7 +8,9 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   checks: { pluginTimings: false },
+  copy: [{ from: "src/styles.css", to: "dist" }],
   deps: {
+    alwaysBundle: [/^@platform-internal\//],
     neverBundle: [
       "react",
       "react-dom",

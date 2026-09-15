@@ -13,6 +13,7 @@
     "start": "node ./scripts/start.mjs"
   },
   "dependencies": {
+    "@platform/devtools": "workspace:*",
     "@platform/host": "workspace:*",
     "@platform-internal/core": "workspace:*",
     "@platform-internal/conformance": "workspace:*",

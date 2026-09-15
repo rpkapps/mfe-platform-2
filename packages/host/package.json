@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "@module-federation/runtime": "catalog:",
-    "@xyflow/react": "catalog:",
     "zod": "catalog:"
   },
   "peerDependencies": {
@@ -84,7 +83,6 @@
     "@tanstack/history": "catalog:",
     "@platform-internal/core": "workspace:*",
     "@platform-internal/module-federation": "workspace:*",
-    "@platform-internal/diagnostics": "workspace:*",
-    "@platform-internal/devtools": "workspace:*"
+    "@platform-internal/diagnostics": "workspace:*"
   }
 }
