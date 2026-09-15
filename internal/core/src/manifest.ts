@@ -136,9 +136,9 @@ export const sharedRequestSchema = z.object({
   singleton: z.boolean().default(false),
   /** `false` when the package is bundled locally on purpose (`shared: { pkg: false }`). */
   shared: z.boolean().default(true),
-  /** Why the package is shared or bundled (`inferred`, `configured`, `source-package`, `disabled`). */
+  /** Why the package is shared or bundled (`inferred`, `configured`, `pinned`, `source-package`, `per-remote`, `disabled`). */
   reason: z
-    .enum(["inferred", "configured", "source-package", "disabled", "pinned"])
+    .enum(["inferred", "configured", "source-package", "per-remote", "disabled", "pinned"])
     .default("inferred"),
   /** Packages that must resolve from the same provider (`react` ↔ `react-dom`). */
   pairedWith: z.array(z.string()).optional(),

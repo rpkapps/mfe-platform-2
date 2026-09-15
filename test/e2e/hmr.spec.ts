@@ -14,6 +14,8 @@ import { ids } from "./helpers"
  * updates it without losing shell or remote state; React 18 and React 19
  * refresh runtimes stay separate.
  */
+test.describe.configure({ mode: "serial" })
+
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const shell = process.platform === "win32"
 const cli = join(root, "packages/cli/dist/bin.js")

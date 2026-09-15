@@ -179,6 +179,19 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
         : /^(workspace:|catalog:|link:|file:)/.test(range)
           ? `^${installed[name] ?? "0.0.0"}`
           : range
+    if (PER_REMOTE_PACKAGES.has(name) && override === undefined) {
+      // Bundled unless the remote opts in (`shared: { "@platform/react": true }`).
+      requests.push({
+        name,
+        requiredVersion,
+        version: installed[name],
+        scope: shareScopeFor(name, reactMajor),
+        singleton: false,
+        shared: false,
+        reason: "per-remote",
+      })
+      continue
+    }
     requests.push({
       name,
       requiredVersion,
@@ -273,7 +286,9 @@ export function negotiateShared(options: NegotiateOptions): ShareResolution[] {
         reason:
           request.reason === "source-package"
             ? "source package is compiled per remote"
-            : "sharing disabled by configuration",
+            : request.reason === "per-remote"
+              ? "bundled per remote: binds the React contexts of the remote it is built into"
+              : "sharing disabled by configuration",
         group,
       }
     }

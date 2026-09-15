@@ -572,6 +572,7 @@
               "inferred",
               "configured",
               "source-package",
+              "per-remote",
               "disabled",
               "pinned"
             ]

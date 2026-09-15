@@ -14,10 +14,12 @@ const chromiumPath =
 
 export default defineConfig({
   testDir: "test/e2e",
-  timeout: 90_000,
-  expect: { timeout: 15_000 },
-  fullyParallel: false,
-  workers: 1,
+  // Every test runs in its own browser context against shared servers, so the
+  // production project parallelises; failures surface within seconds, not minutes.
+  timeout: 40_000,
+  expect: { timeout: 10_000 },
+  fullyParallel: true,
+  workers: isCI ? 2 : 4,
   retries: isCI ? 1 : 0,
   reporter: isCI ? [["github"], ["html", { open: "never" }]] : [["list"]],
   use: {
@@ -35,6 +37,10 @@ export default defineConfig({
     {
       name: "hmr",
       testMatch: /hmr\.spec\.ts/,
+      // Spawns development servers once per file; runs serially.
+      fullyParallel: false,
+      workers: 1,
+      timeout: 120_000,
       use: { baseURL: "http://127.0.0.1:4110" },
     },
   ],

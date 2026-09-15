@@ -28,13 +28,30 @@ describe("shared dependency inference", () => {
     expect(byName.lodash).toBeUndefined()
     expect(byName["@platform/react"]).toBeUndefined()
   })
-  it("shares the SDK subpath entries together with the main entry", () => {
+  it("bundles the SDK per remote unless the remote opts in", () => {
+    const bundled = inferSharedDependencies({
+      dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", "@platform/react": "catalog:" },
+      installed: { "@platform/react": "0.1.0" },
+    })
+    const bundledByName = Object.fromEntries(bundled.requests.map((r) => [r.name, r]))
+    expect(bundledByName["@platform/react"]).toMatchObject({
+      scope: "react19",
+      shared: false,
+      reason: "per-remote",
+      requiredVersion: "^0.1.0",
+    })
+    expect(bundledByName["@platform/react/tecton"]).toBeUndefined()
     const result = inferSharedDependencies({
       dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", "@platform/react": "^0.1.0" },
       installed: { "@platform/react": "0.1.0" },
+      overrides: { "@platform/react": true },
     })
     const byName = Object.fromEntries(result.requests.map((r) => [r.name, r]))
-    expect(byName["@platform/react"]).toMatchObject({ scope: "react19", shared: true })
+    expect(byName["@platform/react"]).toMatchObject({
+      scope: "react19",
+      shared: true,
+      reason: "configured",
+    })
     expect(byName["@platform/react/tecton"]).toMatchObject({
       scope: "react19",
       shared: true,

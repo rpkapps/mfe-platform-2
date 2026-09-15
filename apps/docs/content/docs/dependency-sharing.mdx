@@ -7,16 +7,22 @@ description: Compatible packages are shared by version group. React 19 never sat
 
 Packages bound to a React instance share inside the scope of their React major; framework-neutral packages share in `default`.
 
-| Scope                 | Packages                                                                                                                                                                                                         |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store`, `@platform/react`, `@tecton/react`, `react-aria-components`, `react-aria`, `next-themes`, `sonner`, `lucide-react` |
-| `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                                                                                               |
+| Scope                 | Packages                                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store` and, when opted in, `@platform/react` |
+| `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                 |
 
 Example: the shell uses React 19, MFE A and MFE B use React 18. The result is one React 19 instance for the shell (and React 19 remotes) and one shared React 18 instance for A and B. A React 18 request is never satisfied by React 19 because the scopes are distinct.
 
 ## What is inferred
 
-`@platform/vite` reads `package.json` and requests sharing for the packages it depends on among: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`, `react-aria-components`, `sonner`. Each request records the range from `package.json` (`requiredVersion`), the installed version (`version`, the bundled fallback), the scope, `singleton`, `shared`, the `reason` (`inferred`, `configured`, `pinned`, `disabled`, `source-package`) and `pairedWith`.
+`@platform/vite` reads `package.json` and requests sharing for the packages it depends on among: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`. Each request records the range from `package.json` (`requiredVersion`), the installed version (`version`, the bundled fallback), the scope, `singleton`, `shared`, the `reason` (`inferred`, `configured`, `pinned`, `disabled`, `source-package`, `per-remote`) and `pairedWith`.
+
+## The SDK
+
+`@platform/react` is bundled into every remote (`reason: per-remote`). The SDK binds the React contexts of the remote it is built into and, through `@platform/react/tecton`, the React Aria portal context of that remote's Tecton copy; a shared SDK resolved from another remote would portal overlays through a foreign context and they would land in `document.body` instead of the owner-tagged overlay root. A remote that only needs the SDK's neutral helpers may opt in with `shared: { "@platform/react": true }`; the subpath entries then share with it.
+
+React Aria (`react-aria-components`, `react-aria`) and `sonner` are not shared either: they are React-context libraries bundled with the Tecton copy of each remote.
 
 ## The React pair
 
@@ -24,7 +30,7 @@ Example: the shell uses React 19, MFE A and MFE B use React 18. The result is on
 
 ## Tecton
 
-`@tecton/react` ships TypeScript sources compiled by the consumer, so it is a **source package**: it is compiled into each remote and never shared as a built module. Its JavaScript, peer dependencies (`react-aria-components`, `lucide-react`…), CSS protocol and token set are validated separately through `manifest.tecton` (`version`, `cssProtocol`, `tokens`, `foundation`). Peer packages are shared normally in the React scope.
+`@tecton/react` ships TypeScript sources compiled by the consumer, so it is a **source package**: it is compiled into each remote and never shared as a built module. Its JavaScript, peer dependencies (`react-aria-components`, `lucide-react`…), CSS protocol and token set are validated separately through `manifest.tecton` (`version`, `cssProtocol`, `tokens`, `foundation`). Its peer packages are bundled with it, so every remote carries one consistent Tecton stack.
 
 ## Overrides
 
