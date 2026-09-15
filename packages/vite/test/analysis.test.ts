@@ -36,8 +36,61 @@ describe("analyzeSourceFile", () => {
       },
       { id: "refresh", label: "Refresh", group: "General", static: false },
     ])
-    // buildDynamicCommand() and the template-literal label cannot be analysed: warned, not thrown.
-    expect(result.warnings.length).toBe(2)
+    // buildDynamicCommand() is not an object literal: warned, not thrown. The
+    // component-registered command whose label is a template literal is not warned
+    // about — see below.
+    expect(result.warnings.length).toBe(1)
+    expect(result.warnings[0]).toContain("not an object literal")
+  })
+
+  it("leaves a component's runtime-labelled command to register itself, silently", () => {
+    // The pattern the CLI template and the widget docs both use: a widget command
+    // labelled from its props. The label is only knowable at runtime, and the
+    // palette cannot offer a row without one, so it is left out of the manifest —
+    // with nothing for the developer to fix, and so nothing to warn about.
+    const result = analyzeSourceFile(
+      [
+        'import { useRegisterCommand } from "@platform/react"',
+        "export function AssetCard({ assetId }: { assetId: string }) {",
+        '  useRegisterCommand({ id: "open-asset", label: `Open ${assetId}`, handler: () => {} })',
+        "  return null",
+        "}",
+      ].join("\n"),
+      "asset-card.tsx"
+    )
+    expect(result.commands).toEqual([])
+    expect(result.warnings).toEqual([])
+  })
+
+  it("reports a command it cannot identify, and a static one it cannot label", () => {
+    // A non-literal id: the command cannot be named at all, whoever registers it.
+    const unnamed = analyzeSourceFile(
+      [
+        'import { useRegisterCommand } from "@platform/react"',
+        "export function C({ id }: { id: string }) {",
+        '  useRegisterCommand({ id, label: "Open" })',
+        "  return null",
+        "}",
+      ].join("\n"),
+      "c.tsx"
+    )
+    expect(unnamed.warnings).toEqual([expect.stringContaining("needs a literal `id`")])
+    // A static registration is module-scope data, so a label it cannot state is a
+    // real omission — and the warning names the command.
+    const staticNote = analyzeSourceFile(
+      [
+        'import { createMfe } from "@platform/react"',
+        "const suffix = String(Date.now())",
+        "export default createMfe({",
+        '  mfeId: "asset-tracker",',
+        '  registrations: { commands: [{ id: "export-csv", label: `Export ${suffix}` }] },',
+        "})",
+      ].join("\n"),
+      "mfe.tsx"
+    )
+    expect(staticNote.warnings).toEqual([
+      expect.stringContaining('static command "export-csv" needs a literal `label`'),
+    ])
   })
 
   it("infers settings groups, field kinds and storage scopes", () => {

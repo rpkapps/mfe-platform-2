@@ -3,6 +3,8 @@ import { join } from "node:path"
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
+import { analyzeProjectSources } from "@platform/vite"
+
 import { create, titleCase } from "../src/commands/create"
 import { CliError } from "../src/errors"
 import { makeTempDir, MONOREPO_ROOT } from "./helpers"
@@ -22,6 +24,17 @@ describe("platform create", () => {
       install: false,
       git: false,
     })
+  })
+
+  it("scaffolds a project whose sources analyse without a single warning", () => {
+    // A new project must build quietly: a warning on the scaffold is a warning
+    // every user meets on their first build, with nothing of their own to fix.
+    // The template's widget command labels itself from its props
+    // (`Open ${title}`), which is the documented pattern, so the analysis has to
+    // treat it as ordinary rather than unanalysable.
+    const analysis = analyzeProjectSources({ root: tecton19.dir })
+    expect(analysis.warnings).toEqual([])
+    expect(analysis.widgets.map((widget) => widget.id)).toContain("asset-card")
   })
 
   it("scaffolds the canonical file map", () => {

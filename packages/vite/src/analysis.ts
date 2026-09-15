@@ -95,6 +95,17 @@ function routeString(node: t.Node | undefined): string | undefined {
   return to
 }
 
+/** Names the fields that were not literals, so a warning points at the one to fix. */
+function missingLiterals(fields: Record<string, string | undefined>): string[] {
+  return Object.entries(fields)
+    .filter(([, value]) => value === undefined)
+    .map(([name]) => `\`${name}\``)
+}
+
+function listFields(names: string[]): string {
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]!
+}
+
 export function extractCommand(
   node: t.Node | undefined,
   file: string,
@@ -110,10 +121,23 @@ export function extractCommand(
   const props = objectProperties(node)
   const id = stringLiteral(propertyValue(props.get("id")))
   const label = stringLiteral(propertyValue(props.get("label")))
-  if (id === undefined || label === undefined) {
+  if (id === undefined) {
     warnings.push(
-      `${file}: a command definition needs literal \`id\` and \`label\` to be listed in the manifest.`
+      `${file}: a command definition needs a literal \`id\` to be listed in the manifest.`
     )
+    return undefined
+  }
+  if (label === undefined) {
+    // A command a component registers may label itself from its props — a widget
+    // command reads `Open ${asset.name}`, which is the documented pattern — and the
+    // palette has no row to offer without a label, so the command is simply left to
+    // register itself when the MFE loads. Nothing is lost and there is nothing to
+    // fix, so this is silent. A static registration is module-scope data with no
+    // props in scope, so a label it cannot state is worth reporting.
+    if (isStatic)
+      warnings.push(
+        `${file}: the static command "${id}" needs a literal \`label\` to be listed in the manifest.`
+      )
     return undefined
   }
   const command: CommandContribution = { id, label, static: isStatic }
@@ -230,8 +254,9 @@ export function extractHelp(
   const id = stringLiteral(propertyValue(props.get("id")))
   const title = stringLiteral(propertyValue(props.get("title")))
   if (id === undefined || title === undefined) {
+    const missing = listFields(missingLiterals({ id, title }))
     warnings.push(
-      `${file}: a help entry needs literal \`id\` and \`title\` to be listed in the manifest.`
+      `${file}: a help entry${id ? ` ("${id}")` : ""} needs a literal ${missing} to be listed in the manifest.`
     )
     return undefined
   }
@@ -263,8 +288,9 @@ export function extractReleaseNote(
   const version = stringLiteral(propertyValue(props.get("version")))
   const title = stringLiteral(propertyValue(props.get("title")))
   if (id === undefined || version === undefined || title === undefined) {
+    const missing = listFields(missingLiterals({ id, version, title }))
     warnings.push(
-      `${file}: a release note needs literal \`id\`, \`version\` and \`title\` to be listed in the manifest.`
+      `${file}: a release note${id ? ` ("${id}")` : ""} needs a literal ${missing} to be listed in the manifest.`
     )
     return undefined
   }
@@ -457,7 +483,9 @@ export function analyzeSourceFile(code: string, file: string): FileAnalysis {
           const key = stringLiteral(propertyValue(props.get("key")))
           if (group === undefined || key === undefined)
             analysis.warnings.push(
-              `${file}: useRegisterSettingsField needs literal \`group\` and \`key\` to be listed in the manifest.`
+              `${file}: useRegisterSettingsField needs a literal ${listFields(
+                missingLiterals({ group, key })
+              )} to be listed in the manifest.`
             )
           else
             analysis.settingsFields.push({
