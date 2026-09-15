@@ -35,6 +35,9 @@ export const DEFAULT_SHARED_PACKAGES = ["react", "react-dom", "@tanstack/react-r
 /** Source packages (TSX, compiled by the consumer) cannot be shared as built modules. */
 export const SOURCE_PACKAGES = new Set(["@tecton/react"])
 
+/** Subpath entries of the SDK shared together with the main entry. */
+export const SDK_SUBPATHS = ["@platform/react/tecton"] as const
+
 export const PAIRED_PACKAGES: Record<string, string[]> = {
   react: ["react-dom"],
   "react-dom": ["react"],
@@ -102,6 +105,15 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       reason: override === undefined ? "inferred" : typeof override === "object" && override.version ? "pinned" : "configured",
       pairedWith: PAIRED_PACKAGES[name],
     })
+  }
+  // The SDK ships subpath entries that import its internal chunks; they must resolve
+  // from the same copy as the main entry, so they are shared alongside it.
+  const sdk = requests.find((request) => request.name === "@platform/react" && request.shared)
+  if (sdk) {
+    for (const subpath of SDK_SUBPATHS) {
+      if (!requests.some((request) => request.name === subpath))
+        requests.push({ ...sdk, name: subpath, pairedWith: undefined })
+    }
   }
   if (dependencies.react && dependencies["react-dom"]) {
     const domMajor = rangeMajor(dependencies["react-dom"])

@@ -14,12 +14,13 @@ test.describe("native TanStack guards and platform context", () => {
   })
 
   test("guard errors stay inside the MFE boundary", async ({ page }) => {
-    await gotoShell(page, "/asset-tracker")
+    await gotoShell(page, "/asset-tracker/assets")
     await waitForAssetTracker(page)
     await page.getByTestId(ids.shell.userSwitch).selectOption("viewer")
-    await page.goto("/asset-tracker/assets/restricted")
+    await page.getByRole("link", { name: /Restricted asset/ }).click()
     await expect(page.getByTestId(ids.assetTracker.guardMessage)).toContainText("Only admins")
     await expect(page.getByTestId(ids.shell.root)).toBeVisible()
+    await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible()
   })
 
   test("slice subscriptions do not rerender on unrelated changes", async ({ page }) => {

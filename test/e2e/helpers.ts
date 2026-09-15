@@ -29,10 +29,24 @@ export async function enableDevtools(page: Page) {
   await page.evaluate(() => window.localStorage.setItem("platform:devtools", "1"))
 }
 
-export async function historyIsNative(page: Page) {
+/**
+ * Signature of the History and Storage entry points. The shell's own TanStack
+ * Router browser history wraps pushState/replaceState once to observe
+ * navigations (a shell choice, made before any remote loads); the platform and
+ * the remotes must leave everything exactly as they found it.
+ */
+export async function historySignature(page: Page) {
   return page.evaluate(() => {
-    const native = (fn: unknown) => typeof fn === "function" && Function.prototype.toString.call(fn).includes("[native code]")
-    return native(window.history.pushState) && native(window.history.replaceState) && native(window.localStorage.setItem) && native(Storage.prototype.setItem) && Object.getOwnPropertyDescriptor(window, "history")?.set === undefined
+    const source = (fn: unknown) => (typeof fn === "function" ? Function.prototype.toString.call(fn) : String(fn))
+    return {
+      pushState: source(window.history.pushState),
+      replaceState: source(window.history.replaceState),
+      localSet: source(window.localStorage.setItem),
+      sessionSet: source(window.sessionStorage.setItem),
+      storageProto: source(Storage.prototype.setItem),
+      historyOwn: Object.getOwnPropertyDescriptor(window, "history")?.set === undefined,
+      storageNative: source(Storage.prototype.setItem).includes("[native code]") && source(window.localStorage.setItem).includes("[native code]"),
+    }
   })
 }
 

@@ -14,7 +14,15 @@ describe("shared dependency inference", () => {
     expect(byName["@tanstack/history"]).toMatchObject({ scope: "default", shared: true })
     expect(byName["@tecton/react"]).toMatchObject({ shared: false, reason: "source-package" })
     expect(byName.lodash).toBeUndefined()
+    expect(byName["@platform/react"]).toBeUndefined()
   })
+  it("shares the SDK subpath entries together with the main entry", () => {
+    const result = inferSharedDependencies({ dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", "@platform/react": "^0.1.0" }, installed: { "@platform/react": "0.1.0" } })
+    const byName = Object.fromEntries(result.requests.map((r) => [r.name, r]))
+    expect(byName["@platform/react"]).toMatchObject({ scope: "react19", shared: true })
+    expect(byName["@platform/react/tecton"]).toMatchObject({ scope: "react19", shared: true, requiredVersion: "^0.1.0" })
+  })
+
   it("applies overrides: disable, pin, extra", () => {
     const result = inferSharedDependencies({ dependencies: { react: "^19.0.0", "react-dom": "^19.0.0", zod: "^4", dayjs: "^1" }, overrides: { zod: false, react: { version: "^19.1.0" }, dayjs: true } })
     const byName = Object.fromEntries(result.requests.map((r) => [r.name, r]))

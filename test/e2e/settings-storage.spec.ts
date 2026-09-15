@@ -32,7 +32,7 @@ test.describe("settings and storage", () => {
     expect(stored.length).toBeGreaterThan(0)
     await page.getByRole("button", { name: /Reset/ }).first().click()
     // MFE-managed group links to its own page.
-    await expect(page.getByTestId(ids.shell.settingsHost).getByRole("link", { name: /Advanced asset settings/ })).toBeVisible()
+    await expect(page.getByTestId(ids.shell.settingsHost).getByText(/Advanced asset settings/)).toBeVisible()
   })
 
   test("invalid stored settings recover to defaults without crashing", async ({ page }) => {

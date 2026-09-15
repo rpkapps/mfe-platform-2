@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AssetsRouteImport } from './routes/assets'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AssetsIndexRouteImport } from './routes/assets/index'
 import { Route as AssetsAssetIdRouteImport } from './routes/assets/$assetId'
@@ -20,20 +21,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AssetsRoute = AssetsRouteImport.update({
+  id: '/assets',
+  path: '/assets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AssetsIndexRoute = AssetsIndexRouteImport.update({
-  id: '/assets/',
-  path: '/assets/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AssetsRoute,
 } as any)
 const AssetsAssetIdRoute = AssetsAssetIdRouteImport.update({
-  id: '/assets/$assetId',
-  path: '/assets/$assetId',
-  getParentRoute: () => rootRouteImport,
+  id: '/$assetId',
+  path: '/$assetId',
+  getParentRoute: () => AssetsRoute,
 } as any)
 const SettingsCustomRoute = SettingsCustomRouteImport.update({
   id: '/custom',
@@ -43,6 +49,7 @@ const SettingsCustomRoute = SettingsCustomRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/assets': typeof AssetsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/assets/$assetId': typeof AssetsAssetIdRoute
   '/settings/custom': typeof SettingsCustomRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/assets': typeof AssetsRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/assets/$assetId': typeof AssetsAssetIdRoute
   '/settings/custom': typeof SettingsCustomRoute
@@ -66,12 +74,18 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/settings' | '/assets/$assetId' | '/settings/custom' | '/assets/'
+    | '/'
+    | '/assets'
+    | '/settings'
+    | '/assets/$assetId'
+    | '/settings/custom'
+    | '/assets/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/settings' | '/assets/$assetId' | '/settings/custom' | '/assets'
   id:
     | '__root__'
     | '/'
+    | '/assets'
     | '/settings'
     | '/assets/$assetId'
     | '/settings/custom'
@@ -80,9 +94,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AssetsRoute: typeof AssetsRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
-  AssetsAssetIdRoute: typeof AssetsAssetIdRoute
-  AssetsIndexRoute: typeof AssetsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -94,6 +107,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/assets': {
+      id: '/assets'
+      path: '/assets'
+      fullPath: '/assets'
+      preLoaderRoute: typeof AssetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -103,17 +123,17 @@ declare module '@tanstack/react-router' {
     }
     '/assets/': {
       id: '/assets/'
-      path: '/assets'
+      path: '/'
       fullPath: '/assets/'
       preLoaderRoute: typeof AssetsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AssetsRoute
     }
     '/assets/$assetId': {
       id: '/assets/$assetId'
-      path: '/assets/$assetId'
+      path: '/$assetId'
       fullPath: '/assets/$assetId'
       preLoaderRoute: typeof AssetsAssetIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AssetsRoute
     }
     '/settings/custom': {
       id: '/settings/custom'
@@ -124,6 +144,19 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AssetsRouteChildren {
+  AssetsAssetIdRoute: typeof AssetsAssetIdRoute
+  AssetsIndexRoute: typeof AssetsIndexRoute
+}
+
+const AssetsRouteChildren: AssetsRouteChildren = {
+  AssetsAssetIdRoute: AssetsAssetIdRoute,
+  AssetsIndexRoute: AssetsIndexRoute,
+}
+
+const AssetsRouteWithChildren =
+  AssetsRoute._addFileChildren(AssetsRouteChildren)
 
 interface SettingsRouteChildren {
   SettingsCustomRoute: typeof SettingsCustomRoute
@@ -139,9 +172,8 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AssetsRoute: AssetsRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
-  AssetsAssetIdRoute: AssetsAssetIdRoute,
-  AssetsIndexRoute: AssetsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

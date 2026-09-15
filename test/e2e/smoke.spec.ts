@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { gotoShell, historyIsNative, ids, waitForAssetTracker, waitForLegacyReports } from "./helpers"
+import { gotoShell, historySignature, ids, waitForAssetTracker, waitForLegacyReports } from "./helpers"
 
 test.describe("shell and remotes", () => {
   test("React 19 and React 18 remotes load in isolated roots", async ({ page }) => {
@@ -16,10 +16,20 @@ test.describe("shell and remotes", () => {
     await expect(page.locator('[data-mfe="asset-tracker"][data-platform-root]')).toHaveCount(0)
   })
 
-  test("no History API or storage monkeypatching", async ({ page }) => {
-    await gotoShell(page, "/asset-tracker")
+  test("no History API or storage monkeypatching by the platform or the remotes", async ({ page }) => {
+    await gotoShell(page, "/")
+    const before = await historySignature(page)
+    expect(before.storageNative).toBe(true)
+    expect(before.historyOwn).toBe(true)
+    // Load a React 19 remote, a React 18 remote and every widget without leaving the page.
+    await page.getByRole("link", { name: "Asset Tracker" }).first().click()
     await waitForAssetTracker(page)
-    expect(await historyIsNative(page)).toBe(true)
+    await page.getByRole("link", { name: "Legacy Reports" }).first().click()
+    await waitForLegacyReports(page)
+    await page.getByRole("link", { name: "Dashboard" }).first().click()
+    await expect(page.getByTestId(ids.widgets.assetCard)).toBeVisible({ timeout: 30_000 })
+    const after = await historySignature(page)
+    expect(after).toEqual(before)
   })
 
   test("CSS stays scoped to the owning remote", async ({ page }) => {

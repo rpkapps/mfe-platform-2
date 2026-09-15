@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { listAssets } from "@/lib/data"
 
 export const Route = createFileRoute("/assets/")({
-  staticData: { breadcrumb: "Assets", navigation: { title: "Assets", description: "All equipment", keywords: ["pumps", "valves"], order: 1 } },
+  staticData: { navigation: { title: "Assets", description: "All equipment", keywords: ["pumps", "valves"], order: 1 } },
   loader: async () => listAssets(),
   component: AssetList,
 })
@@ -16,13 +16,15 @@ const statusVariant = { online: "success", offline: "destructive", maintenance: 
 function AssetList() {
   const assets = Route.useLoaderData()
   return (
-    <Table>
+    <div className="flex flex-col gap-3">
+      <Link to="/assets/$assetId" params={{ assetId: "restricted" }} className="text-xs underline">
+        Restricted asset (admins only)
+      </Link>
+    <Table aria-label="Assets">
       <TableHeader>
-        <TableRow>
-          <TableHead>Asset</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Site</TableHead>
-        </TableRow>
+        <TableHead isRowHeader>Asset</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead>Site</TableHead>
       </TableHeader>
       <TableBody>
         {assets.map((asset) => (
@@ -42,5 +44,6 @@ function AssetList() {
         ))}
       </TableBody>
     </Table>
+    </div>
   )
 }

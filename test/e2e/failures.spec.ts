@@ -28,7 +28,7 @@ test.describe("failure isolation", () => {
     await page.getByTestId(ids.shell.devtoolsToggle).click()
     const panel = page.getByTestId(ids.shell.devtoolsPanel)
     await expect(panel).toContainText("4999")
-    await expect(panel).toContainText(/override/i)
+    await expect(panel).toContainText(/source: (query|override)/i)
     // Clearing the override restores the runtime-config URL.
     await page.evaluate(() => {
       localStorage.removeItem("platform:manifest-overrides")
