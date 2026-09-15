@@ -123,7 +123,6 @@ export function createPlatformStorage<TValue>(
   const storage: PlatformStorage<TValue> = {
     options,
     use(selector?: (value: TValue) => unknown, equals: Equality<unknown> = shallowEqual) {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
       return usePlatformStorage(storage, selector as (value: TValue) => unknown, equals)
     },
     get: () => current().get(),
@@ -160,7 +159,10 @@ export function usePlatformStorage<TValue, TSlice>(
 export function useStorageDiagnostics(): readonly StorageDiagnostic[] {
   const scope = useMountScope("useStorageDiagnostics")
   return useStoreSlice(
-    { getState: scope.root.storageDiagnostics.get, subscribe: scope.root.storageDiagnostics.subscribe },
+    {
+      getState: scope.root.storageDiagnostics.get,
+      subscribe: scope.root.storageDiagnostics.subscribe,
+    },
     undefined,
     Object.is
   )

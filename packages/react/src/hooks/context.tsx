@@ -11,7 +11,12 @@ import {
 } from "@platform-internal/core"
 import { useMountScope } from "../provider"
 import { ensureOverlayRoot } from "../scope"
-import type { MfeInstance, PlatformContextValue, PlatformNavigation, RegisteredEnv } from "../types"
+import type {
+  MfeInstance,
+  PlatformContextValue,
+  PlatformNavigation,
+  RegisteredEnv,
+} from "../types"
 import { useStoreSlice } from "./store"
 
 /**
@@ -45,7 +50,11 @@ export interface PermissionsValue extends PermissionHelpers {
 export function usePermissions(): PermissionsValue {
   const scope = useMountScope("usePermissions")
   const groups = useStoreSlice(scope.contextStore, (platform) => platform.permissionGroups)
-  const helpers = useStoreSlice(scope.contextStore, (platform) => platform.permissions, Object.is)
+  const helpers = useStoreSlice(
+    scope.contextStore,
+    (platform) => platform.permissions,
+    Object.is
+  )
   return useMemo(() => ({ groups, ...helpers }), [groups, helpers])
 }
 
@@ -99,7 +108,8 @@ export function useTelemetry(): Telemetry {
     useMemo(
       () => ({
         getState: () => scope.bridge.navigation.getLocation().pathname,
-        subscribe: (listener: () => void) => scope.bridge.navigation.subscribe(() => listener()),
+        subscribe: (listener: () => void) =>
+          scope.bridge.navigation.subscribe(() => listener()),
       }),
       [scope]
     ),

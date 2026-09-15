@@ -50,7 +50,9 @@ export type PlatformProviderProps =
 export function PlatformProvider(props: PlatformProviderProps) {
   if ("scope" in props) {
     return (
-      <MountScopeContext.Provider value={props.scope}>{props.children}</MountScopeContext.Provider>
+      <MountScopeContext.Provider value={props.scope}>
+        {props.children}
+      </MountScopeContext.Provider>
     )
   }
   return <BridgeScopeProvider {...props} />
@@ -61,7 +63,7 @@ function BridgeScopeProvider(props: Exclude<PlatformProviderProps, { scope: Moun
   const create = () =>
     createMountScope({
       bridge,
-      kind: kind ?? (widgetId ?? bridge.widgetId ? "widget" : "mfe"),
+      kind: kind ?? ((widgetId ?? bridge.widgetId) ? "widget" : "mfe"),
       rootElement: rootElement ?? null,
       displayName,
       enhancers,
@@ -75,7 +77,6 @@ function BridgeScopeProvider(props: Exclude<PlatformProviderProps, { scope: Moun
       return
     }
     return () => scope.disposer.dispose()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope])
   return (
     <MountScopeContext.Provider value={scope}>

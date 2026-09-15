@@ -43,7 +43,6 @@ import type {
  * }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface Register {}
 
 export type RegisteredEnv = Register extends { env: infer E }
@@ -149,7 +148,8 @@ export interface MfeRouterContext {
 // Route static data
 // ---------------------------------------------------------------------------
 
-export type BreadcrumbLabel = string | ((match: RouteMatch<any, any, any, any, any, any, any>) => string)
+export type BreadcrumbLabel =
+  string | ((match: RouteMatch<any, any, any, any, any, any, any>) => string)
 
 export type BreadcrumbStaticData =
   | string
@@ -182,14 +182,15 @@ declare module "@tanstack/react-router" {
 
 /** Manual breadcrumb override for the current route (`useBreadcrumb`). */
 export type BreadcrumbOverride =
-  | string
-  | Partial<Pick<BreadcrumbEntry, "label" | "href" | "state" | "hidden">>
+  string | Partial<Pick<BreadcrumbEntry, "label" | "href" | "state" | "hidden">>
 
 // ---------------------------------------------------------------------------
 // Widgets and definitions
 // ---------------------------------------------------------------------------
 
-export interface WidgetDefinition<TProps extends Record<string, unknown> = Record<string, unknown>> {
+export interface WidgetDefinition<
+  TProps extends Record<string, unknown> = Record<string, unknown>,
+> {
   id?: string
   component: ComponentType<TProps>
   /** Standard Schema validating the props the host passes (validated synchronously on mount and `setProps`). */
@@ -290,10 +291,10 @@ export interface SettingsRendererSurface<TValue = unknown> {
 }
 
 /** Settings field as MFE code writes it: the renderer is an ordinary component. */
-export type SettingsFieldInput<
-  TValue = unknown,
-  TState = Record<string, unknown>,
-> = Omit<SettingsFieldDefinition<TValue, TState>, "renderer"> & {
+export type SettingsFieldInput<TValue = unknown, TState = Record<string, unknown>> = Omit<
+  SettingsFieldDefinition<TValue, TState>,
+  "renderer"
+> & {
   renderer?: SettingsRenderer<TValue> | SettingsRendererSurface<TValue>
 }
 

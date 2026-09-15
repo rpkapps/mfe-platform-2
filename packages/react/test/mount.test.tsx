@@ -23,7 +23,9 @@ describe("createMfe", () => {
     expect(definition.kind).toBe("platform-remote")
     expect(definition.protocolVersion).toBe("1.0")
     expect(definition.hasRoutes).toBe(true)
-    expect(definition.widgets).toEqual([{ id: "summary", title: "Summary", description: undefined }])
+    expect(definition.widgets).toEqual([
+      { id: "summary", title: "Summary", description: undefined },
+    ])
     expect(definition.registrations?.commands?.[0]?.id).toBe("open")
   })
 
@@ -51,7 +53,9 @@ describe("createMfe", () => {
     expect(bridge.diagnostics.events.map((event) => event.type)).toEqual(
       expect.arrayContaining(["mount.started", "mount.completed"])
     )
-    const completed = bridge.diagnostics.events.find((event) => event.type === "mount.completed")
+    const completed = bridge.diagnostics.events.find(
+      (event) => event.type === "mount.completed"
+    )
     expect(completed).toMatchObject({ reactVersion: expect.stringMatching(/^1[89]\./) })
     expect(bridge.telemetryEvents.some((event) => event.name === "mount")).toBe(true)
 
@@ -69,7 +73,10 @@ describe("createMfe", () => {
     const bridge = bridgeFor({ mfeId: "widgets-only" })
     const container = document.createElement("div")
     expect(() => definition.mount({ container, bridge })).toThrowError(
-      expect.objectContaining({ code: "MOUNT_FAILED", owner: { mfeId: "widgets-only", instanceId: bridge.instanceId } })
+      expect.objectContaining({
+        code: "MOUNT_FAILED",
+        owner: { mfeId: "widgets-only", instanceId: bridge.instanceId },
+      })
     )
     expect(container.childElementCount).toBe(0)
     expect(bridge.diagnostics.events.at(-1)?.type).toBe("mount.failed")
@@ -102,7 +109,10 @@ describe("mountWidget", () => {
 
   it("renders with props, updates with setProps and disposes", async () => {
     const bridge = bridgeFor({ mfeId: "widget-lib", widgetId: "card", routePrefix: null })
-    const { handle, container } = await mountWidget(definition, bridge, "card", { title: "A", count: 1 })
+    const { handle, container } = await mountWidget(definition, bridge, "card", {
+      title: "A",
+      count: 1,
+    })
     const root = container.querySelector("[data-platform-root]")!
     expect(root.getAttribute("data-platform-widget")).toBe("card")
     expect(root.querySelector("[data-testid=title]")?.textContent).toBe("A")
@@ -115,7 +125,9 @@ describe("mountWidget", () => {
 
     root.querySelector("button")!.click()
     expect(bridge.navigation.getLocation().pathname).toBe("/elsewhere")
-    expect(bridge.diagnostics.events.some((event) => event.type === "widget.mounted")).toBe(true)
+    expect(bridge.diagnostics.events.some((event) => event.type === "widget.mounted")).toBe(
+      true
+    )
 
     await disposeAsync(handle)
     expect(container.querySelector("[data-platform-root]")).toBeNull()
@@ -146,11 +158,68 @@ describe("mountWidget", () => {
       }, [])
       return <p>never</p>
     }
-    const broken = createMfe({ mfeId: "broken", widgets: { broken: createWidget({ component: Broken }) } })
+    const broken = createMfe({
+      mfeId: "broken",
+      widgets: { broken: createWidget({ component: Broken }) },
+    })
     const bridge = bridgeFor({ mfeId: "broken", widgetId: "broken", routePrefix: null })
     const { handle, container } = await mountWidget(broken, bridge, "broken", {})
     expect(container.querySelector("[data-platform-error-fallback]")).not.toBeNull()
     expect(bridge.diagnostics.events.some((event) => event.type === "error")).toBe(true)
     await disposeAsync(handle)
+  })
+})
+
+describe("headless mounts", () => {
+  it("renders the router (registrations go live) without touching the breadcrumb bar", async () => {
+    const { useRegisterSettingsGroup } = await import("../src/hooks/registrations")
+    const Root = () => {
+      useRegisterSettingsGroup({
+        key: "display",
+        fields: { density: { defaultValue: "compact" } },
+      })
+      return <p>root</p>
+    }
+    const { routeTree } = routeTreeOf([
+      { path: "/", component: Root, staticData: { breadcrumb: "Home" } },
+    ])
+    const definition = createMfe({ mfeId: "asset-tracker", routeTree })
+    const bridge = bridgeFor({
+      mfeId: "asset-tracker",
+      host: { kind: "shell", dev: false, environment: "test", headless: true },
+    })
+    const { handle, container } = await mountMfe(definition, bridge)
+    expect(bridge.registries.settings.list().map((group) => group.qualifiedKey)).toEqual([
+      "asset-tracker:display",
+    ])
+    expect(bridge.breadcrumbs.getState().activeInstanceId).toBeNull()
+    expect(bridge.breadcrumbs.getState().trails).toEqual({})
+    await disposeAsync(handle)
+    expect(bridge.registries.settings.list()).toEqual([])
+    container.remove()
+  })
+})
+
+describe("renderMfe", () => {
+  it("mounts through the real mount path and exposes navigation", async () => {
+    const { renderMfe } = await import("../src/testing")
+    const { act } = await import("@testing-library/react")
+    const { routeTree } = routeTreeOf([
+      { path: "/", component: () => <p>home</p> },
+      { path: "/about", component: () => <p>about</p> },
+    ])
+    const definition = createMfe({ mfeId: "asset-tracker", routeTree })
+    let result!: ReturnType<typeof renderMfe>
+    await act(async () => {
+      result = renderMfe(definition, { path: "/asset-tracker/about" })
+    })
+    await flush()
+    expect(result.container.textContent).toContain("about")
+    await act(async () => result.navigate("/asset-tracker"))
+    await flush()
+    expect(result.container.textContent).toContain("home")
+    expect(result.location().pathname).toBe("/asset-tracker")
+    await act(async () => result.dispose())
+    expect(result.container.isConnected).toBe(false)
   })
 })

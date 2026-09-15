@@ -96,12 +96,16 @@ export interface CreateMountScopeOptions {
   /** Override the widget id (widget mounts). */
   widgetId?: string
   /** Register a group in the settings registry; injected so the aggregator can share the conversion code. */
-  registerSettingsGroup?: (definition: SettingsGroupDefinition, owner: RegistrationOwner) => () => void
+  registerSettingsGroup?: (
+    definition: SettingsGroupDefinition,
+    owner: RegistrationOwner
+  ) => () => void
 }
 
 function buildSearch(search: NavigateTarget["search"]): string {
   if (!search) return ""
-  if (typeof search === "string") return search.startsWith("?") || search === "" ? search : `?${search}`
+  if (typeof search === "string")
+    return search.startsWith("?") || search === "" ? search : `?${search}`
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(search)) {
     if (value === undefined || value === null) continue
@@ -134,7 +138,8 @@ export function createPlatformNavigation(
     navigate(to, options) {
       const current = shell.getLocation()
       const href = toHref(to, current)
-      const replace = options?.replace ?? (typeof to === "object" ? to.replace : undefined) ?? false
+      const replace =
+        options?.replace ?? (typeof to === "object" ? to.replace : undefined) ?? false
       const state = options?.state ?? (typeof to === "object" ? to.state : undefined)
       if (shell.canLeave && shell.canLeave(href) === false) return
       if (replace) shell.replace(href, { state })
@@ -279,7 +284,10 @@ function createSettingsFieldAggregator(
       groups.delete(key)
       return
     }
-    group.unregister = register({ ...group.meta, fields: Object.fromEntries(group.fields) }, owner)
+    group.unregister = register(
+      { ...group.meta, fields: Object.fromEntries(group.fields) },
+      owner
+    )
   }
   return {
     add(groupInput, key, field) {

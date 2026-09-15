@@ -88,7 +88,8 @@ export class MfeErrorBoundary extends Component<MfeErrorBoundaryProps, MfeErrorB
     const caught = this.state.error
     if (!caught) return this.props.children
     const { fallback } = this.props
-    if (typeof fallback === "function") return fallback({ error: caught.value, reset: this.reset })
+    if (typeof fallback === "function")
+      return fallback({ error: caught.value, reset: this.reset })
     if (fallback !== undefined) return fallback
     return <MfeErrorFallback error={caught.value} reset={this.reset} />
   }
@@ -109,7 +110,9 @@ export function MfeErrorFallback({ error, reset }: MfeErrorFallbackProps) {
     error instanceof Error ? error.message : typeof error === "string" ? error : "Unknown error"
   return (
     <div role="alert" data-platform-error-fallback="" style={panelStyle}>
-      <p style={{ margin: 0, fontWeight: 600 }}>Something went wrong in this part of the page.</p>
+      <p style={{ margin: 0, fontWeight: 600 }}>
+        Something went wrong in this part of the page.
+      </p>
       <p style={{ margin: "0.5rem 0" }} data-platform-error-message="">
         {platformError ? `[${platformError.code}] ` : ""}
         {message}

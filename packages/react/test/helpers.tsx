@@ -4,7 +4,6 @@ import {
   createRoute,
   Outlet,
   type AnyRoute,
-  type RootRoute,
 } from "@tanstack/react-router"
 import type { ComponentType } from "react"
 import type { MountHandle, WidgetHandle } from "@platform-internal/core"
@@ -67,7 +66,7 @@ export interface RouteSpec {
 export function routeTreeOf(
   routes: RouteSpec[],
   rootOptions: Record<string, unknown> = {}
-): { rootRoute: RootRoute<any, any, any, any, any, any, any, any, any>; routeTree: AnyRoute } {
+): { rootRoute: AnyRoute; routeTree: AnyRoute } {
   const rootRoute = createRootRouteWithContext<MfeRouterContext>()({
     component: () => <Outlet />,
     ...rootOptions,
@@ -75,5 +74,8 @@ export function routeTreeOf(
   const children = routes.map(({ path, component, ...rest }) =>
     createRoute({ getParentRoute: () => rootRoute, path, component, ...rest } as never)
   )
-  return { rootRoute, routeTree: rootRoute.addChildren(children as never) }
+  return {
+    rootRoute: rootRoute as unknown as AnyRoute,
+    routeTree: rootRoute.addChildren(children as never) as unknown as AnyRoute,
+  }
 }

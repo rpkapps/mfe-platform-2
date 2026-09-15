@@ -26,7 +26,10 @@ describe("withTecton", () => {
     expect(withTecton(definition)).toBe(definition)
     expect(definition.enhancers).toHaveLength(1)
 
-    const bridge = bridgeFor({ mfeId: "asset-tracker", context: { resolvedTheme: "dark", theme: "dark" } })
+    const bridge = bridgeFor({
+      mfeId: "asset-tracker",
+      context: { resolvedTheme: "dark", theme: "dark" },
+    })
     const { handle, container } = await mountMfe(definition, bridge)
     await flush()
     const roots = document.querySelectorAll("[data-platform-overlay-root]")
@@ -36,7 +39,9 @@ describe("withTecton", () => {
     expect(overlayRoot.getAttribute("data-platform-instance")).toBe(bridge.instanceId)
     expect(overlayRoot.parentElement).toBe(document.body)
     expect(overlayRoot.classList.contains("dark")).toBe(true)
-    expect(container.querySelector("[data-platform-root]")!.classList.contains("dark")).toBe(true)
+    expect(container.querySelector("[data-platform-root]")!.classList.contains("dark")).toBe(
+      true
+    )
     expect(bridge.overlays.getState().roots).toHaveLength(1)
 
     // the dialog rendered inside the MFE landed in the overlay root, not in the MFE container
@@ -46,7 +51,9 @@ describe("withTecton", () => {
 
     await act(async () => bridge.setContext({ resolvedTheme: "light", theme: "light" }))
     expect(overlayRoot.classList.contains("dark")).toBe(false)
-    expect(container.querySelector("[data-platform-root]")!.classList.contains("dark")).toBe(false)
+    expect(container.querySelector("[data-platform-root]")!.classList.contains("dark")).toBe(
+      false
+    )
 
     await disposeAsync(handle)
     expect(document.querySelectorAll("[data-platform-overlay-root]")).toHaveLength(0)
@@ -57,8 +64,12 @@ describe("withTecton", () => {
 
 describe("useOverlayContainer", () => {
   it("lets non-Tecton MFEs portal into the shell-managed overlay root", async () => {
-    const Modal = () => createPortal(<div role="dialog">plain modal</div>, useOverlayContainer())
-    const definition = createMfe({ mfeId: "legacy", widgets: { modal: createWidget({ component: Modal }) } })
+    const Modal = () =>
+      createPortal(<div role="dialog">plain modal</div>, useOverlayContainer())
+    const definition = createMfe({
+      mfeId: "legacy",
+      widgets: { modal: createWidget({ component: Modal }) },
+    })
     const bridge = bridgeFor({ mfeId: "legacy", widgetId: "modal", routePrefix: null })
     const { handle, container } = await mountWidget(definition, bridge, "modal", {})
     const root = document.querySelector("[data-platform-overlay-root]")!

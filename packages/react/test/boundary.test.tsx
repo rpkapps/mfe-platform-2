@@ -30,10 +30,19 @@ describe("MfeErrorBoundary", () => {
     expect(fallback.getAttribute("role")).toBe("alert")
     expect(fallback.textContent).toContain("[CAPABILITY_UNAVAILABLE] no storage")
     expect(fallback.textContent).toContain("feature-detect")
-    expect(fallback.querySelector("a")?.getAttribute("href")).toContain("/platform-context#capabilities")
+    expect(fallback.querySelector("a")?.getAttribute("href")).toContain(
+      "/platform-context#capabilities"
+    )
     expect(view.container.textContent).toContain("sibling")
-    expect(bridge.telemetryEvents.some((event) => event.kind === "error" && event.attributes.boundary === "mfe")).toBe(true)
-    expect(bridge.diagnostics.events.find((event) => event.type === "error")).toMatchObject({ code: "CAPABILITY_UNAVAILABLE", mfeId: "a" })
+    expect(
+      bridge.telemetryEvents.some(
+        (event) => event.kind === "error" && event.attributes.boundary === "mfe"
+      )
+    ).toBe(true)
+    expect(bridge.diagnostics.events.find((event) => event.type === "error")).toMatchObject({
+      code: "CAPABILITY_UNAVAILABLE",
+      mfeId: "a",
+    })
 
     fail = false
     act(() => view.getByText("Retry").click())
@@ -50,7 +59,10 @@ describe("MfeErrorBoundary", () => {
     const Wrapper = () => {
       const [key, setKey] = useState(0)
       return (
-        <MfeErrorBoundary resetKey={key} fallback={({ error }) => <i>custom: {(error as Error).message}</i>}>
+        <MfeErrorBoundary
+          resetKey={key}
+          fallback={({ error }) => <i>custom: {(error as Error).message}</i>}
+        >
           {key === 0 ? <Boom /> : <p>fine</p>}
           <button onClick={() => setKey(1)}>reset</button>
         </MfeErrorBoundary>

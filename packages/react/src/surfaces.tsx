@@ -27,11 +27,16 @@ export function isSettingsRendererSurface(value: unknown): value is SettingsRend
   )
 }
 
-function createSurfaceElement(scope: MountScope, container: HTMLElement, kind: string): HTMLElement {
+function createSurfaceElement(
+  scope: MountScope,
+  container: HTMLElement,
+  kind: string
+): HTMLElement {
   const element = container.ownerDocument.createElement("div")
   element.setAttribute("data-mfe", scope.instance.mfeId)
   element.setAttribute("data-platform-instance", scope.instance.instanceId)
-  if (scope.instance.widgetId) element.setAttribute("data-platform-widget", scope.instance.widgetId)
+  if (scope.instance.widgetId)
+    element.setAttribute("data-platform-widget", scope.instance.widgetId)
   element.setAttribute("data-platform-surface", kind)
   container.append(element)
   return element
@@ -45,7 +50,11 @@ interface SurfaceRoot {
   dispose(): void
 }
 
-function mountSurfaceRoot(parent: MountScope, container: HTMLElement, kind: string): SurfaceRoot {
+function mountSurfaceRoot(
+  parent: MountScope,
+  container: HTMLElement,
+  kind: string
+): SurfaceRoot {
   const element = createSurfaceElement(parent, container, kind)
   const scope = createSurfaceScope(parent, element)
   const root = createRoot(element)
@@ -66,7 +75,9 @@ function mountSurfaceRoot(parent: MountScope, container: HTMLElement, kind: stri
       if (disposed) return
       root.render(
         <PlatformProvider scope={scope}>
-          <MfeErrorBoundary name={`surface:${kind}`}>{applyEnhancers(node, scope)}</MfeErrorBoundary>
+          <MfeErrorBoundary name={`surface:${kind}`}>
+            {applyEnhancers(node, scope)}
+          </MfeErrorBoundary>
         </PlatformProvider>
       )
     },
@@ -110,7 +121,9 @@ interface ControllerStore<TValue> {
   subscribe(listener: () => void): () => void
 }
 
-function createControllerStore<TValue>(initial: SettingsController<TValue>): ControllerStore<TValue> {
+function createControllerStore<TValue>(
+  initial: SettingsController<TValue>
+): ControllerStore<TValue> {
   let current = initial
   const listeners = new Set<() => void>()
   return {

@@ -11,7 +11,9 @@ describe("createShellHistory", () => {
     const navigation = createMemoryNavigation("/asset-tracker")
     const history = createShellHistory(navigation)
     const seen: string[] = []
-    history.subscribe(({ location, action }) => seen.push(`${action.type}:${location.pathname}`))
+    history.subscribe(({ location, action }) =>
+      seen.push(`${action.type}:${location.pathname}`)
+    )
 
     history.push("/asset-tracker/assets")
     expect(navigation.getLocation().pathname).toBe("/asset-tracker/assets")
@@ -43,7 +45,9 @@ describe("createShellHistory", () => {
     const navigation = createMemoryNavigation("/a")
     const history = createShellHistory(navigation)
     const seen: string[] = []
-    history.subscribe(({ location, action }) => seen.push(`${action.type}:${location.pathname}`))
+    history.subscribe(({ location, action }) =>
+      seen.push(`${action.type}:${location.pathname}`)
+    )
     navigation.push("/b")
     navigation.push("/c")
     navigation.go(-2)
@@ -70,7 +74,8 @@ describe("createShellHistory", () => {
 
   it("respects canLeave and blockers", () => {
     const navigation = createMemoryNavigation("/a")
-    ;(navigation as { canLeave?: (next: string) => boolean }).canLeave = (next) => next !== "/blocked"
+    ;(navigation as { canLeave?: (next: string) => boolean }).canLeave = (next) =>
+      next !== "/blocked"
     const history = createShellHistory(navigation)
     history.push("/blocked")
     expect(navigation.getLocation().pathname).toBe("/a")

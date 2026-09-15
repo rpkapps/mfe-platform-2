@@ -1,7 +1,12 @@
 // Bootstrap
 export { createMfe, createWidget, isRemoteDefinition } from "./mfe"
 export { createMfeRouter, disposeMfeRouter, type CreateMfeRouterOptions } from "./router"
-export { createShellHistory, type ShellHistory } from "./history"
+export {
+  createShellHistory,
+  normalizeShellHref,
+  type ShellHistory,
+  type ShellHistoryOptions,
+} from "./history"
 
 // Providers and boundaries
 export { PlatformProvider, type PlatformProviderProps } from "./provider"

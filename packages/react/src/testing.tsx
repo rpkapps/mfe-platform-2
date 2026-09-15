@@ -89,7 +89,8 @@ export function createTestBridge(options: CreateTestBridgeOptions): TestBridge {
   const navigation =
     options.navigation ?? createMemoryNavigation(options.initialPath ?? routePrefix ?? "/")
   const shell = createShellContextStore({
-    user: options.user === undefined ? { id: "user-1", displayName: "Test User" } : options.user,
+    user:
+      options.user === undefined ? { id: "user-1", displayName: "Test User" } : options.user,
     permissionGroups: options.permissionGroups ?? [],
     environment: options.host?.environment ?? "test",
     ...options.context,
@@ -190,7 +191,8 @@ export function createTestBridge(options: CreateTestBridgeOptions): TestBridge {
     settingsStore,
     dispose: () => overlays.dispose(),
   }
-  if (options.notifications === false) delete (bridge as { notifications?: unknown }).notifications
+  if (options.notifications === false)
+    delete (bridge as { notifications?: unknown }).notifications
   return bridge
 }
 
@@ -211,8 +213,12 @@ export interface RenderMfeResult {
 }
 
 /** Mount a definition into a jsdom container through the real `mount` path. */
-export function renderMfe(definition: MfeDefinition, options: RenderMfeOptions = {}): RenderMfeResult {
-  const bridge = options.bridge ?? createTestBridge({ mfeId: definition.mfeId, initialPath: options.path })
+export function renderMfe(
+  definition: MfeDefinition,
+  options: RenderMfeOptions = {}
+): RenderMfeResult {
+  const bridge =
+    options.bridge ?? createTestBridge({ mfeId: definition.mfeId, initialPath: options.path })
   if (options.bridge && options.path) bridge.navigation.replace(options.path)
   const container = options.container ?? document.createElement("div")
   if (!container.isConnected) document.body.append(container)

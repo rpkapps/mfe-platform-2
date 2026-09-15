@@ -7,7 +7,7 @@ import {
   DefaultPendingComponent,
   DefaultRouteErrorComponent,
 } from "./boundary"
-import { createShellHistory, type ShellHistory } from "./history"
+import { createShellHistory, normalizeShellHref, type ShellHistory } from "./history"
 import { createMountScope, type MountScope } from "./scope"
 import type { MfeRouterContext } from "./types"
 
@@ -32,9 +32,13 @@ export function createMfeRouter(options: CreateMfeRouterOptions): AnyRouter {
   const { routeTree, bridge, scope: givenScope, displayName, ...rest } = options
   const scope =
     givenScope ?? createMountScope({ bridge, kind: "mfe", rootElement: null, displayName })
-  const history: ShellHistory = createShellHistory(bridge.navigation)
+  const basepath = bridge.routePrefix ?? "/"
+  const history: ShellHistory = createShellHistory(bridge.navigation, {
+    normalizeHref: (href) => normalizeShellHref(href, basepath),
+  })
   const context: MfeRouterContext = { platform: scope.routeContext }
-  const userInnerWrap = rest.InnerWrap as ((props: { children: ReactNode }) => ReactNode) | undefined
+  const userInnerWrap = rest.InnerWrap as
+    ((props: { children: ReactNode }) => ReactNode) | undefined
   const InnerWrap = ({ children }: { children: ReactNode }) => {
     const inner = createElement(Fragment, null, createElement(BreadcrumbPublisher), children)
     return userInnerWrap ? userInnerWrap({ children: inner }) : inner
@@ -46,7 +50,7 @@ export function createMfeRouter(options: CreateMfeRouterOptions): AnyRouter {
     defaultNotFoundComponent: DefaultNotFoundComponent,
     ...rest,
     routeTree,
-    basepath: bridge.routePrefix ?? "/",
+    basepath,
     history,
     context,
     InnerWrap: InnerWrap as never,

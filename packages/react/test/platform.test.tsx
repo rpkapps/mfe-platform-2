@@ -17,7 +17,10 @@ import { bridgeFor } from "./helpers"
 describe("usePlatform", () => {
   it("throws a clear PlatformError outside a platform mount", () => {
     expect(() => renderHook(() => usePlatform())).toThrowError(
-      expect.objectContaining({ code: "INTERNAL", message: expect.stringContaining("usePlatform()") })
+      expect.objectContaining({
+        code: "INTERNAL",
+        message: expect.stringContaining("usePlatform()"),
+      })
     )
   })
 
@@ -64,7 +67,10 @@ describe("usePlatform", () => {
     let renders = 0
     const Slice = () => {
       renders += 1
-      const slice = usePlatform((platform) => ({ locale: platform.locale, tz: platform.timezone }))
+      const slice = usePlatform((platform) => ({
+        locale: platform.locale,
+        tz: platform.timezone,
+      }))
       return <span>{slice.locale}</span>
     }
     render(
@@ -99,7 +105,11 @@ describe("other hooks", () => {
     expect(permissions.hasAnyGroup(["nope"])).toBe(false)
     expect(renderHook(() => useRuntimeEnv(), { wrapper }).result.current).toEqual({})
     const instance = renderHook(() => useMfeInstance(), { wrapper }).result.current
-    expect(instance).toMatchObject({ mfeId: "a", instanceId: bridge.instanceId, routePrefix: "/a" })
+    expect(instance).toMatchObject({
+      mfeId: "a",
+      instanceId: bridge.instanceId,
+      routePrefix: "/a",
+    })
   })
 
   it("useNavigation delegates to the shell and tracks the location", () => {
@@ -108,7 +118,11 @@ describe("other hooks", () => {
     act(() => result.current.navigateWithin("/assets/1"))
     expect(result.current.location.pathname).toBe("/a/assets/1")
     act(() => result.current.navigate({ to: "/a/assets", search: { page: 2 }, hash: "top" }))
-    expect(result.current.location).toMatchObject({ pathname: "/a/assets", search: "?page=2", hash: "#top" })
+    expect(result.current.location).toMatchObject({
+      pathname: "/a/assets",
+      search: "?page=2",
+      hash: "#top",
+    })
     act(() => result.current.back())
     expect(result.current.location.pathname).toBe("/a/assets/1")
     act(() => result.current.navigate("/a", { replace: true }))
@@ -126,5 +140,27 @@ describe("other hooks", () => {
     const notifications = renderHook(() => useNotifications(), { wrapper }).result.current
     notifications.notify({ title: "hi" })
     expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "log", level: "warn" })
+  })
+})
+
+describe("useMountDisposer", () => {
+  it("runs cleanups when the mount is disposed, not when the component unmounts", async () => {
+    const { useMountDisposer } = await import("../src/hooks/context")
+    const bridge = bridgeFor({ mfeId: "a" })
+    const calls: string[] = []
+    const Child = () => {
+      const disposer = useMountDisposer()
+      disposer.add(() => calls.push("cleanup"))
+      return null
+    }
+    const view = render(
+      <PlatformTestProvider bridge={bridge}>
+        <Child />
+      </PlatformTestProvider>
+    )
+    view.rerender(<PlatformTestProvider bridge={bridge}>{null}</PlatformTestProvider>)
+    expect(calls).toEqual([])
+    view.unmount()
+    expect(calls).toEqual(["cleanup"])
   })
 })

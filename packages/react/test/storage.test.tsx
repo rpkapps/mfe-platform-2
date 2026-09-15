@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest"
 import { act, render } from "@testing-library/react"
 import { z } from "zod"
-import { createPlatformStorage, usePlatformStorage, useStorageDiagnostics } from "../src/storage"
+import {
+  createPlatformStorage,
+  usePlatformStorage,
+  useStorageDiagnostics,
+} from "../src/storage"
 import { PlatformTestProvider } from "../src/testing"
 import { bridgeFor } from "./helpers"
 
@@ -43,9 +47,13 @@ describe("createPlatformStorage", () => {
     act(() => view.getByText("list").click())
     expect(view.getByTestId("layout").textContent).toBe("list")
     expect(bridge.storage.keys("local")).toEqual(["platform:asset-tracker:local:dashboard"])
-    expect(JSON.parse(bridge.storage.get("local", "platform:asset-tracker:local:dashboard")!)).toMatchObject({ v: 2, data: { layout: "list", pageSize: 20 } })
+    expect(
+      JSON.parse(bridge.storage.get("local", "platform:asset-tracker:local:dashboard")!)
+    ).toMatchObject({ v: 2, data: { layout: "list", pageSize: 20 } })
     expect(dashboard.get().layout).toBe("list")
-    expect(() => dashboard.set({ layout: "grid", pageSize: 1.5 })).toThrowError(expect.objectContaining({ code: "STORAGE_INVALID" }))
+    expect(() => dashboard.set({ layout: "grid", pageSize: 1.5 })).toThrowError(
+      expect.objectContaining({ code: "STORAGE_INVALID" })
+    )
     act(() => dashboard.reset())
     expect(view.getByTestId("layout").textContent).toBe("grid")
     expect(renders).toBe(3)
@@ -54,7 +62,11 @@ describe("createPlatformStorage", () => {
 
   it("applies cross-tab updates, migrations and reports invalid data as diagnostics", () => {
     const bridge = bridgeFor({ mfeId: "asset-tracker" })
-    bridge.storage.set("local", "platform:asset-tracker:local:dashboard", JSON.stringify({ v: 1, data: { layout: "list" }, updatedAt: 0 }))
+    bridge.storage.set(
+      "local",
+      "platform:asset-tracker:local:dashboard",
+      JSON.stringify({ v: 1, data: { layout: "list" }, updatedAt: 0 })
+    )
     const View = () => {
       const value = dashboard.use()
       const diagnostics = useStorageDiagnostics()
@@ -73,18 +85,39 @@ describe("createPlatformStorage", () => {
     expect(view.getByTestId("layout").textContent).toBe("list")
     expect(view.getByTestId("diag").textContent).toBe("0")
 
-    act(() => bridge.storage.emitExternal("local", "platform:asset-tracker:local:dashboard", JSON.stringify({ v: 2, data: { layout: "grid", pageSize: 5 }, updatedAt: 1 })))
+    act(() =>
+      bridge.storage.emitExternal(
+        "local",
+        "platform:asset-tracker:local:dashboard",
+        JSON.stringify({ v: 2, data: { layout: "grid", pageSize: 5 }, updatedAt: 1 })
+      )
+    )
     expect(view.getByTestId("layout").textContent).toBe("grid")
 
-    act(() => bridge.storage.emitExternal("local", "platform:asset-tracker:local:dashboard", "{not json"))
+    act(() =>
+      bridge.storage.emitExternal(
+        "local",
+        "platform:asset-tracker:local:dashboard",
+        "{not json"
+      )
+    )
     expect(view.getByTestId("layout").textContent).toBe("grid")
     expect(view.getByTestId("diag").textContent).toBe("1")
-    expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "storage.invalid", recovered: "defaults", mfeId: "asset-tracker" })
+    expect(bridge.diagnostics.events.at(-1)).toMatchObject({
+      type: "storage.invalid",
+      recovered: "defaults",
+      mfeId: "asset-tracker",
+    })
     view.unmount()
   })
 
   it("scopes instance stores per instance and disposes stores with the mount", () => {
-    const counter = createPlatformStorage({ scope: "session", key: "counter", defaults: { n: 0 }, instanceScoped: true })
+    const counter = createPlatformStorage({
+      scope: "session",
+      key: "counter",
+      defaults: { n: 0 },
+      instanceScoped: true,
+    })
     const bridge = bridgeFor({ mfeId: "widget-lib", widgetId: "w", instanceId: "widget-lib#1" })
     const store = counter.bind({ bridge })
     expect(store.namespacedKey).toBe("platform:widget-lib:widget-lib#1:session:counter")

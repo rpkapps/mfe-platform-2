@@ -1,16 +1,14 @@
 import { describe, expect, it } from "vitest"
+import { act } from "@testing-library/react"
 import { useState } from "react"
 import { redirect, useRouteContext } from "@tanstack/react-router"
 import { createMfe } from "../src/mfe"
 import { createMfeRouter, disposeMfeRouter } from "../src/router"
 import { bridgeFor, disposeAsync, flush, mountMfe, routeTreeOf } from "./helpers"
 
-let renders = 0
-
 function Root() {
   const platform = useRouteContext({ strict: false }).platform
   const [count, setCount] = useState(0)
-  renders += 1
   return (
     <div>
       <p data-testid="user">{platform.user?.displayName}</p>
@@ -41,7 +39,11 @@ function buildDefinition() {
     {
       path: "/secure",
       component: Secure,
-      beforeLoad: ({ context }: { context: { platform: { permissions: { hasGroup(g: string): boolean } } } }) => {
+      beforeLoad: ({
+        context,
+      }: {
+        context: { platform: { permissions: { hasGroup(g: string): boolean } } }
+      }) => {
         if (!context.platform.permissions.hasGroup("assets:admin")) throw redirect({ to: "/" })
       },
       staticData: { permissionGroups: ["assets:admin"] },
@@ -85,7 +87,12 @@ describe("createMfeRouter", () => {
     await flush()
     expect(container.querySelector("[data-testid=count]")?.textContent).toBe("1")
 
-    bridge.setContext({ user: { id: "2", displayName: "Admin" }, permissionGroups: ["assets:admin"] })
+    await act(async () => {
+      bridge.setContext({
+        user: { id: "2", displayName: "Admin" },
+        permissionGroups: ["assets:admin"],
+      })
+    })
     await flush()
     // loader re-ran with the new revision, the component was not remounted (state survives)
     expect(loaderCalls).toEqual([0, 1])
@@ -99,7 +106,7 @@ describe("createMfeRouter", () => {
     expect(bridge.navigation.getLocation().pathname).toBe("/asset-tracker/secure")
 
     // removing the group re-runs the guard and redirects away
-    bridge.setContext({ permissionGroups: [] })
+    await act(async () => bridge.setContext({ permissionGroups: [] }))
     await flush()
     expect(bridge.navigation.getLocation().pathname).toBe("/asset-tracker")
     expect(container.querySelector("[data-testid=secure]")).toBeNull()

@@ -181,7 +181,9 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
       const router: AnyRouter = createMfeRouter({
         ...(options.router ?? {}),
         ...(options.errorComponent ? { defaultErrorComponent: options.errorComponent } : {}),
-        ...(options.pendingComponent ? { defaultPendingComponent: options.pendingComponent } : {}),
+        ...(options.pendingComponent
+          ? { defaultPendingComponent: options.pendingComponent }
+          : {}),
         ...(options.notFoundComponent
           ? { defaultNotFoundComponent: options.notFoundComponent }
           : {}),
@@ -300,7 +302,11 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
     } catch (error) {
       isolated?.scope.disposer.dispose()
       const platformError = toPlatformError(error, { code: "WIDGET_MOUNT_FAILED", owner })
-      bridge.diagnostics.emit({ type: "widget.failed", error: platformError.toJSON(), ...owner })
+      bridge.diagnostics.emit({
+        type: "widget.failed",
+        error: platformError.toJSON(),
+        ...owner,
+      })
       span.fail(platformError)
       bridge.telemetry.error(platformError, { boundary: "widget-mount", widgetId })
       throw platformError
@@ -326,7 +332,8 @@ export function createMfe(options: CreateMfeOptions = {}): MfeDefinition {
     mount,
     mountWidget,
     use(enhancer) {
-      if (!enhancers.some((existing) => existing.name === enhancer.name)) enhancers.push(enhancer)
+      if (!enhancers.some((existing) => existing.name === enhancer.name))
+        enhancers.push(enhancer)
       return definition
     },
   }

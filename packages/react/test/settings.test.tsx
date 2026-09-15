@@ -33,7 +33,10 @@ describe("settings registration", () => {
         key: "display",
         title: "Display",
         fields: {
-          density: { defaultValue: "comfortable", options: [{ value: "comfortable", label: "Comfortable" }] },
+          density: {
+            defaultValue: "comfortable",
+            options: [{ value: "comfortable", label: "Comfortable" }],
+          },
           showHints: { defaultValue: true, schema: z.boolean() },
         },
       })
@@ -50,7 +53,12 @@ describe("settings registration", () => {
       ["density", "select", "Density"],
       ["showHints", "boolean", "Show hints"],
     ])
-    expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "registration", kind: "settings", action: "added", key: "a:display" })
+    expect(bridge.diagnostics.events.at(-1)).toMatchObject({
+      type: "registration",
+      kind: "settings",
+      action: "added",
+      key: "a:display",
+    })
     view.unmount()
     expect(bridge.registries.settings.list()).toHaveLength(0)
   })
@@ -61,13 +69,22 @@ describe("settings registration", () => {
       const user = usePlatform((platform) => platform.user?.displayName)
       return (
         <label>
-          {user}: <input value={controller.value} onChange={(event) => controller.setValue(event.target.value)} />
+          {user}:{" "}
+          <input
+            value={controller.value}
+            onChange={(event) => controller.setValue(event.target.value)}
+          />
         </label>
       )
     }
     render(
       <PlatformTestProvider bridge={bridge}>
-        <SettingsRegistration definition={{ key: "theme", fields: { accent: { defaultValue: "blue", renderer: Renderer } } }} />
+        <SettingsRegistration
+          definition={{
+            key: "theme",
+            fields: { accent: { defaultValue: "blue", renderer: Renderer } },
+          }}
+        />
       </PlatformTestProvider>
     )
     const group = bridge.registries.settings.list()[0]!
@@ -104,7 +121,12 @@ describe("settings registration", () => {
               source: {
                 defaultValue: "",
                 options: async ({ platform }) => [
-                  { value: String((platform as { permissionGroups: string[] }).permissionGroups[0]), label: "x" },
+                  {
+                    value: String(
+                      (platform as { permissionGroups: string[] }).permissionGroups[0]
+                    ),
+                    label: "x",
+                  },
                 ],
                 visibleWhen: (state) => state.enabled === true,
               },
@@ -114,7 +136,11 @@ describe("settings registration", () => {
       </PlatformTestProvider>
     )
     const field = bridge.registries.settings.list()[0]!.definition.fields.source!
-    const options = await (field.options as (ctx: unknown) => Promise<{ value: string }[]>)({ signal: new AbortController().signal, state: {}, platform: null })
+    const options = await (field.options as (ctx: unknown) => Promise<{ value: string }[]>)({
+      signal: new AbortController().signal,
+      state: {},
+      platform: null,
+    })
     expect(options[0]?.value).toBe("admin")
     expect(field.visibleWhen?.({ enabled: true })).toBe(true)
     expect(field.visibleWhen?.({ enabled: false })).toBe(false)
@@ -123,7 +149,11 @@ describe("settings registration", () => {
   it("merges independently registered fields of a group and removes them one by one", async () => {
     const bridge = bridgeFor({ mfeId: "a" })
     const FieldA = () => {
-      useRegisterSettingsField({ group: { key: "display", title: "Display" }, key: "density", defaultValue: "compact" })
+      useRegisterSettingsField({
+        group: { key: "display", title: "Display" },
+        key: "density",
+        defaultValue: "compact",
+      })
       return null
     }
     const FieldB = () => {
@@ -174,8 +204,15 @@ describe("help and release notes", () => {
     const Guide = () => <article>Guide body</article>
     const view = render(
       <PlatformTestProvider bridge={bridge}>
-        <HelpRegistration definition={[{ id: "getting-started", title: "Getting started", content: Guide }, { id: "faq", title: "FAQ", href: "https://example.test" }]} />
-        <ReleaseNotesRegistration definition={{ id: "v2", version: "2.0.0", title: "Version 2", content: Guide }} />
+        <HelpRegistration
+          definition={[
+            { id: "getting-started", title: "Getting started", content: Guide },
+            { id: "faq", title: "FAQ", href: "https://example.test" },
+          ]}
+        />
+        <ReleaseNotesRegistration
+          definition={{ id: "v2", version: "2.0.0", title: "Version 2", content: Guide }}
+        />
       </PlatformTestProvider>
     )
     const help = bridge.registries.help.list()
@@ -188,7 +225,9 @@ describe("help and release notes", () => {
       handle = content.mount(container)
     })
     expect(container.textContent).toContain("Guide body")
-    expect(container.querySelector("[data-platform-surface]")?.getAttribute("data-platform-surface")).toBe("help")
+    expect(
+      container.querySelector("[data-platform-surface]")?.getAttribute("data-platform-surface")
+    ).toBe("help")
     await act(async () => handle.dispose())
     expect(container.childElementCount).toBe(0)
 

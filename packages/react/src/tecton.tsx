@@ -27,7 +27,10 @@ export const tectonEnhancer: MfeEnhancer = {
 }
 
 /** Apply the Tecton integration to a definition (the generated entry does this for Tecton MFEs). */
-export function withTecton(definition: MfeDefinition, _options: WithTectonOptions = {}): MfeDefinition {
+export function withTecton(
+  definition: MfeDefinition,
+  _options: WithTectonOptions = {}
+): MfeDefinition {
   return definition.use(tectonEnhancer)
 }
 

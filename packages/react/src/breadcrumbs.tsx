@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react"
 import { useMatch, useRouter, useRouterState, type AnyRouteMatch } from "@tanstack/react-router"
 import type { BreadcrumbEntry, BreadcrumbTrail } from "@platform-internal/core"
+import { normalizeShellHref } from "./history"
 import { useMountScope } from "./provider"
 import { useStoreSlice } from "./hooks/store"
 import type { MountScope } from "./scope"
@@ -44,7 +45,10 @@ function resolveLabel(
   return { label: undefined, state: "ready" }
 }
 
-function applyOverride(entry: BreadcrumbEntry, override: BreadcrumbOverride | undefined): BreadcrumbEntry {
+function applyOverride(
+  entry: BreadcrumbEntry,
+  override: BreadcrumbOverride | undefined
+): BreadcrumbEntry {
   if (override === undefined) return entry
   if (typeof override === "string") return { ...entry, label: override, state: "ready" }
   return { ...entry, ...override }
@@ -59,7 +63,9 @@ export function buildBreadcrumbTrail(
 ): BreadcrumbTrail {
   const entries: BreadcrumbEntry[] = []
   const root = matches.find((match) => match.routeId === "__root__")
-  const rootStatic = normalizeStatic(root?.staticData.breadcrumb as BreadcrumbStaticData | undefined)
+  const rootStatic = normalizeStatic(
+    root?.staticData.breadcrumb as BreadcrumbStaticData | undefined
+  )
   const rootLabel =
     typeof rootStatic?.label === "string"
       ? rootStatic.label
@@ -79,9 +85,12 @@ export function buildBreadcrumbTrail(
   )
   for (const match of matches) {
     if (match.routeId === "__root__") continue
-    const data = normalizeStatic(match.staticData.breadcrumb as BreadcrumbStaticData | undefined)
+    const data = normalizeStatic(
+      match.staticData.breadcrumb as BreadcrumbStaticData | undefined
+    )
     const loaderData = match.loaderData as Record<string, unknown> | undefined
-    const hasLoaderCrumb = loaderData && typeof loaderData === "object" && "breadcrumb" in loaderData
+    const hasLoaderCrumb =
+      loaderData && typeof loaderData === "object" && "breadcrumb" in loaderData
     const override = overrides.get(match.routeId)
     if (data === undefined && !hasLoaderCrumb && override === undefined) continue
     const { label, state } = resolveLabel(match, data)
@@ -146,11 +155,12 @@ export function BreadcrumbPublisher() {
     if (headless) return
     const buildHref = (match: Match): string | undefined => {
       try {
-        return router.buildLocation({
+        const { publicHref } = router.buildLocation({
           to: match.pathname,
           params: match.params,
           search: match.search,
-        } as never).publicHref
+        } as never)
+        return normalizeShellHref(publicHref, scope.instance.routePrefix)
       } catch {
         return undefined
       }
@@ -184,6 +194,5 @@ export function useBreadcrumb(entry: BreadcrumbOverride | null): void {
         overrides.set(current)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, routeId, identity])
 }

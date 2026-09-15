@@ -29,7 +29,11 @@ function Override() {
 function build() {
   const { routeTree } = routeTreeOf(
     [
-      { path: "/", component: () => <p>home</p>, staticData: { breadcrumb: { hidden: true, label: "Home" } } },
+      {
+        path: "/",
+        component: () => <p>home</p>,
+        staticData: { breadcrumb: { hidden: true, label: "Home" } },
+      },
       { path: "/assets", component: () => <p>assets</p>, staticData: { breadcrumb: "Assets" } },
       {
         path: "/assets/$assetId",
@@ -40,7 +44,11 @@ function build() {
       {
         path: "/dynamic/$id",
         component: () => <p>dyn</p>,
-        staticData: { breadcrumb: { label: (match: { params: { id: string } }) => `Item ${match.params.id}` } },
+        staticData: {
+          breadcrumb: {
+            label: (match: { params: { id: string } }) => `Item ${match.params.id}`,
+          },
+        },
       },
       {
         path: "/broken",
@@ -54,7 +62,11 @@ function build() {
         },
       },
       { path: "/override", component: Override, staticData: { breadcrumb: "Static" } },
-      { path: "/from-loader", component: () => <p>fl</p>, loader: () => ({ breadcrumb: "From loader" }) },
+      {
+        path: "/from-loader",
+        component: () => <p>fl</p>,
+        loader: () => ({ breadcrumb: "From loader" }),
+      },
     ],
     { staticData: { breadcrumb: "Asset tracker" } }
   )
@@ -67,13 +79,34 @@ describe("breadcrumbs", () => {
     const bridge = bridgeFor({ mfeId: "asset-tracker" })
     const { handle, container } = await mountMfe(definition, bridge)
     expect(entriesOf(bridge)).toEqual([
-      { key: "__root__", label: "Asset tracker", href: "/asset-tracker", state: "ready", kind: "mfe-root", hidden: undefined },
-      { key: "/", label: "Home", href: "/asset-tracker/", state: "ready", kind: "route", hidden: true },
+      {
+        key: "__root__",
+        label: "Asset tracker",
+        href: "/asset-tracker",
+        state: "ready",
+        kind: "mfe-root",
+        hidden: undefined,
+      },
+      {
+        key: "/",
+        label: "Home",
+        href: "/asset-tracker",
+        state: "ready",
+        kind: "route",
+        hidden: true,
+      },
     ])
 
     bridge.navigation.push("/asset-tracker/assets")
     await flush()
-    expect(entriesOf(bridge)?.[1]).toEqual({ key: "/assets", label: "Assets", href: "/asset-tracker/assets", state: "ready", kind: "route", hidden: undefined })
+    expect(entriesOf(bridge)?.[1]).toEqual({
+      key: "/assets",
+      label: "Assets",
+      href: "/asset-tracker/assets",
+      state: "ready",
+      kind: "route",
+      hidden: undefined,
+    })
 
     bridge.navigation.push("/asset-tracker/assets/42")
     await flush()
@@ -81,19 +114,38 @@ describe("breadcrumbs", () => {
     if (pending) expect(pending.state).toBe("loading")
     resolveAsset({ title: "Pump 42" })
     await flush()
-    expect(entriesOf(bridge)?.at(-1)).toEqual({ key: "/assets/$assetId", label: "Pump 42", href: "/asset-tracker/assets/42", state: "ready", kind: "route", hidden: undefined })
+    expect(entriesOf(bridge)?.at(-1)).toEqual({
+      key: "/assets/$assetId",
+      label: "Pump 42",
+      href: "/asset-tracker/assets/42",
+      state: "ready",
+      kind: "route",
+      hidden: undefined,
+    })
 
     bridge.navigation.push("/asset-tracker/dynamic/7")
     await flush()
-    expect(entriesOf(bridge)?.at(-1)).toMatchObject({ label: "Item 7", href: "/asset-tracker/dynamic/7", state: "ready" })
+    expect(entriesOf(bridge)?.at(-1)).toMatchObject({
+      label: "Item 7",
+      href: "/asset-tracker/dynamic/7",
+      state: "ready",
+    })
 
     bridge.navigation.push("/asset-tracker/broken")
     await flush()
-    expect(entriesOf(bridge)?.at(-1)).toMatchObject({ key: "/broken", label: undefined, state: "unavailable" })
+    expect(entriesOf(bridge)?.at(-1)).toMatchObject({
+      key: "/broken",
+      label: undefined,
+      state: "unavailable",
+    })
 
     bridge.navigation.push("/asset-tracker/from-loader")
     await flush()
-    expect(entriesOf(bridge)?.at(-1)).toMatchObject({ key: "/from-loader", label: "From loader", state: "ready" })
+    expect(entriesOf(bridge)?.at(-1)).toMatchObject({
+      key: "/from-loader",
+      label: "From loader",
+      state: "ready",
+    })
 
     await disposeAsync(handle)
     expect(bridge.breadcrumbs.getState().trails[bridge.instanceId]).toBeUndefined()
@@ -120,8 +172,67 @@ describe("breadcrumbs", () => {
     const definition = createMfe({ mfeId: "reports", displayName: "Reports", routeTree })
     const bridge = bridgeFor({ mfeId: "reports" })
     const { handle, container } = await mountMfe(definition, bridge)
-    expect(entriesOf(bridge)).toEqual([{ key: "__root__", label: "Reports", href: "/reports", state: "ready", kind: "mfe-root", hidden: undefined }])
+    expect(entriesOf(bridge)).toEqual([
+      {
+        key: "__root__",
+        label: "Reports",
+        href: "/reports",
+        state: "ready",
+        kind: "mfe-root",
+        hidden: undefined,
+      },
+    ])
     await disposeAsync(handle)
     container.remove()
+  })
+})
+
+describe("buildBreadcrumbTrail", () => {
+  it("marks pending matches as loading and errored matches as unavailable", async () => {
+    const { buildBreadcrumbTrail } = await import("../src/breadcrumbs")
+    const { createMountScope } = await import("../src/scope")
+    const bridge = bridgeFor({ mfeId: "asset-tracker" })
+    const scope = createMountScope({
+      bridge,
+      kind: "mfe",
+      rootElement: null,
+      displayName: "Assets",
+    })
+    const match = (overrides: Record<string, unknown>) =>
+      ({
+        routeId: "/assets/$assetId",
+        pathname: "/assets/1",
+        params: { assetId: "1" },
+        search: {},
+        status: "success",
+        staticData: { breadcrumb: { fromLoader: "title" } },
+        ...overrides,
+      }) as never
+    const trail = (overrides: Record<string, unknown>) =>
+      buildBreadcrumbTrail(
+        scope,
+        [match(overrides)],
+        () => "/asset-tracker/assets/1",
+        new Map()
+      ).entries.at(-1)
+    expect(trail({ status: "pending" })).toMatchObject({
+      state: "loading",
+      href: "/asset-tracker/assets/1",
+    })
+    expect(trail({ status: "error", error: new Error("x") })).toMatchObject({
+      state: "unavailable",
+    })
+    expect(trail({ loaderData: { title: "Pump" } })).toMatchObject({
+      state: "ready",
+      label: "Pump",
+    })
+    expect(trail({ loaderData: {} })).toMatchObject({ state: "unavailable", label: undefined })
+    expect(
+      trail({ staticData: { breadcrumb: { label: "Static", hidden: true } } })
+    ).toMatchObject({ state: "ready", label: "Static", hidden: true })
+    expect(
+      buildBreadcrumbTrail(scope, [], () => undefined, new Map()).entries[0]
+    ).toMatchObject({ kind: "mfe-root", label: "Assets", href: "/asset-tracker" })
+    scope.disposer.dispose()
   })
 })

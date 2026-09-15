@@ -9,7 +9,12 @@ describe("useRegisterCommand", () => {
   it("registers for the component lifetime, namespaced with the mfeId, and unregisters on unmount", () => {
     const bridge = bridgeFor({ mfeId: "a" })
     const Cmd = () => {
-      useRegisterCommand({ id: "refresh", label: "Refresh", shortcut: "mod+r", handler: () => {} })
+      useRegisterCommand({
+        id: "refresh",
+        label: "Refresh",
+        shortcut: "mod+r",
+        handler: () => {},
+      })
       return null
     }
     const view = render(
@@ -19,11 +24,23 @@ describe("useRegisterCommand", () => {
     )
     const registered = bridge.registries.commands.list()
     expect(registered).toHaveLength(1)
-    expect(registered[0]).toMatchObject({ qualifiedId: "a:refresh", shortcut: "mod+r", owner: { mfeId: "a" } })
-    expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "registration", kind: "command", action: "added", key: "a:refresh" })
+    expect(registered[0]).toMatchObject({
+      qualifiedId: "a:refresh",
+      shortcut: "mod+r",
+      owner: { mfeId: "a" },
+    })
+    expect(bridge.diagnostics.events.at(-1)).toMatchObject({
+      type: "registration",
+      kind: "command",
+      action: "added",
+      key: "a:refresh",
+    })
     view.unmount()
     expect(bridge.registries.commands.list()).toHaveLength(0)
-    expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "registration", action: "removed" })
+    expect(bridge.diagnostics.events.at(-1)).toMatchObject({
+      type: "registration",
+      action: "removed",
+    })
   })
 
   it("keeps the latest handler without re-registering and re-registers when deps change", () => {
@@ -47,7 +64,11 @@ describe("useRegisterCommand", () => {
     const first = bridge.registries.commands.get("a:x")!
     act(() => setValue("v2"))
     expect(bridge.registries.commands.get("a:x")).toBe(first)
-    void first.definition.handler({ signal: new AbortController().signal, source: "api", platform: null })
+    void first.definition.handler({
+      signal: new AbortController().signal,
+      source: "api",
+      platform: null,
+    })
     expect(seen).toEqual(["v2"])
     act(() => setLabel("Two"))
     expect(bridge.registries.commands.get("a:x")).not.toBe(first)
@@ -85,18 +106,34 @@ describe("useRegisterCommand", () => {
     )
     const registry = bridge.registries.commands
     const slow = registry.get("a:slow")!
-    const run = slow.definition.handler({ signal: new AbortController().signal, source: "palette", platform: null })
+    const run = slow.definition.handler({
+      signal: new AbortController().signal,
+      source: "palette",
+      platform: null,
+    })
     expect(registry.states()["a:slow"]).toMatchObject({ status: "running" })
     expect((received as { user: { displayName: string } }).user.displayName).toBe("Test User")
     resolveRun()
     await run
     expect(registry.states()["a:slow"]).toMatchObject({ status: "succeeded" })
-    expect(bridge.diagnostics.events.filter((event) => event.type === "command.run").map((event) => (event as { outcome: string }).outcome)).toEqual(["started", "succeeded"])
-    expect(bridge.telemetryEvents.some((event) => event.name === "command.run" && event.attributes.command === "a:slow")).toBe(true)
+    expect(
+      bridge.diagnostics.events
+        .filter((event) => event.type === "command.run")
+        .map((event) => (event as { outcome: string }).outcome)
+    ).toEqual(["started", "succeeded"])
+    expect(
+      bridge.telemetryEvents.some(
+        (event) => event.name === "command.run" && event.attributes.command === "a:slow"
+      )
+    ).toBe(true)
 
     const bad = registry.get("a:bad")!
     await expect(
-      bad.definition.handler({ signal: new AbortController().signal, source: "api", platform: null })
+      bad.definition.handler({
+        signal: new AbortController().signal,
+        source: "api",
+        platform: null,
+      })
     ).rejects.toMatchObject({ code: "COMMAND_FAILED", message: "nope" })
     expect(registry.states()["a:bad"]).toMatchObject({ status: "failed", error: "nope" })
   })
@@ -118,26 +155,39 @@ describe("useRegisterCommand", () => {
       </PlatformTestProvider>
     )
     const controller = new AbortController()
-    const run = bridge.registries.commands.get("a:long")!.definition.handler({ signal: controller.signal, source: "shortcut", platform: null })
+    const run = bridge.registries.commands
+      .get("a:long")!
+      .definition.handler({ signal: controller.signal, source: "shortcut", platform: null })
     controller.abort()
     await run
     expect(bridge.registries.commands.states()["a:long"]).toEqual({ status: "idle" })
-    expect(bridge.diagnostics.events.at(-1)).toMatchObject({ type: "command.run", outcome: "cancelled" })
+    expect(bridge.diagnostics.events.at(-1)).toMatchObject({
+      type: "command.run",
+      outcome: "cancelled",
+    })
   })
 
   it("surfaces shortcut conflicts deterministically: the first holder keeps the shortcut", async () => {
     const bridge = bridgeFor({ mfeId: "a" })
     render(
       <PlatformTestProvider bridge={bridge}>
-        <CommandRegistration definition={{ id: "first", label: "First", shortcut: "mod+k", handler: () => {} }} />
-        <CommandRegistration definition={{ id: "second", label: "Second", shortcut: "mod+k", handler: () => {} }} />
+        <CommandRegistration
+          definition={{ id: "first", label: "First", shortcut: "mod+k", handler: () => {} }}
+        />
+        <CommandRegistration
+          definition={{ id: "second", label: "Second", shortcut: "mod+k", handler: () => {} }}
+        />
       </PlatformTestProvider>
     )
     await flush()
     expect(bridge.registries.commands.get("a:first")!.shortcut).toBe("mod+k")
     expect(bridge.registries.commands.get("a:second")!.shortcut).toBeUndefined()
-    expect(bridge.diagnostics.events.find((event) => event.type === "shortcut.conflict")).toMatchObject({ shortcut: "mod+k", holder: "a:first", rejected: "a:second" })
-    expect(bridge.telemetryEvents.some((event) => event.name === "command.shortcut-conflict")).toBe(true)
+    expect(
+      bridge.diagnostics.events.find((event) => event.type === "shortcut.conflict")
+    ).toMatchObject({ shortcut: "mod+k", holder: "a:first", rejected: "a:second" })
+    expect(
+      bridge.telemetryEvents.some((event) => event.name === "command.shortcut-conflict")
+    ).toBe(true)
   })
 
   it("namespaces widget commands with the instance id and navigates route commands", () => {
@@ -149,7 +199,11 @@ describe("useRegisterCommand", () => {
     )
     const command = bridge.registries.commands.list()[0]!
     expect(command.qualifiedId).toBe(`a:open@${bridge.instanceId}`)
-    void command.definition.handler({ signal: new AbortController().signal, source: "api", platform: null })
+    void command.definition.handler({
+      signal: new AbortController().signal,
+      source: "api",
+      platform: null,
+    })
     expect(bridge.navigation.getLocation().pathname).toBe("/a/assets")
   })
 })

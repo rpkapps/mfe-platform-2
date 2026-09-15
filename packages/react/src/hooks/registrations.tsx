@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, type DependencyList } from "react"
+import { useEffect, useMemo, useRef, type ComponentType, type DependencyList } from "react"
 import {
   qualifyId,
   toPlatformError,
   type CommandDefinition,
   type CommandRunContext,
   type HelpEntryDefinition,
+  type MountableSurface,
   type ReleaseNoteDefinition,
   type SettingsFieldDefinition,
   type SettingsGroupDefinition,
@@ -13,8 +14,9 @@ import { useMountScope } from "../provider"
 import { ownerFields, type MountScope } from "../scope"
 import {
   createSettingsRendererSurface,
+  createSurface,
+  isMountableSurface,
   isSettingsRendererSurface,
-  toMountableSurface,
 } from "../surfaces"
 import type {
   CommandInput,
@@ -77,7 +79,12 @@ export function prepareCommand(
     const latest = getLatest()
     const startedAt = now()
     registry.setState(qualifiedId, { status: "running", startedAt })
-    scope.bridge.diagnostics.emit({ type: "command.run", qualifiedId, outcome: "started", ...owner })
+    scope.bridge.diagnostics.emit({
+      type: "command.run",
+      qualifiedId,
+      outcome: "started",
+      ...owner,
+    })
     const telemetry = scope.bridge.telemetry.child({ command: qualifiedId })
     const span = telemetry.span("command.run", { source: context.source, ...latest.telemetry })
     try {
@@ -166,11 +173,9 @@ export function useRegisterCommand(
   const identity = deps ? JSON.stringify(deps.map(String)) : stableKey(definition)
   const instanceScoped = options?.instanceScoped ?? false
   useEffect(() => {
-    const { definition: prepared, qualifiedId } = prepareCommand(
-      scope,
-      () => latest.current,
-      { instanceScoped }
-    )
+    const { definition: prepared, qualifiedId } = prepareCommand(scope, () => latest.current, {
+      instanceScoped,
+    })
     const registry = scope.bridge.registries.commands
     const unregister = registry.register(prepared, scope.owner, { instanceScoped })
     scope.bridge.diagnostics.emit({
@@ -205,7 +210,6 @@ export function useRegisterCommand(
         ...ownerFields(scope),
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, identity, instanceScoped])
 }
 
@@ -241,7 +245,8 @@ function prepareField(
     }
   }
   if (typeof input.migrate === "function") {
-    field.migrate = (stored, version) => (getLatest()?.migrate ?? input.migrate)!(stored, version)
+    field.migrate = (stored, version) =>
+      (getLatest()?.migrate ?? input.migrate)!(stored, version)
   }
   return field
 }
@@ -285,7 +290,6 @@ export function useRegisterSettingsGroup(definition: SettingsGroupInput): void {
         ...ownerFields(scope),
       })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, identity])
 }
 
@@ -310,7 +314,6 @@ export function useRegisterSettingsField<TValue>(
       field as SettingsFieldInput
     )
     return scope.root.settingsAggregator.add(group, key, prepared)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, identity])
 }
 
@@ -330,13 +333,23 @@ export function prepareHelpEntry(
   const { content, ...rest } = input
   const definition: HelpEntryDefinition = { ...rest }
   if (content !== undefined) {
-    definition.content = toMountableSurface(
-      scope,
-      typeof content === "function" ? () => (getLatest()?.content as never) ?? content : content,
-      "help"
-    )
+    definition.content = isMountableSurface(content)
+      ? content
+      : createSurface(
+          scope,
+          () => latestComponent(getLatest()?.content, content),
+          undefined,
+          "help"
+        )
   }
   return definition
+}
+
+function latestComponent(
+  latest: ComponentType | MountableSurface | undefined,
+  fallback: ComponentType
+): ComponentType {
+  return typeof latest === "function" ? latest : fallback
 }
 
 export function prepareReleaseNote(
@@ -347,11 +360,14 @@ export function prepareReleaseNote(
   const { content, ...rest } = input
   const definition: ReleaseNoteDefinition = { ...rest }
   if (content !== undefined) {
-    definition.content = toMountableSurface(
-      scope,
-      typeof content === "function" ? () => (getLatest()?.content as never) ?? content : content,
-      "release-note"
-    )
+    definition.content = isMountableSurface(content)
+      ? content
+      : createSurface(
+          scope,
+          () => latestComponent(getLatest()?.content, content),
+          undefined,
+          "release-note"
+        )
   }
   return definition
 }
@@ -386,12 +402,13 @@ export function useRegisterHelp(definition: HelpEntryInput | HelpEntryInput[]): 
       }
     })
     return () => disposers.forEach((dispose) => dispose())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, identity])
 }
 
 /** Register release notes for the lifetime of the component. */
-export function useRegisterReleaseNotes(definition: ReleaseNoteInput | ReleaseNoteInput[]): void {
+export function useRegisterReleaseNotes(
+  definition: ReleaseNoteInput | ReleaseNoteInput[]
+): void {
   const scope = useMountScope("useRegisterReleaseNotes")
   const entries = useMemo(() => asArray(definition), [definition])
   const latest = useLatest(entries)
@@ -420,7 +437,6 @@ export function useRegisterReleaseNotes(definition: ReleaseNoteInput | ReleaseNo
       }
     })
     return () => disposers.forEach((dispose) => dispose())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scope, identity])
 }
 
