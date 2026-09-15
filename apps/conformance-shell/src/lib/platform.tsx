@@ -9,9 +9,12 @@ import {
   type PlatformHost,
   type RuntimeConfig,
 } from "@platform/host"
-import { createTanStackShellNavigation } from "@platform/host/tanstack"
-import { PlatformProvider, createSonnerNotificationPort } from "@platform/host/react"
+import { PlatformProvider } from "@platform/host-react"
+import { createTanStackShellNavigation } from "@platform/host-react/tanstack"
 import { FEATURE_FLAGS, PROJECTS, TENANT, USERS, JOBS } from "@platform-internal/conformance"
+
+import { createSonnerNotificationPort } from "@/components/notifications"
+import { LoadingState, RemoteErrorState } from "@/components/status"
 
 import { registry } from "./registry"
 
@@ -112,7 +115,13 @@ export function ShellPlatform({
   if (!host) return <HostContext.Provider value={null}>{children}</HostContext.Provider>
   return (
     <HostContext.Provider value={host}>
-      <PlatformProvider host={host}>{children}</PlatformProvider>
+      <PlatformProvider
+        host={host}
+        renderLoading={(props) => <LoadingState {...props} />}
+        renderError={(props) => <RemoteErrorState {...props} />}
+      >
+        {children}
+      </PlatformProvider>
     </HostContext.Provider>
   )
 }

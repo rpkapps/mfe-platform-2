@@ -19,8 +19,8 @@ import {
   SEARCH_GROUPS,
   type SearchKind,
   type SearchResult,
-} from "../search"
-import { usePlatformHost, useRegistryVersion } from "./context"
+} from "@platform/host"
+import { usePlatformHost, useRegistryVersion } from "@platform/host-react"
 
 export interface CommandPaletteProps {
   /** Shortcut opening the palette (default `mod+k`). */

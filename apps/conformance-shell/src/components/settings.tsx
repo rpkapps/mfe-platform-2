@@ -27,8 +27,8 @@ import {
   settingsController,
   type SettingsController,
   type SettingsFieldState,
-} from "../settings-controller"
-import { usePlatformHost, useRegistryVersion, useSubscription } from "./context"
+} from "@platform/host"
+import { usePlatformHost, useRegistryVersion, useSubscription } from "@platform/host-react"
 
 export interface SettingsHostProps {
   groupFilter?: (group: RegisteredSettingsGroup) => boolean

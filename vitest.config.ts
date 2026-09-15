@@ -10,6 +10,7 @@ export default defineConfig({
       "packages/*/vitest.config.ts",
       "apps/conformance-react19/vitest.config.ts",
       "apps/conformance-react18/vitest.config.ts",
+      "apps/conformance-shell/vitest.config.ts",
       "test/integration/vitest.config.ts",
     ],
     coverage: {

@@ -1,6 +1,6 @@
 import * as React from "react"
 import { createFileRoute } from "@tanstack/react-router"
-import { WidgetSlot } from "@platform/host/react"
+import { WidgetSlot } from "@platform/host-react"
 import { MFE_IDS } from "@platform-internal/conformance"
 
 import { Button } from "@tecton/react/components/button"

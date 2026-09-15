@@ -68,6 +68,13 @@ export {
   validateManifest,
   parseRuntimeConfig,
   generateRuntimeConfig,
+  shallowEqual,
+  isUnderPrefix,
+  parseHref,
+  matchesShortcut,
+  normalizeShortcut,
+  announceBreadcrumbs,
+  truncateBreadcrumbs,
 } from "@platform-internal/core"
 export type {
   Telemetry,
@@ -95,4 +102,12 @@ export type {
   HostBridge,
   RemoteDefinition,
   RemoteLoader,
+  NavigateOptions,
+  BreadcrumbEntry,
+  CommandState,
+  MountableSurface,
+  OverlayRoot,
+  RegisteredHelpEntry,
+  RegisteredReleaseNote,
+  SettingsOption,
 } from "@platform-internal/core"

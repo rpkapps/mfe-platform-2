@@ -1,12 +1,33 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
-import { shallowEqual, toPlatformError, type PlatformError } from "@platform-internal/core"
+import {
+  shallowEqual,
+  toPlatformError,
+  type MountedInstance,
+  type PlatformError,
+  type WidgetInstance,
+} from "@platform/host"
 
-import type { MountedInstance, WidgetInstance } from "../types"
-import { usePlatformHost } from "./context"
-import { LoadingState, RemoteErrorState, outletStateFor, type OutletState } from "./status"
+import { usePlatformHost, useOutletRenderers } from "./context"
+import {
+  OutletError,
+  OutletLoading,
+  outletStateFor,
+  type OutletErrorProps,
+  type OutletLoadingProps,
+  type OutletState,
+} from "./status"
 
 type Phase =
   { phase: "loading" } | { phase: "mounted" } | { phase: "error"; error: PlatformError }
+
+/** Per-outlet prop, else the provider's renderer, else the structural fallback. */
+function useStatusRenderers() {
+  const { renderLoading, renderError } = useOutletRenderers()
+  return {
+    loading: (props: OutletLoadingProps) => (renderLoading ?? OutletLoading)(props),
+    error: (props: OutletErrorProps) => (renderError ?? OutletError)(props),
+  }
+}
 
 export interface MfeOutletProps {
   mfeId: string
@@ -34,6 +55,7 @@ export function MfeOutlet({
   onStateChange,
 }: MfeOutletProps) {
   const host = usePlatformHost()
+  const renderers = useStatusRenderers()
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>({ phase: "loading" })
   const [attempt, setAttempt] = useState(0)
@@ -98,18 +120,17 @@ export function MfeOutlet({
       />
       {phase.phase === "loading" ? (
         <div className="platform-outlet-status">
-          {fallback ?? (
-            <LoadingState label={`Loading ${host.remotes.get(mfeId)?.displayName ?? mfeId}…`} />
-          )}
+          {fallback ??
+            renderers.loading({
+              label: `Loading ${host.remotes.get(mfeId)?.displayName ?? mfeId}…`,
+            })}
         </div>
       ) : null}
       {phase.phase === "error" ? (
         <div className="platform-outlet-status">
-          {errorFallback ? (
-            errorFallback(phase.error, retry)
-          ) : (
-            <RemoteErrorState error={phase.error} state={state} onRetry={retry} />
-          )}
+          {errorFallback
+            ? errorFallback(phase.error, retry)
+            : renderers.error({ error: phase.error, state, onRetry: retry })}
         </div>
       ) : null}
     </div>
@@ -137,6 +158,7 @@ export function WidgetSlot({
   className,
 }: WidgetSlotProps) {
   const host = usePlatformHost()
+  const renderers = useStatusRenderers()
   const containerRef = useRef<HTMLDivElement>(null)
   const instanceRef = useRef<WidgetInstance | null>(null)
   const lastProps = useRef<Record<string, unknown> | undefined>(props)
@@ -211,20 +233,18 @@ export function WidgetSlot({
       />
       {phase.phase === "loading" ? (
         <div className="platform-outlet-status">
-          {fallback ?? <LoadingState label={`Loading ${widgetId}…`} lines={2} />}
+          {fallback ?? renderers.loading({ label: `Loading ${widgetId}…`, lines: 2 })}
         </div>
       ) : null}
       {phase.phase === "error" ? (
         <div className="platform-outlet-status">
-          {errorFallback ? (
-            errorFallback(phase.error, retry)
-          ) : (
-            <RemoteErrorState
-              error={phase.error}
-              state={outletStateFor(phase.error)}
-              onRetry={retry}
-            />
-          )}
+          {errorFallback
+            ? errorFallback(phase.error, retry)
+            : renderers.error({
+                error: phase.error,
+                state: outletStateFor(phase.error),
+                onRetry: retry,
+              })}
         </div>
       ) : null}
     </div>

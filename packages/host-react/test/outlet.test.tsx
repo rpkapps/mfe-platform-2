@@ -1,14 +1,19 @@
-import { describe, expect, it, vi } from "vitest"
-import { act, render, screen, waitFor } from "@testing-library/react"
+import { describe, expect, it } from "vitest"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { PlatformError } from "@platform-internal/core"
 
-import { PlatformProvider } from "../src/react/context"
-import { Breadcrumbs } from "../src/react/breadcrumbs"
-import { PlatformDevtools } from "../src/react/devtools"
-import { MfeOutlet, WidgetSlot } from "../src/react/outlet"
-import { HelpSlot } from "../src/react/surfaces"
-import { createTestHost, definition, fakeFetch, fakeLoader, manifest, ORIGIN } from "./fixtures"
+import { PlatformError } from "@platform/host"
+import {
+  createTestHost,
+  definition,
+  fakeLoader,
+  manifest,
+  recordingFetch as fakeFetch,
+  ORIGIN,
+} from "@platform/host/testing"
+
+import { PlatformProvider } from "../src/context"
+import { MfeOutlet, WidgetSlot } from "../src/outlet"
 
 const MANIFEST_URL = `${ORIGIN}/mfes/asset-tracker/platform-manifest.json`
 
@@ -156,122 +161,5 @@ describe("WidgetSlot", () => {
       expect(missing.getAttribute("data-platform-widget-state")).toBe("error")
     )
     expect(missing.textContent).toContain("WIDGET_UNKNOWN")
-  })
-})
-
-describe("Breadcrumbs, HelpSlot, PlatformDevtools", () => {
-  it("renders the shell trail with truncation and announcement; custom renderer flips the store", () => {
-    const host = createTestHost({ fetch: fakeFetch({}), loader: fakeLoader({}) })
-    host.breadcrumbs.setShell([
-      { key: "home", label: "Home", href: "/", state: "ready", kind: "shell" },
-    ])
-    host.breadcrumbs.publish({
-      owner: { mfeId: "asset-tracker", instanceId: "i1" },
-      updatedAt: 1,
-      entries: [
-        {
-          key: "root",
-          label: "Assets",
-          href: "/asset-tracker",
-          state: "ready",
-          kind: "mfe-root",
-        },
-        { key: "a", label: "A", href: "/asset-tracker/a", state: "ready", kind: "route" },
-        { key: "b", label: "B", href: "/asset-tracker/b", state: "ready", kind: "route" },
-        { key: "c", label: "Pump 42", state: "loading", kind: "route" },
-      ],
-    })
-    host.breadcrumbs.setActive("i1")
-    const view = render(
-      <PlatformProvider host={host}>
-        <Breadcrumbs maxItems={3} />
-      </PlatformProvider>
-    )
-    expect(screen.getByRole("navigation", { name: "breadcrumb" })).toBeInTheDocument()
-    expect(view.container.textContent).toContain("Home")
-    expect(view.container.textContent).toContain("Pump 42")
-    const items = Array.from(
-      view.container.querySelectorAll("[data-slot='breadcrumb-item']")
-    ).map((item) => item.textContent)
-    expect(items.some((text) => text?.includes("Assets"))).toBe(false)
-    expect(items).toHaveLength(4)
-    expect(view.container.querySelector("[aria-live]")?.textContent).toContain(
-      "Home, Assets, A, B, Pump 42 (loading)"
-    )
-    view.rerender(
-      <PlatformProvider host={host}>
-        <Breadcrumbs
-          renderer={(entries) => (
-            <ol data-custom>
-              {entries.map((entry) => (
-                <li key={entry.key}>{entry.label}</li>
-              ))}
-            </ol>
-          )}
-        />
-      </PlatformProvider>
-    )
-    expect(view.container.querySelector("[data-custom]")).toBeInTheDocument()
-    expect(host.breadcrumbs.getState().renderer).toBe("custom")
-    view.unmount()
-    expect(host.breadcrumbs.getState().renderer).toBe("shell")
-  })
-
-  it("lists help entries and mounts their content surfaces", async () => {
-    const host = createTestHost({ fetch: fakeFetch({}), loader: fakeLoader({}) })
-    const dispose = vi.fn()
-    act(() => {
-      host.registries.help.register(
-        {
-          id: "faq",
-          title: "FAQ",
-          description: "Answers",
-          content: {
-            mount: (container) => {
-              container.textContent = "surface content"
-              return { dispose }
-            },
-          },
-        },
-        { mfeId: "asset-tracker", instanceId: "i1", displayName: "Asset tracker" }
-      )
-    })
-    const view = render(
-      <PlatformProvider host={host}>
-        <HelpSlot />
-      </PlatformProvider>
-    )
-    expect(screen.getByText("FAQ")).toBeInTheDocument()
-    await waitFor(() => expect(view.container.textContent).toContain("surface content"))
-    view.unmount()
-    expect(dispose).toHaveBeenCalled()
-  })
-
-  it("renders nothing when devtools are not allowed and a toggle when they are", async () => {
-    const denied = createTestHost({
-      fetch: fakeFetch({}),
-      loader: fakeLoader({}),
-      devtools: { policy: "never" },
-    })
-    const view = render(
-      <PlatformProvider host={denied}>
-        <PlatformDevtools />
-      </PlatformProvider>
-    )
-    await act(async () => {})
-    expect(view.container.querySelector("[data-testid='platform-devtools-toggle']")).toBeNull()
-    const allowed = createTestHost({
-      fetch: fakeFetch({}),
-      loader: fakeLoader({}),
-      devtools: { policy: "always" },
-    })
-    view.rerender(
-      <PlatformProvider host={allowed}>
-        <PlatformDevtools />
-      </PlatformProvider>
-    )
-    await waitFor(() =>
-      expect(screen.getByTestId("platform-devtools-toggle")).toBeInTheDocument()
-    )
   })
 })

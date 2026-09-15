@@ -14,7 +14,7 @@ import {
   BreadcrumbPage,
 } from "@tecton/react/components/breadcrumb"
 
-import { usePlatformHost, useSubscription } from "./context"
+import { usePlatformHost, useSubscription } from "@platform/host-react"
 
 export interface BreadcrumbsProps {
   /** Escape hatch: render the trail yourself (the store is marked `renderer: "custom"`). */

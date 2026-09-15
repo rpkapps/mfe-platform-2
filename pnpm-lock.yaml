@@ -426,6 +426,9 @@ importers:
       '@platform/host':
         specifier: workspace:*
         version: link:../../packages/host
+      '@platform/host-react':
+        specifier: workspace:*
+        version: link:../../packages/host-react
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -469,6 +472,18 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@testing-library/dom':
+        specifier: 'catalog:'
+        version: 10.4.2
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 7.0.1(@testing-library/dom@10.4.2)(vitest@5.0.0)
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@testing-library/user-event':
+        specifier: 'catalog:'
+        version: 14.6.7(@testing-library/dom@10.4.2)
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.2
@@ -481,12 +496,18 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 6.1.1(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+      jsdom:
+        specifier: 'catalog:'
+        version: 30.0.1
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
   apps/conformance-widget-a:
     dependencies:
@@ -944,15 +965,30 @@ importers:
       '@platform-internal/module-federation':
         specifier: workspace:*
         version: link:../../internal/module-federation
-      '@tanstack/history':
+      '@types/node':
         specifier: 'catalog:'
-        version: 1.162.4
+        version: 22.20.2
+      jsdom:
+        specifier: 'catalog:'
+        version: 30.0.1
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.0(typescript@6.0.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.0(@types/node@22.20.2)(@vitest/coverage-v8@5.0.0)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
+
+  packages/host-react:
+    devDependencies:
+      '@platform/host':
+        specifier: workspace:*
+        version: link:../host
       '@tanstack/react-router':
         specifier: 'catalog:'
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@tecton/react':
-        specifier: 'catalog:'
-        version: git+https://git@github.com:rpkapps/tecton-ui-1.git#363b5374b19846f00647be06c73b418f8039253c&path:packages/tecton-react(@types/react@19.3.0)(react-is@17.0.2)(redux@5.0.1)(typescript@6.0.3)
       '@testing-library/dom':
         specifier: 'catalog:'
         version: 10.4.2
@@ -974,33 +1010,15 @@ importers:
       '@types/react-dom':
         specifier: catalog:react19
         version: 19.3.0(@types/react@19.3.0)
-      class-variance-authority:
-        specifier: 'catalog:'
-        version: 0.7.1
-      cn:
-        specifier: 'catalog:'
-        version: 0.2.6
       jsdom:
         specifier: 'catalog:'
         version: 30.0.1
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.46.0(react@19.3.0)
-      next-themes:
-        specifier: 'catalog:'
-        version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react:
         specifier: catalog:react19
         version: 19.3.0
-      react-aria-components:
-        specifier: 'catalog:'
-        version: 1.21.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       react-dom:
         specifier: catalog:react19
         version: 19.3.0(react@19.3.0)
-      sonner:
-        specifier: 'catalog:'
-        version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       tsdown:
         specifier: 'catalog:'
         version: 0.23.0(typescript@6.0.3)

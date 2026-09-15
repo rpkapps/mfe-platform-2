@@ -3,7 +3,7 @@ import type { OverlayRoot } from "@platform-internal/core"
 
 import { PortalProvider } from "@tecton/react/tecton/portal"
 
-import { usePlatformHost } from "./context"
+import { usePlatformHost } from "@platform/host-react"
 
 /**
  * Wraps the shell's own Tecton tree so its dialogs, popovers and menus portal

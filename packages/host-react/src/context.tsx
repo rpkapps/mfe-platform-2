@@ -1,29 +1,61 @@
-import { installShortcutListener } from "../shortcuts"
 import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
   type ReactNode,
 } from "react"
-import { shallowEqual, type DiagnosticEvent } from "@platform-internal/core"
+import {
+  installShortcutListener,
+  shallowEqual,
+  type DiagnosticEvent,
+  type PlatformHost,
+} from "@platform/host"
 
-import type { PlatformHost } from "../types"
+import type { OutletRenderers } from "./status"
 
 const PlatformHostContext = createContext<PlatformHost | null>(null)
+const OutletRenderersContext = createContext<OutletRenderers>({})
 
-export function PlatformProvider({
-  host,
-  children,
-}: {
+export interface PlatformProviderProps extends OutletRenderers {
   host: PlatformHost
   children: ReactNode
-}) {
-  // One keyboard listener per host dispatches registered command shortcuts.
+}
+
+/**
+ * Puts the host in context and installs one keyboard listener per host for
+ * registered command shortcuts.
+ *
+ * `renderLoading` and `renderError` are how a shell dresses every outlet in its
+ * own design system without passing props at each call site; an individual
+ * `MfeOutlet` can still override them.
+ */
+export function PlatformProvider({
+  host,
+  renderLoading,
+  renderError,
+  children,
+}: PlatformProviderProps) {
   useEffect(() => installShortcutListener(host), [host])
-  return <PlatformHostContext.Provider value={host}>{children}</PlatformHostContext.Provider>
+  const renderers = useMemo<OutletRenderers>(
+    () => ({ renderLoading, renderError }),
+    [renderLoading, renderError]
+  )
+  return (
+    <PlatformHostContext.Provider value={host}>
+      <OutletRenderersContext.Provider value={renderers}>
+        {children}
+      </OutletRenderersContext.Provider>
+    </PlatformHostContext.Provider>
+  )
+}
+
+/** The renderers the nearest provider supplied; empty when it supplied none. */
+export function useOutletRenderers(): OutletRenderers {
+  return useContext(OutletRenderersContext)
 }
 
 export function usePlatformHost(): PlatformHost {

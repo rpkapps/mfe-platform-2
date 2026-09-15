@@ -1,55 +1,13 @@
-import { useEffect, useRef, type ReactNode } from "react"
-import type {
-  MountableSurface,
-  RegisteredHelpEntry,
-  RegisteredReleaseNote,
-} from "@platform-internal/core"
+import type { ReactNode } from "react"
+import type { RegisteredHelpEntry, RegisteredReleaseNote } from "@platform-internal/core"
+import {
+  SurfaceMount,
+  usePlatformHost,
+  useRegistryVersion,
+  useSubscription,
+} from "@platform/host-react"
 
 import { Button, LinkButton } from "@tecton/react/components/button"
-
-import { usePlatformHost, useRegistryVersion, useSubscription } from "./context"
-
-/** Mounts a remote `MountableSurface` (help or release-note content) into a host-owned element. */
-export function SurfaceMount({
-  surface,
-  className,
-  owner,
-}: {
-  surface: MountableSurface
-  className?: string
-  owner?: { mfeId: string }
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const host = usePlatformHost()
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-    let handle: { dispose(): void } | undefined
-    try {
-      handle = surface.mount(element)
-    } catch (error) {
-      host.diagnostics.emit({
-        type: "log",
-        level: "warn",
-        message: "surface mount failed",
-        detail: error instanceof Error ? error.message : String(error),
-        mfeId: owner?.mfeId,
-      })
-      element.textContent = "This content failed to render."
-    }
-    return () => {
-      try {
-        handle?.dispose()
-      } catch {
-        // isolated
-      }
-      element.replaceChildren()
-    }
-  }, [surface, host, owner?.mfeId])
-  return (
-    <div ref={ref} className={className} data-platform-surface="" data-mfe={owner?.mfeId} />
-  )
-}
 
 function useSurfaceEntries<T>(select: () => T[]): T[] {
   useRegistryVersion(["help", "releaseNotes"])

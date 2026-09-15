@@ -2,8 +2,9 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
-    name: "host",
+    name: "host-react",
     environment: "jsdom",
     include: ["test/**/*.test.{ts,tsx}", "src/**/*.test.{ts,tsx}"],
+    setupFiles: ["./test/setup.ts"],
   },
 })

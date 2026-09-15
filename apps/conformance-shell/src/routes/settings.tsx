@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { MfeOutlet, SettingsHost } from "@platform/host/react"
+import { MfeOutlet } from "@platform/host-react"
+
+import { SettingsHost } from "@/components"
 import { MFE_IDS, TEST_IDS } from "@platform-internal/conformance"
 
 import { useShellHost } from "@/lib/platform"

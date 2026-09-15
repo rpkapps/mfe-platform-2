@@ -2,7 +2,7 @@
   "name": "@platform/host",
   "version": "0.1.0",
   "type": "module",
-  "description": "Shell-side runtime: remote registry, runtime configuration, Module Federation loading, version-group dependency sharing, isolated mounting, shell-backed history, command palette, settings host, help and release notes, breadcrumbs, overlay manager, telemetry, diagnostics and lazy developer tools.",
+  "description": "Framework-free shell runtime: remote registry, runtime configuration, Module Federation loading, version-group dependency sharing, isolated mounting, overlay manager, telemetry, diagnostics, and the headless command, search and settings APIs a shell builds its own UI on.",
   "bin": {
     "platform-host-entrypoint": "./bin.js"
   },
@@ -11,13 +11,9 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./react": {
-      "types": "./dist/react.d.ts",
-      "default": "./dist/react.js"
-    },
-    "./tanstack": {
-      "types": "./dist/tanstack.d.ts",
-      "default": "./dist/tanstack.js"
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
     },
     "./entrypoint": {
       "types": "./dist/entrypoint.d.ts",
@@ -43,44 +39,12 @@
     "@module-federation/runtime": "catalog:",
     "zod": "catalog:"
   },
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@tanstack/react-router": "^1.170.0",
-    "@tecton/react": "*",
-    "react-aria-components": "^1.21.0",
-    "lucide-react": "*",
-    "cn": "*",
-    "sonner": "^2.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@tanstack/react-router": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:",
     "jsdom": "catalog:",
-    "@tanstack/react-router": "catalog:",
-    "@tecton/react": "catalog:",
-    "react-aria-components": "catalog:",
-    "lucide-react": "catalog:",
-    "cn": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@testing-library/dom": "catalog:",
-    "@testing-library/jest-dom": "catalog:",
-    "@testing-library/user-event": "catalog:",
     "@types/node": "catalog:",
-    "react": "catalog:react19",
-    "react-dom": "catalog:react19",
-    "@types/react": "catalog:react19",
-    "@types/react-dom": "catalog:react19",
-    "sonner": "catalog:",
-    "next-themes": "catalog:",
-    "class-variance-authority": "catalog:",
-    "@tanstack/history": "catalog:",
     "@platform-internal/core": "workspace:*",
     "@platform-internal/module-federation": "workspace:*",
     "@platform-internal/diagnostics": "workspace:*"

@@ -1,6 +1,6 @@
 import { createFileRoute, useRouterState } from "@tanstack/react-router"
-import { MfeOutlet } from "@platform/host/react"
-import { mfeRouteHelpers } from "@platform/host/tanstack"
+import { MfeOutlet } from "@platform/host-react"
+import { mfeRouteHelpers } from "@platform/host-react/tanstack"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { useShellHost } from "@/lib/platform"

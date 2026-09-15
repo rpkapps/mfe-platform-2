@@ -12,7 +12,7 @@ import {
   type AppFinderTone,
 } from "@tecton/react/tecton/app-finder"
 
-import { useHostSelector, usePlatformHost, useShellLocation } from "./context"
+import { useHostSelector, usePlatformHost, useShellLocation } from "@platform/host-react"
 
 const TONES: AppFinderTone[] = [
   "blue",

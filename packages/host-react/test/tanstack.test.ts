@@ -6,8 +6,9 @@ import {
   createRouter,
 } from "@tanstack/react-router"
 
+import { createTestHost, fakeLoader, recordingFetch as fakeFetch } from "@platform/host/testing"
+
 import { createTanStackShellNavigation, mfeRouteHelpers } from "../src/tanstack"
-import { createTestHost, fakeFetch, fakeLoader } from "./fixtures"
 
 function makeRouter(initial = "/") {
   const rootRoute = createRootRoute()

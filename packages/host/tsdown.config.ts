@@ -1,36 +1,18 @@
 import { defineConfig } from "tsdown"
 
-const neverBundle = [
-  "react",
-  "react-dom",
-  "react-dom/client",
-  "react/jsx-runtime",
-  /^@tanstack\//,
-  /^@tecton\//,
-  /^@module-federation\//,
-  "react-aria-components",
-  "react-aria",
-  "lucide-react",
-  "cn",
-  "sonner",
-  "zod",
-  "class-variance-authority",
-]
-
 export default defineConfig([
   {
-    entry: {
-      index: "src/index.ts",
-      react: "src/react.tsx",
-      tanstack: "src/tanstack.ts",
-    },
+    entry: { index: "src/index.ts", testing: "src/testing.ts" },
     format: ["esm"],
     dts: true,
     platform: "browser",
     clean: true,
     sourcemap: true,
     checks: { pluginTimings: false },
-    deps: { alwaysBundle: [/^@platform-internal\//], neverBundle },
+    deps: {
+      alwaysBundle: [/^@platform-internal\//],
+      neverBundle: [/^@module-federation\//, "zod"],
+    },
     copy: [{ from: "src/styles.css", to: "dist" }],
   },
   {

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import type { PlatformError } from "@platform-internal/core"
+import { OUTLET_STATE_TITLES, type OutletState } from "@platform/host-react"
 
 import {
   Alert,
@@ -10,38 +11,12 @@ import {
 import { Button } from "@tecton/react/components/button"
 import { Skeleton } from "@tecton/react/components/skeleton"
 
-export type OutletState =
-  "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled" | "restart-required"
-
-export function outletStateFor(error: PlatformError | undefined): OutletState {
-  if (!error) return "mounted"
-  switch (error.code) {
-    case "PERMISSION_DENIED":
-      return "denied"
-    case "REMOTE_DISABLED":
-      return "disabled"
-    case "DEV_RESTART_REQUIRED":
-      return "restart-required"
-    case "MOUNT_FAILED":
-    case "WIDGET_MOUNT_FAILED":
-    case "WIDGET_UNKNOWN":
-    case "INTERNAL":
-      return "error"
-    default:
-      return "unavailable"
-  }
-}
-
-const TITLES: Record<OutletState, string> = {
-  loading: "Loading",
-  mounted: "",
-  error: "This part of the application failed",
-  unavailable: "This part of the application is unavailable",
-  denied: "You do not have access to this part of the application",
-  disabled: "This part of the application is turned off",
-  "restart-required": "The development server needs a restart",
-}
-
+/**
+ * The shell's own outlet states, wired into every `MfeOutlet` through
+ * `PlatformProvider`'s `renderLoading` / `renderError`. `@platform/host-react`
+ * ships structural fallbacks for shells that supply none; these are the Tecton
+ * versions, and the shape a real shell copies.
+ */
 export function LoadingState({
   label = "Loading…",
   lines = 3,
@@ -97,7 +72,7 @@ export function RemoteErrorState({
       data-platform-error-code={error.code}
     >
       <AlertTitle>
-        {TITLES[state] || TITLES.error}{" "}
+        {OUTLET_STATE_TITLES[state] || OUTLET_STATE_TITLES.error}{" "}
         <code className="platform-error-code">{error.code}</code>
       </AlertTitle>
       <AlertDescription>

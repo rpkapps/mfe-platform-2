@@ -2,8 +2,8 @@ import { useEffect, useState, type ComponentType } from "react"
 
 import { Button } from "@tecton/react/components/button"
 
-import { loadDevtools, shouldLoadDevtools, type DevtoolsModule } from "../devtools"
-import { usePlatformHost } from "./context"
+import { loadDevtools, shouldLoadDevtools, type DevtoolsModule } from "@platform/host"
+import { usePlatformHost } from "@platform/host-react"
 
 export interface PlatformDevtoolsProps {
   defaultOpen?: boolean

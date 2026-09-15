@@ -42,16 +42,30 @@ const manifestRules: ManifestRule[] = [
     dir: "packages/host",
     dependencies: ["@module-federation/runtime", "zod"],
     peerDependencies: [],
-    enforced: false,
-    todo: "A2 removes @xyflow/react; A3 moves the React/Tecton files out; A4 drops the peers",
+    enforced: true,
   },
   {
     // React bindings for a shell. Platform API, not opinion — no design system.
+    // The host is a peer because a shell must have exactly one host runtime.
     dir: "packages/host-react",
     dependencies: [],
-    peerDependencies: ["react", "react-dom", "@tanstack/react-router"],
-    enforced: false,
-    todo: "created in A3",
+    peerDependencies: ["@platform/host", "react", "react-dom", "@tanstack/react-router"],
+    enforced: true,
+  },
+  {
+    // The developer tools the shell loads on demand. Tecton is allowed here —
+    // it is a UI package, and nothing in the platform imports it.
+    dir: "packages/devtools",
+    dependencies: ["@xyflow/react"],
+    peerDependencies: [
+      "react",
+      "react-dom",
+      "@tecton/react",
+      "react-aria-components",
+      "lucide-react",
+      "cn",
+    ],
+    enforced: true,
   },
   {
     dir: "internal/core",
@@ -88,18 +102,12 @@ const sourceRules: SourceRule[] = [
   { dir: "internal/core/src", banned: FRAMEWORK, enforced: true },
   { dir: "internal/diagnostics/src", banned: FRAMEWORK, enforced: true },
   { dir: "internal/module-federation/src", banned: FRAMEWORK, enforced: true },
-  {
-    dir: "packages/host/src",
-    banned: FRAMEWORK,
-    enforced: false,
-    todo: "A3 moves src/react/ and src/tanstack.ts out",
-  },
+  { dir: "packages/host/src", banned: FRAMEWORK, enforced: true },
   {
     // May use React — that is its job — but never a design system.
     dir: "packages/host-react/src",
     banned: DESIGN_SYSTEM,
-    enforced: false,
-    todo: "created in A3",
+    enforced: true,
   },
 ]
 

@@ -111,7 +111,7 @@ const noopSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(reso
 
 /**
  * The shell-side runtime. Framework-free: React bindings live in
- * `@platform/host/react`, the TanStack bridge in `@platform/host/tanstack`.
+ * `@platform/host-react`, the TanStack bridge in `@platform/host-react/tanstack`.
  */
 interface SharedWork<T> {
   /** The shared task; settles once for every caller. */

@@ -1,0 +1,78 @@
+/*
+ * @platform/host-react/styles.css — structural layout for the outlet and the
+ * widget slot: which element is visible in which state, and enough styling for
+ * the built-in loading and error fallbacks to be legible. No design system and
+ * no colours of its own beyond CSS variables a shell may define.
+ * Class- and attribute-scoped; no bare element rules.
+ */
+
+/* ---------- utilities ---------- */
+.platform-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- outlets ---------- */
+
+.platform-outlet,
+.platform-widget-slot {
+  position: relative;
+  min-width: 0;
+}
+.platform-outlet[hidden] {
+  display: none;
+}
+.platform-outlet-container,
+.platform-widget-container {
+  min-width: 0;
+}
+.platform-outlet[data-platform-outlet-state="loading"] > .platform-outlet-container,
+.platform-outlet[data-platform-outlet-state="error"] > .platform-outlet-container,
+.platform-outlet[data-platform-outlet-state="unavailable"] > .platform-outlet-container,
+.platform-outlet[data-platform-outlet-state="denied"] > .platform-outlet-container,
+.platform-outlet[data-platform-outlet-state="disabled"] > .platform-outlet-container,
+.platform-outlet[data-platform-outlet-state="restart-required"] > .platform-outlet-container,
+.platform-widget-slot[data-platform-widget-state="loading"] > .platform-widget-container,
+.platform-widget-slot[data-platform-widget-state="error"] > .platform-widget-container {
+  display: none;
+}
+.platform-outlet-status {
+  padding: 1rem;
+}
+.platform-outlet-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.platform-outlet-skeleton {
+  height: 1rem;
+  border-radius: var(--radius-sm, 4px);
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+.platform-outlet-error {
+  max-width: 48rem;
+}
+.platform-error-title {
+  font-weight: 600;
+}
+.platform-error-code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm, 4px);
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+.platform-error-hint {
+  color: var(--muted-foreground);
+}
+.platform-error-docs {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

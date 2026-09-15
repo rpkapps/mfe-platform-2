@@ -3,11 +3,10 @@ import {
   isUnderPrefix,
   parseHref,
   type NavigateOptions,
+  type PlatformHost,
   type ShellLocation,
   type ShellNavigation,
-} from "@platform-internal/core"
-
-import type { PlatformHost } from "./types"
+} from "@platform/host"
 
 type HistoryLike = RouterHistory
 
