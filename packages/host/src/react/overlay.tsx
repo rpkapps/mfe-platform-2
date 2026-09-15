@@ -10,22 +10,40 @@ import { usePlatformHost } from "./context"
  * into a shell-owned overlay root managed by the overlay manager; global
  * modal ordering then covers shell and remote overlays alike.
  */
-export function ShellOverlayProvider({ children, attributes }: { children: ReactNode; attributes?: Record<string, string> }) {
+export function ShellOverlayProvider({
+  children,
+  attributes,
+}: {
+  children: ReactNode
+  attributes?: Record<string, string>
+}) {
   const host = usePlatformHost()
   const [root, setRoot] = useState<OverlayRoot | null>(null)
   useEffect(() => {
     let created: OverlayRoot | null = null
     try {
-      created = host.overlays.createRoot({ owner: { mfeId: "shell", instanceId: "shell" }, attributes: { "data-platform-shell-overlays": "", ...(attributes ?? {}) } })
+      created = host.overlays.createRoot({
+        owner: { mfeId: "shell", instanceId: "shell" },
+        attributes: { "data-platform-shell-overlays": "", ...(attributes ?? {}) },
+      })
       setRoot(created)
     } catch (error) {
-      host.diagnostics.emit({ type: "error", code: "OVERLAY_FAILED", error: { name: "PlatformError", code: "OVERLAY_FAILED", message: error instanceof Error ? error.message : String(error), hint: "", docsUrl: "" } })
+      host.diagnostics.emit({
+        type: "error",
+        code: "OVERLAY_FAILED",
+        error: {
+          name: "PlatformError",
+          code: "OVERLAY_FAILED",
+          message: error instanceof Error ? error.message : String(error),
+          hint: "",
+          docsUrl: "",
+        },
+      })
     }
     return () => {
       created?.dispose()
       setRoot(null)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [host])
   useEffect(() => {
     if (!root) return

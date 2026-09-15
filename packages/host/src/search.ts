@@ -1,9 +1,15 @@
-import { announceBreadcrumbs, manifestRoutePrefix, type BreadcrumbEntry, type CommandState } from "@platform-internal/core"
+import {
+  announceBreadcrumbs,
+  manifestRoutePrefix,
+  type BreadcrumbEntry,
+  type CommandState,
+} from "@platform-internal/core"
 
 import { commandHref, isCommandAvailable } from "./commands"
 import type { PlatformHost } from "./types"
 
-export type SearchKind = "command" | "navigate" | "setting" | "help" | "release-note" | "breadcrumb"
+export type SearchKind =
+  "command" | "navigate" | "setting" | "help" | "release-note" | "breadcrumb"
 
 export interface SearchEntry {
   kind: SearchKind
@@ -96,7 +102,9 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
       qualifiedId: command.qualifiedId,
       label: command.definition.label,
       description: command.definition.description,
-      keywords: [...(command.definition.keywords ?? []), command.definition.group ?? ""].filter(Boolean),
+      keywords: [...(command.definition.keywords ?? []), command.definition.group ?? ""].filter(
+        Boolean
+      ),
       group: SEARCH_GROUPS.command,
       mfeId: command.owner.mfeId,
       href: commandHref(host, command),
@@ -117,7 +125,11 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
           id: `navigate:${record.mfeId}`,
           label: manifest.navigation?.title ?? displayName,
           description: manifest.navigation?.description ?? manifest.description,
-          keywords: [...(manifest.navigation?.keywords ?? []), manifest.navigation?.category ?? "", record.mfeId].filter(Boolean),
+          keywords: [
+            ...(manifest.navigation?.keywords ?? []),
+            manifest.navigation?.category ?? "",
+            record.mfeId,
+          ].filter(Boolean),
           group: SEARCH_GROUPS.navigate,
           mfeId: record.mfeId,
           href: manifestRoutePrefix(manifest),
@@ -163,7 +175,10 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
           keywords: [...(contribution.keywords ?? []), record.mfeId],
           group: SEARCH_GROUPS.setting,
           mfeId: record.mfeId,
-          href: contribution.managedBy === "mfe" && contribution.route ? `${prefix === "/" ? "" : prefix}${contribution.route}` : undefined,
+          href:
+            contribution.managedBy === "mfe" && contribution.route
+              ? `${prefix === "/" ? "" : prefix}${contribution.route}`
+              : undefined,
           settings: { groupKey: contribution.key, managedBy: contribution.managedBy },
         })
         for (const field of contribution.fields) {
@@ -175,22 +190,66 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
             keywords: [...(field.keywords ?? []), contribution.title],
             group: SEARCH_GROUPS.setting,
             mfeId: record.mfeId,
-            settings: { groupKey: contribution.key, fieldKey: field.key, managedBy: contribution.managedBy },
+            settings: {
+              groupKey: contribution.key,
+              fieldKey: field.key,
+              managedBy: contribution.managedBy,
+            },
           })
         }
       }
       for (const entry of manifest.help) {
         const qualifiedId = `${record.mfeId}:${entry.id}`
-        if (host.registries.help.list().some((registered) => registered.qualifiedId === qualifiedId)) continue
-        entries.push({ kind: "help", id: `help:${qualifiedId}`, qualifiedId, label: entry.title, description: entry.description, keywords: entry.keywords ?? [], group: SEARCH_GROUPS.help, mfeId: record.mfeId, href: entry.route ? `${prefix === "/" ? "" : prefix}${entry.route}` : undefined, external: entry.href })
+        if (
+          host.registries.help
+            .list()
+            .some((registered) => registered.qualifiedId === qualifiedId)
+        )
+          continue
+        entries.push({
+          kind: "help",
+          id: `help:${qualifiedId}`,
+          qualifiedId,
+          label: entry.title,
+          description: entry.description,
+          keywords: entry.keywords ?? [],
+          group: SEARCH_GROUPS.help,
+          mfeId: record.mfeId,
+          href: entry.route ? `${prefix === "/" ? "" : prefix}${entry.route}` : undefined,
+          external: entry.href,
+        })
       }
       for (const note of manifest.releaseNotes) {
         const qualifiedId = `${record.mfeId}:${note.id}`
-        if (host.registries.releaseNotes.list().some((registered) => registered.qualifiedId === qualifiedId)) continue
-        entries.push({ kind: "release-note", id: `release-note:${qualifiedId}`, qualifiedId, label: `${note.title} (${note.version})`, description: note.summary, keywords: [...(note.keywords ?? []), note.version], group: SEARCH_GROUPS["release-note"], mfeId: record.mfeId, external: note.href })
+        if (
+          host.registries.releaseNotes
+            .list()
+            .some((registered) => registered.qualifiedId === qualifiedId)
+        )
+          continue
+        entries.push({
+          kind: "release-note",
+          id: `release-note:${qualifiedId}`,
+          qualifiedId,
+          label: `${note.title} (${note.version})`,
+          description: note.summary,
+          keywords: [...(note.keywords ?? []), note.version],
+          group: SEARCH_GROUPS["release-note"],
+          mfeId: record.mfeId,
+          external: note.href,
+        })
       }
     } else if (record.discoverable && record.registry) {
-      entries.push({ kind: "navigate", id: `navigate:${record.mfeId}`, label: displayName, description: "Not loaded yet", keywords: [record.mfeId], group: SEARCH_GROUPS.navigate, mfeId: record.mfeId, href: prefix })
+      entries.push({
+        kind: "navigate",
+        id: `navigate:${record.mfeId}`,
+        label: displayName,
+        description: "Not loaded yet",
+        keywords: [record.mfeId],
+        group: SEARCH_GROUPS.navigate,
+        mfeId: record.mfeId,
+        href: prefix,
+      })
     }
   }
   for (const group of host.registries.settings.list()) {
@@ -201,11 +260,16 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
       kind: "setting",
       id: `setting:${group.qualifiedKey}`,
       label: title,
-      description: group.definition.description ?? `${group.owner.displayName ?? group.owner.mfeId} settings`,
+      description:
+        group.definition.description ??
+        `${group.owner.displayName ?? group.owner.mfeId} settings`,
       keywords: [...(group.definition.keywords ?? []), group.owner.mfeId],
       group: SEARCH_GROUPS.setting,
       mfeId: group.owner.mfeId,
-      href: managedBy === "mfe" && group.definition.route ? `${prefix === "/" ? "" : prefix}${group.definition.route}` : undefined,
+      href:
+        managedBy === "mfe" && group.definition.route
+          ? `${prefix === "/" ? "" : prefix}${group.definition.route}`
+          : undefined,
       settings: { groupKey: group.definition.key, managedBy },
     })
     if (managedBy === "framework") {
@@ -214,7 +278,8 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
           kind: "setting",
           id: `setting:${field.qualifiedKey}`,
           label: field.label,
-          description: field.description ?? `${title} · ${group.owner.displayName ?? group.owner.mfeId}`,
+          description:
+            field.description ?? `${title} · ${group.owner.displayName ?? group.owner.mfeId}`,
           keywords: [...field.keywords, title],
           group: SEARCH_GROUPS.setting,
           mfeId: group.owner.mfeId,
@@ -225,20 +290,59 @@ export function collectEntries(host: PlatformHost): SearchEntry[] {
   }
   for (const entry of host.registries.help.list()) {
     const prefix = host.routePrefixOf(entry.owner.mfeId)
-    entries.push({ kind: "help", id: `help:${entry.qualifiedId}`, qualifiedId: entry.qualifiedId, label: entry.definition.title, description: entry.definition.description, keywords: entry.definition.keywords ?? [], group: SEARCH_GROUPS.help, mfeId: entry.owner.mfeId, href: entry.definition.route ? `${prefix === "/" ? "" : prefix}${entry.definition.route}` : undefined, external: entry.definition.href })
+    entries.push({
+      kind: "help",
+      id: `help:${entry.qualifiedId}`,
+      qualifiedId: entry.qualifiedId,
+      label: entry.definition.title,
+      description: entry.definition.description,
+      keywords: entry.definition.keywords ?? [],
+      group: SEARCH_GROUPS.help,
+      mfeId: entry.owner.mfeId,
+      href: entry.definition.route
+        ? `${prefix === "/" ? "" : prefix}${entry.definition.route}`
+        : undefined,
+      external: entry.definition.href,
+    })
   }
   for (const note of host.registries.releaseNotes.list()) {
-    entries.push({ kind: "release-note", id: `release-note:${note.qualifiedId}`, qualifiedId: note.qualifiedId, label: `${note.definition.title} (${note.definition.version})`, description: note.definition.summary, keywords: [...(note.definition.keywords ?? []), note.definition.version], group: SEARCH_GROUPS["release-note"], mfeId: note.owner.mfeId, external: note.definition.href })
+    entries.push({
+      kind: "release-note",
+      id: `release-note:${note.qualifiedId}`,
+      qualifiedId: note.qualifiedId,
+      label: `${note.definition.title} (${note.definition.version})`,
+      description: note.definition.summary,
+      keywords: [...(note.definition.keywords ?? []), note.definition.version],
+      group: SEARCH_GROUPS["release-note"],
+      mfeId: note.owner.mfeId,
+      external: note.definition.href,
+    })
   }
   const trail = host.breadcrumbs.current()
   for (const crumb of trail) {
     if (crumb.hidden || !crumb.label) continue
-    entries.push({ kind: "breadcrumb", id: `breadcrumb:${crumb.key}`, label: crumb.label, description: announceBreadcrumbs([crumb]), keywords: [crumb.kind], group: SEARCH_GROUPS.breadcrumb, href: breadcrumbHref(crumb), disabled: !crumb.href })
+    entries.push({
+      kind: "breadcrumb",
+      id: `breadcrumb:${crumb.key}`,
+      label: crumb.label,
+      description: announceBreadcrumbs([crumb]),
+      keywords: [crumb.kind],
+      group: SEARCH_GROUPS.breadcrumb,
+      href: breadcrumbHref(crumb),
+      disabled: !crumb.href,
+    })
   }
   return entries
 }
 
-const KIND_ORDER: SearchKind[] = ["command", "navigate", "setting", "help", "release-note", "breadcrumb"]
+const KIND_ORDER: SearchKind[] = [
+  "command",
+  "navigate",
+  "setting",
+  "help",
+  "release-note",
+  "breadcrumb",
+]
 
 /** Search index over commands, MFE navigation metadata, settings, help, release notes and the current breadcrumb trail. */
 export function createCommandSearchIndex(host: PlatformHost): CommandSearchIndex {
@@ -254,7 +358,12 @@ export function createCommandSearchIndex(host: PlatformHost): CommandSearchIndex
         const score = scoreEntry(entry, normalized)
         if (score > 0) results.push({ ...entry, score })
       }
-      results.sort((a, b) => b.score - a.score || KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.label.localeCompare(b.label))
+      results.sort(
+        (a, b) =>
+          b.score - a.score ||
+          KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) ||
+          a.label.localeCompare(b.label)
+      )
       return results.slice(0, limit)
     },
   }

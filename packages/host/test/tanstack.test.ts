@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
-import { createMemoryHistory, createRootRoute, createRoute, createRouter } from "@tanstack/react-router"
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router"
 
 import { createTanStackShellNavigation, mfeRouteHelpers } from "../src/tanstack"
 import { createTestHost, fakeFetch, fakeLoader } from "./fixtures"
@@ -9,7 +14,10 @@ function makeRouter(initial = "/") {
   const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: "/" })
   const catchAll = createRoute({ getParentRoute: () => rootRoute, path: "$" })
   const history = createMemoryHistory({ initialEntries: [initial] })
-  const router = createRouter({ routeTree: rootRoute.addChildren([indexRoute, catchAll]), history })
+  const router = createRouter({
+    routeTree: rootRoute.addChildren([indexRoute, catchAll]),
+    history,
+  })
   return { router, history }
 }
 
@@ -22,7 +30,9 @@ describe("createTanStackShellNavigation", () => {
     await router.load()
     const navigation = createTanStackShellNavigation(router)
     const seen: [string, string][] = []
-    const unsubscribe = navigation.subscribe((location, action) => seen.push([action, `${location.pathname}${location.search}`]))
+    const unsubscribe = navigation.subscribe((location, action) =>
+      seen.push([action, `${location.pathname}${location.search}`])
+    )
     expect(navigation.getLocation().pathname).toBe("/")
     navigation.push("/asset-tracker/assets/1?tab=x")
     await vi.waitFor(() => expect(history.location.pathname).toBe("/asset-tracker/assets/1"))
@@ -47,10 +57,23 @@ describe("createTanStackShellNavigation", () => {
   })
 
   it("matches MFEs for the catch-all route by longest prefix", () => {
-    const host = createTestHost({ fetch: fakeFetch({}), loader: fakeLoader({}), registry: [{ mfeId: "asset-tracker" }, { mfeId: "asset-tracker-admin", routePrefix: "/asset-tracker/admin" }] })
+    const host = createTestHost({
+      fetch: fakeFetch({}),
+      loader: fakeLoader({}),
+      registry: [
+        { mfeId: "asset-tracker" },
+        { mfeId: "asset-tracker-admin", routePrefix: "/asset-tracker/admin" },
+      ],
+    })
     const helpers = mfeRouteHelpers({ host })
-    expect(helpers.matchMfeForPath("/asset-tracker/admin/users")).toEqual({ mfeId: "asset-tracker-admin", routePrefix: "/asset-tracker/admin" })
-    expect(helpers.matchMfeForPath("/asset-tracker/assets")).toEqual({ mfeId: "asset-tracker", routePrefix: "/asset-tracker" })
+    expect(helpers.matchMfeForPath("/asset-tracker/admin/users")).toEqual({
+      mfeId: "asset-tracker-admin",
+      routePrefix: "/asset-tracker/admin",
+    })
+    expect(helpers.matchMfeForPath("/asset-tracker/assets")).toEqual({
+      mfeId: "asset-tracker",
+      routePrefix: "/asset-tracker",
+    })
     expect(helpers.matchMfeForPath("/other")).toBeNull()
     expect(helpers.routePrefixes()[0]?.routePrefix).toBe("/asset-tracker/admin")
   })

@@ -18,7 +18,10 @@ export function isEditableTarget(target: EventTarget | null): boolean {
  * selects and contenteditable elements are ignored. Returns a disposer;
  * installing twice for the same host and target is a no-op.
  */
-export function installShortcutListener(host: PlatformHost, target: EventTarget | null = typeof document !== "undefined" ? document : null): () => void {
+export function installShortcutListener(
+  host: PlatformHost,
+  target: EventTarget | null = typeof document !== "undefined" ? document : null
+): () => void {
   if (!target) return () => {}
   const perTarget = installed.get(target) ?? new Map<PlatformHost, () => void>()
   installed.set(target, perTarget)

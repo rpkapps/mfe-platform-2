@@ -10,15 +10,53 @@ describe("dependency graph", () => {
     const snapshot = createSnapshot({
       runtimeConfig: parseRuntimeConfig({}),
       remotes: [
-        { mfeId: "a", state: "mounted", attempts: 1, discoverable: true, enabled: true, loaded: true, instances: [{ instanceId: "a#1", mfeId: "a", state: "mounted", attempts: 1 }] },
-        { mfeId: "b", state: "mounted", attempts: 1, discoverable: true, enabled: true, loaded: true, instances: [] },
+        {
+          mfeId: "a",
+          state: "mounted",
+          attempts: 1,
+          discoverable: true,
+          enabled: true,
+          loaded: true,
+          instances: [{ instanceId: "a#1", mfeId: "a", state: "mounted", attempts: 1 }],
+        },
+        {
+          mfeId: "b",
+          state: "mounted",
+          attempts: 1,
+          discoverable: true,
+          enabled: true,
+          loaded: true,
+          instances: [],
+        },
       ],
       shared: {
         a: [
-          { name: "react", scope: "react19", outcome: "shared", version: "19.3.0", from: "shell", reason: "loaded-first" },
-          { name: "zod", scope: "default", outcome: "bundled", version: "4.0.0", reason: "no provider" },
+          {
+            name: "react",
+            scope: "react19",
+            outcome: "shared",
+            version: "19.3.0",
+            from: "shell",
+            reason: "loaded-first",
+          },
+          {
+            name: "zod",
+            scope: "default",
+            outcome: "bundled",
+            version: "4.0.0",
+            reason: "no provider",
+          },
         ],
-        b: [{ name: "react", scope: "react18", outcome: "shared", version: "18.3.1", from: "mfe_a", reason: "highest" }],
+        b: [
+          {
+            name: "react",
+            scope: "react18",
+            outcome: "shared",
+            version: "18.3.1",
+            from: "mfe_a",
+            reason: "highest",
+          },
+        ],
       },
     })
     const graph = buildDependencyGraph(snapshot)
@@ -29,11 +67,35 @@ describe("dependency graph", () => {
     expect(ids).toContain("package:react19/react@19.3.0")
     expect(ids).toContain("package:react18/react@18.3.1")
     expect(ids).toContain("bundled:a:zod")
-    expect(graph.scopes).toEqual({ default: ["bundled:a:zod"], react18: ["package:react18/react@18.3.1"], react19: ["package:react19/react@19.3.0"] })
-    expect(graph.edges).toContainEqual(expect.objectContaining({ source: "shell", target: "package:react19/react@19.3.0", kind: "provides" }))
-    expect(graph.edges).toContainEqual(expect.objectContaining({ source: "remote:a", target: "package:react18/react@18.3.1", kind: "provides" }))
-    expect(graph.edges).toContainEqual(expect.objectContaining({ source: "remote:b", target: "package:react18/react@18.3.1", kind: "uses" }))
-    expect(graph.edges).toContainEqual(expect.objectContaining({ source: "remote:a", target: "bundled:a:zod", label: "bundled" }))
+    expect(graph.scopes).toEqual({
+      default: ["bundled:a:zod"],
+      react18: ["package:react18/react@18.3.1"],
+      react19: ["package:react19/react@19.3.0"],
+    })
+    expect(graph.edges).toContainEqual(
+      expect.objectContaining({
+        source: "shell",
+        target: "package:react19/react@19.3.0",
+        kind: "provides",
+      })
+    )
+    expect(graph.edges).toContainEqual(
+      expect.objectContaining({
+        source: "remote:a",
+        target: "package:react18/react@18.3.1",
+        kind: "provides",
+      })
+    )
+    expect(graph.edges).toContainEqual(
+      expect.objectContaining({
+        source: "remote:b",
+        target: "package:react18/react@18.3.1",
+        kind: "uses",
+      })
+    )
+    expect(graph.edges).toContainEqual(
+      expect.objectContaining({ source: "remote:a", target: "bundled:a:zod", label: "bundled" })
+    )
     expect(graph.nodes.find((node) => node.id === "bundled:a:zod")?.kind).toBe("bundled")
   })
 

@@ -81,7 +81,10 @@ export interface PlatformHostOptions {
   hostKind?: "shell" | "harness"
   environment?: string
   /** Modules the shell shares with remotes when the default loader is used. */
-  shared?: Record<string, { version: string; lib: () => unknown; singleton?: boolean; requiredVersion?: string }>
+  shared?: Record<
+    string,
+    { version: string; lib: () => unknown; singleton?: boolean; requiredVersion?: string }
+  >
   /** Used by `config.refresh()`; defaults to fetching `/platform-config.json`. */
   refreshRuntimeConfig?: () => Promise<RuntimeConfig>
   /** Default manifest URL for registry entries without one (`/mfes/<mfeId>/platform-manifest.json`). */
@@ -184,12 +187,19 @@ export interface RemotesApi {
   resolveManifestUrl(mfeId: string): ManifestUrlResolution
   setLocalOverride(mfeId: string, url: string | null): void
   localOverrides(): Record<string, string>
-  loadManifest(mfeId: string, options?: { force?: boolean; signal?: AbortSignal }): Promise<MfeManifest>
+  loadManifest(
+    mfeId: string,
+    options?: { force?: boolean; signal?: AbortSignal }
+  ): Promise<MfeManifest>
   load(mfeId: string, options?: { signal?: AbortSignal }): Promise<RemoteDefinition>
   retry(mfeId: string): Promise<RemoteDefinition>
   preload(mfeId: string): Promise<void>
   mount(mfeId: string, options: MountOptions): Promise<MountedInstance>
-  mountWidget(mfeId: string, widgetId: string, options: WidgetMountOptions): Promise<WidgetInstance>
+  mountWidget(
+    mfeId: string,
+    widgetId: string,
+    options: WidgetMountOptions
+  ): Promise<WidgetInstance>
   instances(): InstanceRecord[]
   /** Longest route-prefix match over loaded manifests and registry entries. */
   matchRoute(pathname: string): { mfeId: string; routePrefix: string } | null
@@ -213,7 +223,10 @@ export interface CommandRunResult {
 }
 
 export interface CommandRunner {
-  run(qualifiedId: string, options?: { source?: "palette" | "shortcut" | "api" }): Promise<CommandRunResult>
+  run(
+    qualifiedId: string,
+    options?: { source?: "palette" | "shortcut" | "api" }
+  ): Promise<CommandRunResult>
   abort(qualifiedId: string): boolean
   running(): string[]
 }
@@ -222,11 +235,23 @@ export interface PlatformHost {
   readonly kind: "shell" | "harness"
   readonly environment: string
   readonly protocolVersion: string
-  readonly config: { get(): RuntimeConfig; subscribe(listener: () => void): () => void; refresh(): Promise<RuntimeConfig> }
+  readonly config: {
+    get(): RuntimeConfig
+    subscribe(listener: () => void): () => void
+    refresh(): Promise<RuntimeConfig>
+  }
   readonly context: ShellContextStore
   /** Read-only, policy-filtered shell context handed to remotes. */
-  readonly exposedContext: { getState(): ShellContextState; subscribe(listener: () => void): () => void }
-  readonly registries: { commands: CommandRegistry; settings: SettingsRegistry; help: HelpRegistry; releaseNotes: ReleaseNotesRegistry }
+  readonly exposedContext: {
+    getState(): ShellContextState
+    subscribe(listener: () => void): () => void
+  }
+  readonly registries: {
+    commands: CommandRegistry
+    settings: SettingsRegistry
+    help: HelpRegistry
+    releaseNotes: ReleaseNotesRegistry
+  }
   readonly breadcrumbs: BreadcrumbStore
   readonly overlays: OverlayManager
   readonly diagnostics: DiagnosticsBus

@@ -4,7 +4,9 @@ import { parseRuntimeConfig } from "@platform-internal/core"
 import { createDiagnosticsBus, createSnapshot } from "@platform-internal/diagnostics"
 
 vi.mock("@xyflow/react", () => ({
-  ReactFlow: ({ children }: { children?: React.ReactNode }) => <div data-testid="react-flow">{children}</div>,
+  ReactFlow: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="react-flow">{children}</div>
+  ),
   Background: () => null,
   Controls: () => null,
   MiniMap: () => null,
@@ -15,14 +17,36 @@ import { registerDevtoolsPanel } from "../src/registry"
 
 function fakeHost() {
   const diagnostics = createDiagnosticsBus()
-  diagnostics.emit({ type: "manifest.resolved", url: "http://x/m.json", urlSource: "registry", cacheBusted: false, mfeId: "asset-tracker" })
+  diagnostics.emit({
+    type: "manifest.resolved",
+    url: "http://x/m.json",
+    urlSource: "registry",
+    cacheBusted: false,
+    mfeId: "asset-tracker",
+  })
   return {
     diagnostics,
     subscribe: () => () => {},
     snapshot: () =>
       createSnapshot({
         runtimeConfig: parseRuntimeConfig({ environment: "local" }),
-        remotes: [{ mfeId: "asset-tracker", displayName: "Asset tracker", state: "mounted", attempts: 1, discoverable: true, enabled: true, loaded: true, manifestUrl: "http://x/m.json", manifestSource: "registry", protocolVersion: "1.0", reactVersion: "19.3.0", dev: { hmr: true }, instances: [] }],
+        remotes: [
+          {
+            mfeId: "asset-tracker",
+            displayName: "Asset tracker",
+            state: "mounted",
+            attempts: 1,
+            discoverable: true,
+            enabled: true,
+            loaded: true,
+            manifestUrl: "http://x/m.json",
+            manifestSource: "registry",
+            protocolVersion: "1.0",
+            reactVersion: "19.3.0",
+            dev: { hmr: true },
+            instances: [],
+          },
+        ],
         diagnostics: diagnostics.list(),
         host: { kind: "harness", environment: "local", protocolVersion: "1.0" },
       }),
@@ -32,7 +56,20 @@ function fakeHost() {
 describe("DevtoolsPanel", () => {
   it("renders the standard tabs and the overview", () => {
     render(<DevtoolsPanel host={fakeHost()} />)
-    for (const title of ["Overview", "Dependencies", "Routes", "Commands", "Settings", "Breadcrumbs", "Help", "Session", "Runtime", "Telemetry", "Diagnostics", "Overlays"]) {
+    for (const title of [
+      "Overview",
+      "Dependencies",
+      "Routes",
+      "Commands",
+      "Settings",
+      "Breadcrumbs",
+      "Help",
+      "Session",
+      "Runtime",
+      "Telemetry",
+      "Diagnostics",
+      "Overlays",
+    ]) {
       expect(screen.getByRole("tab", { name: title })).toBeInTheDocument()
     }
     expect(screen.getByTestId("platform-devtools-panel")).toBeInTheDocument()
@@ -42,7 +79,11 @@ describe("DevtoolsPanel", () => {
   })
 
   it("shows registered custom panels", () => {
-    const dispose = registerDevtoolsPanel({ id: "acme", title: "Acme", render: () => <p>acme panel</p> })
+    const dispose = registerDevtoolsPanel({
+      id: "acme",
+      title: "Acme",
+      render: () => <p>acme panel</p>,
+    })
     render(<DevtoolsPanel host={fakeHost()} defaultTab="acme" />)
     expect(screen.getByRole("tab", { name: "Acme" })).toBeInTheDocument()
     expect(screen.getByText("acme panel")).toBeInTheDocument()

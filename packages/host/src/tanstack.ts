@@ -1,5 +1,11 @@
 import type { AnyRouter, RouterHistory } from "@tanstack/react-router"
-import { isUnderPrefix, parseHref, type NavigateOptions, type ShellLocation, type ShellNavigation } from "@platform-internal/core"
+import {
+  isUnderPrefix,
+  parseHref,
+  type NavigateOptions,
+  type ShellLocation,
+  type ShellNavigation,
+} from "@platform-internal/core"
 
 import type { PlatformHost } from "./types"
 
@@ -7,7 +13,13 @@ type HistoryLike = RouterHistory
 
 function toShellLocation(location: HistoryLike["location"]): ShellLocation {
   const state = location.state as { key?: string; __TSR_key?: string } | undefined
-  return { pathname: location.pathname, search: location.search, hash: location.hash, state: location.state, key: state?.__TSR_key ?? state?.key }
+  return {
+    pathname: location.pathname,
+    search: location.search,
+    hash: location.hash,
+    state: location.state,
+    key: state?.__TSR_key ?? state?.key,
+  }
 }
 
 export interface TanStackShellNavigation extends ShellNavigation {
@@ -21,21 +33,26 @@ export interface TanStackShellNavigation extends ShellNavigation {
  * `window` is patched. Works with browser and memory histories.
  */
 export function createTanStackShellNavigation(router: AnyRouter): TanStackShellNavigation {
-  const listeners = new Set<(location: ShellLocation, action: "push" | "replace" | "pop") => void>()
+  const listeners = new Set<
+    (location: ShellLocation, action: "push" | "replace" | "pop") => void
+  >()
   const history = router.history as HistoryLike
   const unsubscribe = history.subscribe(({ location, action }) => {
-    const kind: "push" | "replace" | "pop" = action.type === "PUSH" ? "push" : action.type === "REPLACE" ? "replace" : "pop"
+    const kind: "push" | "replace" | "pop" =
+      action.type === "PUSH" ? "push" : action.type === "REPLACE" ? "replace" : "pop"
     const shellLocation = toShellLocation(location)
     for (const listener of Array.from(listeners)) listener(shellLocation, kind)
   })
   const navigate = (href: string, options: NavigateOptions | undefined, replace: boolean) => {
     const target = parseHref(href)
     const full = `${target.pathname}${target.search}${target.hash}`
-    void router.navigate({ href: full, replace, state: options?.state as never } as never).catch(() => {
-      // Fall back to the history itself when the router cannot build the location (external href, blocked).
-      if (replace) history.replace(full, options?.state)
-      else history.push(full, options?.state)
-    })
+    void router
+      .navigate({ href: full, replace, state: options?.state as never } as never)
+      .catch(() => {
+        // Fall back to the history itself when the router cannot build the location (external href, blocked).
+        if (replace) history.replace(full, options?.state)
+        else history.push(full, options?.state)
+      })
   }
   return {
     router,
@@ -80,13 +97,21 @@ export function mfeRouteHelpers({ host }: { host: PlatformHost }): MfeRouteHelpe
   const routePrefixes = () =>
     host.remotes
       .list()
-      .filter((record) => !(record.manifest && (record.manifest.kind === "widget-library" || (record.definition && !record.definition.hasRoutes))))
+      .filter(
+        (record) =>
+          !(
+            record.manifest &&
+            (record.manifest.kind === "widget-library" ||
+              (record.definition && !record.definition.hasRoutes))
+          )
+      )
       .map((record) => ({ mfeId: record.mfeId, routePrefix: host.routePrefixOf(record.mfeId) }))
       .sort((a, b) => b.routePrefix.length - a.routePrefix.length)
   return {
     routePrefixes,
     matchMfeForPath(pathname) {
-      for (const candidate of routePrefixes()) if (isUnderPrefix(pathname, candidate.routePrefix)) return candidate
+      for (const candidate of routePrefixes())
+        if (isUnderPrefix(pathname, candidate.routePrefix)) return candidate
       return null
     },
   }

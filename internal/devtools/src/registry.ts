@@ -20,7 +20,9 @@ const listeners = new Set<() => void>()
 let snapshot: DevtoolsPanelDefinition[] = []
 
 const notify = () => {
-  snapshot = Array.from(panels.values()).sort((a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title))
+  snapshot = Array.from(panels.values()).sort(
+    (a, b) => (a.order ?? 100) - (b.order ?? 100) || a.title.localeCompare(b.title)
+  )
   for (const listener of Array.from(listeners)) listener()
 }
 

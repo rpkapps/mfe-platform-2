@@ -41,7 +41,17 @@ export function CommandsPanel({ snapshot }: DevtoolsPanelRenderProps) {
         />
       </Section>
       <Section title={`Shortcut conflicts (${conflicts.length})`}>
-        <DataTable columns={["Shortcut", "Holder", "Rejected"]} empty="No shortcut conflicts." rows={conflicts.map((conflict) => [<kbd key="k">{conflict.shortcut}</kbd>, <code key="h">{conflict.holder}</code>, <span key="r"><code>{conflict.rejected}</code> <Badge variant="warning">rejected</Badge></span>])} />
+        <DataTable
+          columns={["Shortcut", "Holder", "Rejected"]}
+          empty="No shortcut conflicts."
+          rows={conflicts.map((conflict) => [
+            <kbd key="k">{conflict.shortcut}</kbd>,
+            <code key="h">{conflict.holder}</code>,
+            <span key="r">
+              <code>{conflict.rejected}</code> <Badge variant="warning">rejected</Badge>
+            </span>,
+          ])}
+        />
       </Section>
     </>
   )

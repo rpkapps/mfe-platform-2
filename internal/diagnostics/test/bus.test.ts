@@ -1,21 +1,33 @@
 import { describe, expect, it, vi } from "vitest"
-import { createMemoryTelemetryAdapter, createTelemetry, PlatformError } from "@platform-internal/core"
+import {
+  createMemoryTelemetryAdapter,
+  createTelemetry,
+  PlatformError,
+} from "@platform-internal/core"
 
 import { createDiagnosticsBus } from "../src/bus"
 
 describe("diagnostics bus", () => {
   it("assigns ids, timestamps and levels", () => {
     const bus = createDiagnosticsBus({ now: () => 42 })
-    const event = bus.emit({ type: "remote.loading", entryUrl: "http://x/entry.js", mfeId: "a" })
+    const event = bus.emit({
+      type: "remote.loading",
+      entryUrl: "http://x/entry.js",
+      mfeId: "a",
+    })
     expect(event).toMatchObject({ id: 1, at: 42, level: "info", type: "remote.loading" })
-    expect(bus.emit({ type: "shortcut.conflict", shortcut: "mod+k", holder: "a", rejected: "b" })?.level).toBe("warn")
+    expect(
+      bus.emit({ type: "shortcut.conflict", shortcut: "mod+k", holder: "a", rejected: "b" })
+        ?.level
+    ).toBe("warn")
     expect(bus.emit({ type: "log", message: "x", level: "error" })?.level).toBe("error")
     expect(bus.count).toBe(3)
   })
 
   it("keeps a ring buffer and filters", () => {
     const bus = createDiagnosticsBus({ limit: 3 })
-    for (let i = 0; i < 5; i += 1) bus.emit({ type: "log", message: `m${i}`, mfeId: i % 2 ? "odd" : "even" })
+    for (let i = 0; i < 5; i += 1)
+      bus.emit({ type: "log", message: `m${i}`, mfeId: i % 2 ? "odd" : "even" })
     expect(bus.list().map((e) => e.id)).toEqual([3, 4, 5])
     expect(bus.list({ mfeId: "odd" }).map((e) => e.id)).toEqual([4])
     expect(bus.list({ minLevel: "info" })).toEqual([])
@@ -47,7 +59,10 @@ describe("diagnostics bus", () => {
     bus.emit({ type: "mount.failed", error, mfeId: "a", instanceId: "a#1" })
     bus.emit({ type: "preflight.denied", missingGroups: ["admin"], mfeId: "a" })
     expect(adapter.events.map((e) => e.kind)).toEqual(["error", "track"])
-    expect(adapter.events[0]?.attributes).toMatchObject({ mfeId: "a", "error.code": "MOUNT_FAILED" })
+    expect(adapter.events[0]?.attributes).toMatchObject({
+      mfeId: "a",
+      "error.code": "MOUNT_FAILED",
+    })
   })
 
   it("scoped sinks tag events with their owner", () => {

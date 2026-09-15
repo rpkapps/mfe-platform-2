@@ -22,13 +22,18 @@ export interface FederationSharedEntry {
 }
 
 /** `scope → package → version → entry` as kept by the runtime. */
-export type FederationShareScopeMap = Record<string, Record<string, Record<string, FederationSharedEntry>>>
+export type FederationShareScopeMap = Record<
+  string,
+  Record<string, Record<string, FederationSharedEntry>>
+>
 
 export interface FederationInstance {
   name: string
   registerRemotes(remotes: FederationRemote[], options?: { force?: boolean }): void
   loadRemote<T = unknown>(id: string): Promise<T | null>
-  preloadRemote?(options: { nameOrAlias: string; exposes?: string[]; resourceCategory?: "all" | "sync" }[]): Promise<void>
+  preloadRemote?(
+    options: { nameOrAlias: string; exposes?: string[]; resourceCategory?: "all" | "sync" }[]
+  ): Promise<void>
   shareScopeMap?: FederationShareScopeMap
   moduleCache?: { delete(name: string): boolean; keys(): IterableIterator<string> }
 }
@@ -48,4 +53,6 @@ export interface FederationInstanceOptions {
   plugins: unknown[]
 }
 
-export type FederationInstanceFactory = (options: FederationInstanceOptions) => FederationInstance
+export type FederationInstanceFactory = (
+  options: FederationInstanceOptions
+) => FederationInstance

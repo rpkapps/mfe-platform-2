@@ -3,7 +3,15 @@ import type { ReactNode } from "react"
 import { Badge } from "@tecton/react/components/badge"
 
 /** Small presentational helpers styled by `@platform/host/styles.css` (`.platform-devtools-*`). */
-export function DataTable({ columns, rows, empty = "Nothing to show." }: { columns: string[]; rows: ReactNode[][]; empty?: string }) {
+export function DataTable({
+  columns,
+  rows,
+  empty = "Nothing to show.",
+}: {
+  columns: string[]
+  rows: ReactNode[][]
+  empty?: string
+}) {
   if (rows.length === 0) return <Empty>{empty}</Empty>
   return (
     <div className="platform-devtools-table-wrap">
@@ -57,7 +65,20 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 export function StateBadge({ state }: { state: string }) {
-  const variant = state === "mounted" || state === "succeeded" || state === "ready" ? "success" : state === "failed" || state === "error" ? "destructive" : state === "unavailable" || state === "warn" ? "warning" : state === "loading" || state === "running" || state === "mounting" || state === "resolving" || state === "negotiating" ? "info" : "secondary"
+  const variant =
+    state === "mounted" || state === "succeeded" || state === "ready"
+      ? "success"
+      : state === "failed" || state === "error"
+        ? "destructive"
+        : state === "unavailable" || state === "warn"
+          ? "warning"
+          : state === "loading" ||
+              state === "running" ||
+              state === "mounting" ||
+              state === "resolving" ||
+              state === "negotiating"
+            ? "info"
+            : "secondary"
   return <Badge variant={variant}>{state}</Badge>
 }
 

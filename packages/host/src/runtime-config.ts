@@ -26,7 +26,9 @@ export const RUNTIME_CONFIG_SCRIPT_ID = "platform-config"
 export const RUNTIME_CONFIG_URL = "/platform-config.json"
 
 /** Inline document from the SSR script tag or the global, when present. */
-export function readInlineRuntimeConfig(options: Pick<LoadRuntimeConfigOptions, "document" | "window"> = {}): { value: unknown; source: "inline-script" | "inline-global" } | undefined {
+export function readInlineRuntimeConfig(
+  options: Pick<LoadRuntimeConfigOptions, "document" | "window"> = {}
+): { value: unknown; source: "inline-script" | "inline-global" } | undefined {
   const doc = options.document ?? (typeof document !== "undefined" ? document : undefined)
   const script = doc?.getElementById(RUNTIME_CONFIG_SCRIPT_ID)
   if (script && script.textContent && script.textContent.trim()) {
@@ -41,8 +43,11 @@ export function readInlineRuntimeConfig(options: Pick<LoadRuntimeConfigOptions, 
       })
     }
   }
-  const win = options.window ?? (typeof window !== "undefined" ? (window as LoadRuntimeConfigOptions["window"]) : undefined)
-  if (win && win.__PLATFORM_CONFIG__ !== undefined) return { value: win.__PLATFORM_CONFIG__, source: "inline-global" }
+  const win =
+    options.window ??
+    (typeof window !== "undefined" ? (window as LoadRuntimeConfigOptions["window"]) : undefined)
+  if (win && win.__PLATFORM_CONFIG__ !== undefined)
+    return { value: win.__PLATFORM_CONFIG__, source: "inline-global" }
   return undefined
 }
 
@@ -51,7 +56,9 @@ export function readInlineRuntimeConfig(options: Pick<LoadRuntimeConfigOptions, 
  * (`cache: "no-store"`, 404 tolerated) → fallback → schema validation. The
  * effective source is recorded in `config.source`.
  */
-export async function loadRuntimeConfig(options: LoadRuntimeConfigOptions = {}): Promise<RuntimeConfig> {
+export async function loadRuntimeConfig(
+  options: LoadRuntimeConfigOptions = {}
+): Promise<RuntimeConfig> {
   const diagnostics = options.diagnostics
   let raw: unknown
   let source: string
@@ -68,20 +75,37 @@ export async function loadRuntimeConfig(options: LoadRuntimeConfigOptions = {}):
       const fetchImpl = options.fetch ?? (typeof fetch === "function" ? fetch : undefined)
       if (url && fetchImpl) {
         try {
-          const response = await fetchImpl(url, { cache: "no-store", credentials: "same-origin", signal: options.signal })
+          const response = await fetchImpl(url, {
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: options.signal,
+          })
           if (response.status === 404) {
-            diagnostics?.emit({ type: "log", level: "warn", message: `Runtime configuration not found at ${url}; using ${options.fallback !== undefined ? "the fallback document" : "defaults"}.` })
+            diagnostics?.emit({
+              type: "log",
+              level: "warn",
+              message: `Runtime configuration not found at ${url}; using ${options.fallback !== undefined ? "the fallback document" : "defaults"}.`,
+            })
             raw = options.fallback ?? {}
             source = "fallback"
           } else if (!response.ok) {
-            throw new PlatformError({ code: "RUNTIME_CONFIG_FETCH_FAILED", message: `Fetching ${url} failed with HTTP ${response.status}.`, source: url })
+            throw new PlatformError({
+              code: "RUNTIME_CONFIG_FETCH_FAILED",
+              message: `Fetching ${url} failed with HTTP ${response.status}.`,
+              source: url,
+            })
           } else {
             raw = await response.json()
             source = "fetch"
           }
         } catch (error) {
           if (isPlatformError(error)) throw error
-          throw new PlatformError({ code: "RUNTIME_CONFIG_FETCH_FAILED", message: `Fetching ${url} failed: ${error instanceof Error ? error.message : String(error)}`, source: url, cause: error })
+          throw new PlatformError({
+            code: "RUNTIME_CONFIG_FETCH_FAILED",
+            message: `Fetching ${url} failed: ${error instanceof Error ? error.message : String(error)}`,
+            source: url,
+            cause: error,
+          })
         }
       } else {
         raw = options.fallback ?? {}
@@ -90,7 +114,11 @@ export async function loadRuntimeConfig(options: LoadRuntimeConfigOptions = {}):
     }
   }
   const config = parseRuntimeConfig(raw, source)
-  diagnostics?.emit({ type: "runtime-config.loaded", source: config.source ?? source, environment: config.environment })
+  diagnostics?.emit({
+    type: "runtime-config.loaded",
+    source: config.source ?? source,
+    environment: config.environment,
+  })
   return config
 }
 
@@ -99,8 +127,10 @@ export function diffRuntimeConfig(previous: RuntimeConfig, next: RuntimeConfig):
   const changes: string[] = []
   if (previous.environment !== next.environment) changes.push("environment")
   if (JSON.stringify(previous.shared) !== JSON.stringify(next.shared)) changes.push("shared")
-  if (JSON.stringify(previous.allowedOrigins) !== JSON.stringify(next.allowedOrigins)) changes.push("allowedOrigins")
-  if (JSON.stringify(previous.devtools) !== JSON.stringify(next.devtools)) changes.push("devtools")
+  if (JSON.stringify(previous.allowedOrigins) !== JSON.stringify(next.allowedOrigins))
+    changes.push("allowedOrigins")
+  if (JSON.stringify(previous.devtools) !== JSON.stringify(next.devtools))
+    changes.push("devtools")
   const ids = new Set([...Object.keys(previous.mfes), ...Object.keys(next.mfes)])
   for (const id of ids) {
     const a = previous.mfes[id] ?? { env: {} }
@@ -110,8 +140,10 @@ export function diffRuntimeConfig(previous: RuntimeConfig, next: RuntimeConfig):
     if (a.manifestUrl !== b.manifestUrl) changes.push(`mfes.${id}.manifestUrl`)
     if (a.preload !== b.preload) changes.push(`mfes.${id}.preload`)
     if (JSON.stringify(a.env) !== JSON.stringify(b.env)) changes.push(`mfes.${id}.env`)
-    if (JSON.stringify(a.allowedOrigins) !== JSON.stringify(b.allowedOrigins)) changes.push(`mfes.${id}.allowedOrigins`)
-    if (changes.length === before && !previous.mfes[id] !== !next.mfes[id]) changes.push(`mfes.${id}`)
+    if (JSON.stringify(a.allowedOrigins) !== JSON.stringify(b.allowedOrigins))
+      changes.push(`mfes.${id}.allowedOrigins`)
+    if (changes.length === before && !previous.mfes[id] !== !next.mfes[id])
+      changes.push(`mfes.${id}`)
   }
   return changes
 }

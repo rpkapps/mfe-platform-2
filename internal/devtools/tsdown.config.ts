@@ -7,5 +7,15 @@ export default defineConfig({
   platform: "browser",
   clean: true,
   sourcemap: true,
-  external: ["react", "react-dom", "react/jsx-runtime", /^@xyflow\//, /^@tecton\//, "react-aria-components", "lucide-react", "cn", "class-variance-authority"],
+  external: [
+    "react",
+    "react-dom",
+    "react/jsx-runtime",
+    /^@xyflow\//,
+    /^@tecton\//,
+    "react-aria-components",
+    "lucide-react",
+    "cn",
+    "class-variance-authority",
+  ],
 })

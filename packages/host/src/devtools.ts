@@ -5,10 +5,13 @@ export const DEVTOOLS_QUERY = "platform.devtools"
 
 export interface DevtoolsDecision {
   allowed: boolean
-  reason: "no-window" | "policy-never" | "policy-always" | "environment" | "flag-missing" | "flag"
+  reason:
+    "no-window" | "policy-never" | "policy-always" | "environment" | "flag-missing" | "flag"
 }
 
-export function readDevtoolsFlag(win: Window | undefined = typeof window !== "undefined" ? window : undefined): boolean {
+export function readDevtoolsFlag(
+  win: Window | undefined = typeof window !== "undefined" ? window : undefined
+): boolean {
   if (!win) return false
   try {
     if (win.localStorage?.getItem(DEVTOOLS_FLAG_KEY) === "1") return true
@@ -25,18 +28,28 @@ export function readDevtoolsFlag(win: Window | undefined = typeof window !== "un
 }
 
 /** `win: null` means "no browser window" (SSR); `undefined` uses the global. */
-export function decideDevtools(host: Pick<PlatformHost, "devtools" | "environment">, win: Window | null | undefined = typeof window !== "undefined" ? window : null): DevtoolsDecision {
+export function decideDevtools(
+  host: Pick<PlatformHost, "devtools" | "environment">,
+  win: Window | null | undefined = typeof window !== "undefined" ? window : null
+): DevtoolsDecision {
   if (!win) return { allowed: false, reason: "no-window" }
   if (host.devtools.policy === "never") return { allowed: false, reason: "policy-never" }
   if (host.devtools.policy === "always") return { allowed: true, reason: "policy-always" }
-  if (!host.devtools.environments.includes(host.environment)) return { allowed: false, reason: "environment" }
-  return readDevtoolsFlag(win) ? { allowed: true, reason: "flag" } : { allowed: false, reason: "flag-missing" }
+  if (!host.devtools.environments.includes(host.environment))
+    return { allowed: false, reason: "environment" }
+  return readDevtoolsFlag(win)
+    ? { allowed: true, reason: "flag" }
+    : { allowed: false, reason: "flag-missing" }
 }
 
 /** True when the developer tools may load: browser only, policy allows, environment supported, flag set. */
 export function shouldLoadDevtools(host: PlatformHost, win?: Window | null): boolean {
   const decision = decideDevtools(host, win)
-  host.diagnostics.emit({ type: "devtools", action: decision.allowed ? "requested" : "denied", reason: decision.reason })
+  host.diagnostics.emit({
+    type: "devtools",
+    action: decision.allowed ? "requested" : "denied",
+    reason: decision.reason,
+  })
   return decision.allowed
 }
 
@@ -54,7 +67,11 @@ export async function loadDevtools(host: PlatformHost): Promise<DevtoolsModule> 
       })
       .catch((error: unknown) => {
         pending = null
-        host.diagnostics.emit({ type: "devtools", action: "failed", reason: error instanceof Error ? error.message : String(error) })
+        host.diagnostics.emit({
+          type: "devtools",
+          action: "failed",
+          reason: error instanceof Error ? error.message : String(error),
+        })
         throw error
       })
   }
@@ -62,7 +79,10 @@ export async function loadDevtools(host: PlatformHost): Promise<DevtoolsModule> 
 }
 
 /** Set or clear the local-storage flag (harness toggle). */
-export function setDevtoolsFlag(enabled: boolean, win: Window | undefined = typeof window !== "undefined" ? window : undefined): void {
+export function setDevtoolsFlag(
+  enabled: boolean,
+  win: Window | undefined = typeof window !== "undefined" ? window : undefined
+): void {
   try {
     if (enabled) win?.localStorage.setItem(DEVTOOLS_FLAG_KEY, "1")
     else win?.localStorage.removeItem(DEVTOOLS_FLAG_KEY)

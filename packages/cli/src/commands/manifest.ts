@@ -41,10 +41,15 @@ export async function readManifest(
       "generate the manifest"
     )
     if (typeof mod.generateManifest === "function") {
-      return {
-        manifest: await mod.generateManifest({ root, mode }),
-        source: "@platform/vite generateManifest",
-      }
+      const generated = (await mod.generateManifest({ root, mode })) as
+        | { manifest?: unknown }
+        | unknown
+      // The generator returns { manifest, input, config, routes, analysis, warnings }.
+      const manifest =
+        generated && typeof generated === "object" && "manifest" in generated
+          ? (generated as { manifest: unknown }).manifest
+          : generated
+      return { manifest, source: "@platform/vite generateManifest" }
     }
   }
   const candidates = [

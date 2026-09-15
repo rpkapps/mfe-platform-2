@@ -34,8 +34,12 @@ export function computeEntryUrl(manifest: MfeManifest, options: EntryUrlOptions)
   const relative = joinRemotePath(base, manifest.entry.file)
   const dev = options.dev ?? manifest.dev !== undefined
   const origin = dev ? manifest.dev?.origin : undefined
-  const baseUrl = origin ? resolveRemoteUrl(origin.endsWith("/") ? origin : `${origin}/`, base) : undefined
-  let url = baseUrl ? resolveRemoteUrl(baseUrl, manifest.entry.file) : resolveRemoteUrl(options.manifestUrl, relative)
+  const baseUrl = origin
+    ? resolveRemoteUrl(origin.endsWith("/") ? origin : `${origin}/`, base)
+    : undefined
+  let url = baseUrl
+    ? resolveRemoteUrl(baseUrl, manifest.entry.file)
+    : resolveRemoteUrl(options.manifestUrl, relative)
   if (!dev && options.cacheBust !== false && manifest.release.buildId) {
     url = withQuery(url, "v", manifest.release.buildId)
   }
@@ -56,9 +60,14 @@ export function exposeId(manifest: Pick<MfeManifest, "entry">): string {
 }
 
 /** URL of the dev refresh preamble (React Refresh installer for the remote's React instance). */
-export function refreshPreambleUrl(manifest: MfeManifest, manifestUrl: string): string | undefined {
+export function refreshPreambleUrl(
+  manifest: MfeManifest,
+  manifestUrl: string
+): string | undefined {
   const preamble = manifest.dev?.refreshPreamble
   if (!preamble) return undefined
   const origin = manifest.dev?.origin
-  return origin ? resolveRemoteUrl(origin.endsWith("/") ? origin : `${origin}/`, preamble) : resolveRemoteUrl(manifestUrl, preamble)
+  return origin
+    ? resolveRemoteUrl(origin.endsWith("/") ? origin : `${origin}/`, preamble)
+    : resolveRemoteUrl(manifestUrl, preamble)
 }

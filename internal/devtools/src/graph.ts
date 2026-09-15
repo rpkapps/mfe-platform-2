@@ -43,24 +43,53 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
   const providerNode = (from: string | undefined) => {
     if (!from) return "shell"
     if (from === "shell" || from === snapshot.host.kind) return "shell"
-    const byFederationName = snapshot.remotes.find((remote) => remote.mfeId === from || from === `mfe_${remote.mfeId.replace(/-/g, "_")}`)
-    return byFederationName ? `remote:${byFederationName.mfeId}` : remoteIds.has(from) ? `remote:${from}` : "shell"
+    const byFederationName = snapshot.remotes.find(
+      (remote) => remote.mfeId === from || from === `mfe_${remote.mfeId.replace(/-/g, "_")}`
+    )
+    return byFederationName
+      ? `remote:${byFederationName.mfeId}`
+      : remoteIds.has(from)
+        ? `remote:${from}`
+        : "shell"
   }
 
-  nodes.push({ id: "shell", kind: "shell", label: `Shell (${snapshot.host.kind})`, detail: snapshot.host.environment, position: { x: 0, y: 0 } })
+  nodes.push({
+    id: "shell",
+    kind: "shell",
+    label: `Shell (${snapshot.host.kind})`,
+    detail: snapshot.host.environment,
+    position: { x: 0, y: 0 },
+  })
 
   let remoteRow = 0
   for (const remote of snapshot.remotes) {
     if (!remote.loaded && remote.instances.length === 0) continue
     const id = `remote:${remote.mfeId}`
-    nodes.push({ id, kind: "remote", label: remote.displayName ?? remote.mfeId, detail: `${remote.state}${remote.version ? ` · v${remote.version}` : ""}${remote.reactVersion ? ` · React ${remote.reactVersion}` : ""}`, position: { x: COLUMN, y: ROW * (remoteRow + 1) } })
+    nodes.push({
+      id,
+      kind: "remote",
+      label: remote.displayName ?? remote.mfeId,
+      detail: `${remote.state}${remote.version ? ` · v${remote.version}` : ""}${remote.reactVersion ? ` · React ${remote.reactVersion}` : ""}`,
+      position: { x: COLUMN, y: ROW * (remoteRow + 1) },
+    })
     edges.push({ id: `mounts:${remote.mfeId}`, source: "shell", target: id, kind: "mounts" })
     let instanceRow = 0
     for (const instance of remote.instances) {
       if (instance.state === "disposed") continue
       const instanceNodeId = `instance:${instance.instanceId}`
-      nodes.push({ id: instanceNodeId, kind: "instance", label: instance.widgetId ? `${instance.widgetId} widget` : "route instance", detail: `${instance.instanceId} · ${instance.state}`, position: { x: COLUMN * 2, y: ROW * (remoteRow + 1) + instanceRow * 40 } })
-      edges.push({ id: `instance:${instance.instanceId}`, source: id, target: instanceNodeId, kind: "mounts" })
+      nodes.push({
+        id: instanceNodeId,
+        kind: "instance",
+        label: instance.widgetId ? `${instance.widgetId} widget` : "route instance",
+        detail: `${instance.instanceId} · ${instance.state}`,
+        position: { x: COLUMN * 2, y: ROW * (remoteRow + 1) + instanceRow * 40 },
+      })
+      edges.push({
+        id: `instance:${instance.instanceId}`,
+        source: id,
+        target: instanceNodeId,
+        kind: "mounts",
+      })
       instanceRow += 1
     }
     remoteRow += Math.max(1, instanceRow)
@@ -76,7 +105,13 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
   for (const [mfeId, rows] of Object.entries(snapshot.shared)) {
     const remoteNodeId = `remote:${mfeId}`
     if (!nodes.some((node) => node.id === remoteNodeId)) {
-      nodes.push({ id: remoteNodeId, kind: "remote", label: mfeId, detail: "registered", position: { x: COLUMN, y: ROW * (remoteRow + 1) } })
+      nodes.push({
+        id: remoteNodeId,
+        kind: "remote",
+        label: mfeId,
+        detail: "registered",
+        position: { x: COLUMN, y: ROW * (remoteRow + 1) },
+      })
       remoteRow += 1
     }
     for (const row of rows) {
@@ -86,19 +121,51 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
         if (!nodeId) {
           nodeId = `package:${key}`
           packageIds.set(key, nodeId)
-          nodes.push({ id: nodeId, kind: "package", label: `${row.name}@${row.version ?? "?"}`, scope: row.scope, detail: `scope ${row.scope}`, position: { x: COLUMN * 3, y: ROW * (packageRow + 1) } })
+          nodes.push({
+            id: nodeId,
+            kind: "package",
+            label: `${row.name}@${row.version ?? "?"}`,
+            scope: row.scope,
+            detail: `scope ${row.scope}`,
+            position: { x: COLUMN * 3, y: ROW * (packageRow + 1) },
+          })
           packageRow += 1
           scopes[row.scope] = [...(scopes[row.scope] ?? []), nodeId]
           const provider = providerNode(row.from)
-          edges.push({ id: `provides:${provider}:${key}`, source: provider, target: nodeId, kind: "provides", label: "provides" })
+          edges.push({
+            id: `provides:${provider}:${key}`,
+            source: provider,
+            target: nodeId,
+            kind: "provides",
+            label: "provides",
+          })
         }
-        edges.push({ id: `uses:${mfeId}:${key}`, source: remoteNodeId, target: nodeId, kind: "uses", label: row.reason.includes("loaded") ? "uses (loaded-first)" : "uses" })
+        edges.push({
+          id: `uses:${mfeId}:${key}`,
+          source: remoteNodeId,
+          target: nodeId,
+          kind: "uses",
+          label: row.reason.includes("loaded") ? "uses (loaded-first)" : "uses",
+        })
       } else {
         const nodeId = `bundled:${mfeId}:${row.name}`
-        nodes.push({ id: nodeId, kind: "bundled", label: `${row.name}@${row.version ?? "?"} (bundled)`, scope: row.scope, detail: row.reason, position: { x: COLUMN * 3, y: ROW * (packageRow + 1) } })
+        nodes.push({
+          id: nodeId,
+          kind: "bundled",
+          label: `${row.name}@${row.version ?? "?"} (bundled)`,
+          scope: row.scope,
+          detail: row.reason,
+          position: { x: COLUMN * 3, y: ROW * (packageRow + 1) },
+        })
         packageRow += 1
         scopes[row.scope] = [...(scopes[row.scope] ?? []), nodeId]
-        edges.push({ id: `uses:${mfeId}:${nodeId}`, source: remoteNodeId, target: nodeId, kind: "uses", label: "bundled" })
+        edges.push({
+          id: `uses:${mfeId}:${nodeId}`,
+          source: remoteNodeId,
+          target: nodeId,
+          kind: "uses",
+          label: "bundled",
+        })
       }
     }
   }

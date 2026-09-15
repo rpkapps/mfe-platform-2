@@ -17,7 +17,9 @@ export function SettingsPanel({ snapshot }: DevtoolsPanelRenderProps) {
           </span>,
           group.owner.mfeId,
           <span key="m">
-            <Badge variant={group.managedBy === "framework" ? "info" : "secondary"}>{group.managedBy}</Badge>
+            <Badge variant={group.managedBy === "framework" ? "info" : "secondary"}>
+              {group.managedBy}
+            </Badge>
             {group.route ? (
               <>
                 {" "}

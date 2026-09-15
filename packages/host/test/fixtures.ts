@@ -24,14 +24,39 @@ export function manifest(overrides: Partial<MfeManifestInput> = {}): MfeManifest
     version: "1.2.3",
     displayName: "Asset tracker",
     release: { version: "1.2.3", buildId: "b1" },
-    entry: { loader: "module-federation", name: "mfe_asset_tracker", file: "remoteEntry.js", expose: "./mfe", type: "module" },
+    entry: {
+      loader: "module-federation",
+      name: "mfe_asset_tracker",
+      file: "remoteEntry.js",
+      expose: "./mfe",
+      type: "module",
+    },
     remote: { baseUrl: "./", preload: "none" },
-    runtime: { react: { requiredVersion: "^19.0.0", major: 19, builtWith: "19.3.0" }, tanstackRouter: { requiredVersion: "^1.170.0", builtWith: "1.170.36" } },
-    navigation: { title: "Assets", description: "Track assets", keywords: ["pump", "inventory"] },
-    routes: [{ path: "/assets/$assetId", fullPath: "/asset-tracker/assets/$assetId", file: "assets.$assetId.tsx", navigation: { title: "Asset details", keywords: ["asset"] } }],
+    runtime: {
+      react: { requiredVersion: "^19.0.0", major: 19, builtWith: "19.3.0" },
+      tanstackRouter: { requiredVersion: "^1.170.0", builtWith: "1.170.36" },
+    },
+    navigation: {
+      title: "Assets",
+      description: "Track assets",
+      keywords: ["pump", "inventory"],
+    },
+    routes: [
+      {
+        path: "/assets/$assetId",
+        fullPath: "/asset-tracker/assets/$assetId",
+        file: "assets.$assetId.tsx",
+        navigation: { title: "Asset details", keywords: ["asset"] },
+      },
+    ],
     capabilities: ["commands", "settings"],
     widgets: [{ id: "asset-card", title: "Asset card" }],
-    env: { keys: { API_BASE_URL: { required: true, default: "https://api.default" }, FEATURE_X: { default: false } } },
+    env: {
+      keys: {
+        API_BASE_URL: { required: true, default: "https://api.default" },
+        FEATURE_X: { default: false },
+      },
+    },
     ...overrides,
   }
   const result = validateManifest(input)
@@ -42,12 +67,22 @@ export function manifest(overrides: Partial<MfeManifestInput> = {}): MfeManifest
 export interface FakeDefinitionOptions {
   mfeId?: string
   protocolVersion?: string
-  onMount?: (options: { container: HTMLElement; bridge: import("@platform-internal/core").HostBridge }) => void
+  onMount?: (options: {
+    container: HTMLElement
+    bridge: import("@platform-internal/core").HostBridge
+  }) => void
   throwOnMount?: boolean
   widgets?: string[]
 }
 
-export function definition(options: FakeDefinitionOptions = {}): RemoteDefinition & { mounts: number; disposed: number; lastBridge?: import("@platform-internal/core").HostBridge; lastProps?: Record<string, unknown> } {
+export function definition(
+  options: FakeDefinitionOptions = {}
+): RemoteDefinition & {
+  mounts: number
+  disposed: number
+  lastBridge?: import("@platform-internal/core").HostBridge
+  lastProps?: Record<string, unknown>
+} {
   const def = {
     kind: "platform-remote" as const,
     protocolVersion: options.protocolVersion ?? "1.0",
@@ -58,8 +93,14 @@ export function definition(options: FakeDefinitionOptions = {}): RemoteDefinitio
     disposed: 0,
     lastBridge: undefined as import("@platform-internal/core").HostBridge | undefined,
     lastProps: undefined as Record<string, unknown> | undefined,
-    registrations: { commands: [{ id: "go-assets", label: "Go to assets", route: "/assets" }], help: [{ id: "intro", title: "Getting started" }] },
-    mount(mountOptions: { container: HTMLElement; bridge: import("@platform-internal/core").HostBridge }): MountHandle {
+    registrations: {
+      commands: [{ id: "go-assets", label: "Go to assets", route: "/assets" }],
+      help: [{ id: "intro", title: "Getting started" }],
+    },
+    mount(mountOptions: {
+      container: HTMLElement
+      bridge: import("@platform-internal/core").HostBridge
+    }): MountHandle {
       def.mounts += 1
       def.lastBridge = mountOptions.bridge
       options.onMount?.(mountOptions)
@@ -72,7 +113,12 @@ export function definition(options: FakeDefinitionOptions = {}): RemoteDefinitio
         },
       }
     },
-    mountWidget(mountOptions: { container: HTMLElement; bridge: import("@platform-internal/core").HostBridge; widgetId: string; props: Record<string, unknown> }): WidgetHandle {
+    mountWidget(mountOptions: {
+      container: HTMLElement
+      bridge: import("@platform-internal/core").HostBridge
+      widgetId: string
+      props: Record<string, unknown>
+    }): WidgetHandle {
       def.mounts += 1
       def.lastBridge = mountOptions.bridge
       def.lastProps = mountOptions.props
@@ -92,7 +138,12 @@ export function definition(options: FakeDefinitionOptions = {}): RemoteDefinitio
   return def
 }
 
-export function fakeLoader(definitions: Record<string, RemoteDefinition | (() => RemoteDefinition | Promise<RemoteDefinition>)>): RemoteLoader & { registered: string[]; loads: number; invalidated: string[] } {
+export function fakeLoader(
+  definitions: Record<
+    string,
+    RemoteDefinition | (() => RemoteDefinition | Promise<RemoteDefinition>)
+  >
+): RemoteLoader & { registered: string[]; loads: number; invalidated: string[] } {
   const loader = {
     name: "fake",
     registered: [] as string[],
@@ -107,7 +158,19 @@ export function fakeLoader(definitions: Record<string, RemoteDefinition | (() =>
       if (!entry) throw new Error(`no definition for ${manifest.mfeId}`)
       return typeof entry === "function" ? entry() : entry
     },
-    sharedReport: (mfeId: string) => (definitions[mfeId] ? [{ name: "react", version: "19.3.0", scope: "react19", outcome: "shared" as const, from: "shell", reason: "loaded-first" }] : []),
+    sharedReport: (mfeId: string) =>
+      definitions[mfeId]
+        ? [
+            {
+              name: "react",
+              version: "19.3.0",
+              scope: "react19",
+              outcome: "shared" as const,
+              from: "shell",
+              reason: "loaded-first",
+            },
+          ]
+        : [],
     invalidate(mfeId: string) {
       loader.invalidated.push(mfeId)
     },
@@ -115,13 +178,19 @@ export function fakeLoader(definitions: Record<string, RemoteDefinition | (() =>
   return loader
 }
 
-export function fakeFetch(responses: Record<string, unknown | (() => unknown)>, options: { failures?: Record<string, number>; status?: Record<string, number> } = {}) {
+export function fakeFetch(
+  responses: Record<string, unknown | (() => unknown)>,
+  options: { failures?: Record<string, number>; status?: Record<string, number> } = {}
+) {
   const calls: { url: string; init?: RequestInit }[] = []
   const remaining = { ...(options.failures ?? {}) }
   const impl = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
     calls.push({ url, init })
-    const key = Object.keys(responses).find((candidate) => url === candidate || url.startsWith(`${candidate}?`) || url.startsWith(`${candidate}&`))
+    const key = Object.keys(responses).find(
+      (candidate) =>
+        url === candidate || url.startsWith(`${candidate}?`) || url.startsWith(`${candidate}&`)
+    )
     if (key && remaining[key] && remaining[key] > 0) {
       remaining[key] -= 1
       throw new TypeError("network down")
@@ -130,18 +199,35 @@ export function fakeFetch(responses: Record<string, unknown | (() => unknown)>, 
     const status = options.status?.[key] ?? 200
     const body = responses[key]
     const value = typeof body === "function" ? (body as () => unknown)() : body
-    return new Response(status === 200 ? JSON.stringify(value) : String(value ?? ""), { status, headers: { "content-type": "application/json" } })
+    return new Response(status === 200 ? JSON.stringify(value) : String(value ?? ""), {
+      status,
+      headers: { "content-type": "application/json" },
+    })
   })
   return Object.assign(impl, { calls })
 }
 
-export function createTestHost(overrides: Partial<PlatformHostOptions> & { config?: RuntimeConfigInput; registry?: RegistryEntry[] } = {}) {
+export function createTestHost(
+  overrides: Partial<PlatformHostOptions> & {
+    config?: RuntimeConfigInput
+    registry?: RegistryEntry[]
+  } = {}
+) {
   const { config, ...rest } = overrides
   const storage = overrides.storage ?? createMemoryStorageBackend()
   const navigation = overrides.navigation ?? createMemoryNavigation("/")
   return createPlatformHost({
-    runtimeConfig: parseRuntimeConfig({ environment: "test", retry: { attempts: 1, backoffMs: 0 }, ...(config ?? {}) }, "test"),
-    registry: overrides.registry ?? [{ mfeId: "asset-tracker", manifestUrl: `${ORIGIN}/mfes/asset-tracker/platform-manifest.json`, displayName: "Asset tracker" }],
+    runtimeConfig: parseRuntimeConfig(
+      { environment: "test", retry: { attempts: 1, backoffMs: 0 }, ...(config ?? {}) },
+      "test"
+    ),
+    registry: overrides.registry ?? [
+      {
+        mfeId: "asset-tracker",
+        manifestUrl: `${ORIGIN}/mfes/asset-tracker/platform-manifest.json`,
+        displayName: "Asset tracker",
+      },
+    ],
     navigation,
     storage,
     origin: ORIGIN,

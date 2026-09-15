@@ -26,7 +26,11 @@ export function settingsStorageKey(mfeId: string, qualifiedKey: string): string 
 }
 
 /** Settings value port for one MFE, persisted through the shell storage backend. */
-export function createSettingsValuePort(storage: StorageBackend, mfeId: string, diagnostics?: DiagnosticSink): SettingsValuePort {
+export function createSettingsValuePort(
+  storage: StorageBackend,
+  mfeId: string,
+  diagnostics?: DiagnosticSink
+): SettingsValuePort {
   const key = (qualifiedKey: string) => settingsStorageKey(mfeId, qualifiedKey)
   return {
     read(qualifiedKey) {
@@ -34,15 +38,26 @@ export function createSettingsValuePort(storage: StorageBackend, mfeId: string, 
       if (raw === null) return undefined
       try {
         const parsed = JSON.parse(raw) as { v?: number; value?: unknown }
-        if (!parsed || typeof parsed !== "object" || !("value" in parsed)) throw new Error("not an envelope")
+        if (!parsed || typeof parsed !== "object" || !("value" in parsed))
+          throw new Error("not an envelope")
         return { v: typeof parsed.v === "number" ? parsed.v : undefined, value: parsed.value }
       } catch (error) {
-        diagnostics?.emit({ type: "settings.invalid", key: qualifiedKey, message: `malformed stored value: ${error instanceof Error ? error.message : String(error)}`, recovered: "default", mfeId })
+        diagnostics?.emit({
+          type: "settings.invalid",
+          key: qualifiedKey,
+          message: `malformed stored value: ${error instanceof Error ? error.message : String(error)}`,
+          recovered: "default",
+          mfeId,
+        })
         return undefined
       }
     },
     write(qualifiedKey, envelope) {
-      storage.set("local", key(qualifiedKey), JSON.stringify({ v: envelope.v, value: envelope.value, updatedAt: Date.now() }))
+      storage.set(
+        "local",
+        key(qualifiedKey),
+        JSON.stringify({ v: envelope.v, value: envelope.value, updatedAt: Date.now() })
+      )
     },
     remove(qualifiedKey) {
       storage.remove("local", key(qualifiedKey))
@@ -55,13 +70,18 @@ export function createSettingsValuePort(storage: StorageBackend, mfeId: string, 
 
 /** Approved capabilities: the policy's answer, or manifest capabilities plus the implicit set. */
 export function approveCapabilities(host: PlatformHost, manifest: MfeManifest): CapabilityId[] {
-  const approved = host.policy.capabilities ? host.policy.capabilities(manifest) : [...manifest.capabilities]
+  const approved = host.policy.capabilities
+    ? host.policy.capabilities(manifest)
+    : [...manifest.capabilities]
   const set = new Set<CapabilityId>([...IMPLICIT_CAPABILITIES, ...approved])
   return Array.from(set)
 }
 
 /** Derived read-only shell store whose permission groups follow the host policy. */
-export function createExposedContextStore(host: { context: ReadonlyStore<ShellContextState>; policy: { permissionGroups: "all" | string[] } }): ReadonlyStore<ShellContextState> {
+export function createExposedContextStore(host: {
+  context: ReadonlyStore<ShellContextState>
+  policy: { permissionGroups: "all" | string[] }
+}): ReadonlyStore<ShellContextState> {
   let cachedSource: ShellContextState | null = null
   let cached: ShellContextState | null = null
   const compute = (): ShellContextState => {
@@ -69,7 +89,13 @@ export function createExposedContextStore(host: { context: ReadonlyStore<ShellCo
     if (cached && cachedSource === state) return cached
     cachedSource = state
     const policy = host.policy.permissionGroups
-    cached = policy === "all" ? state : { ...state, permissionGroups: state.permissionGroups.filter((group) => policy.includes(group)) }
+    cached =
+      policy === "all"
+        ? state
+        : {
+            ...state,
+            permissionGroups: state.permissionGroups.filter((group) => policy.includes(group)),
+          }
     return cached
   }
   const store: ReadonlyStore<ShellContextState> = {
@@ -111,22 +137,40 @@ export function createBridge(input: BridgeInput): BuiltBridge {
   const { host, manifest, instanceId, widgetId, capabilities } = input
   const mfeId = manifest.mfeId
   const view = runtimeViewFor(input.runtimeConfig, mfeId, manifest.env.keys)
-  const contextStore = createInstanceContextStore(host.exposedContext as ReadonlyStore<ShellContextState>, {
+  const contextStore = createInstanceContextStore(
+    host.exposedContext as ReadonlyStore<ShellContextState>,
+    {
+      mfeId,
+      instanceId,
+      widgetId,
+      capabilities,
+      runtime: { environment: view.environment, env: view.env, shared: view.shared },
+      remoteRelease: {
+        version: manifest.version,
+        buildId: manifest.release.buildId,
+        commit: manifest.release.commit,
+      },
+    }
+  )
+  const telemetry = host.telemetry.child({
     mfeId,
     instanceId,
     widgetId,
-    capabilities,
-    runtime: { environment: view.environment, env: view.env, shared: view.shared },
-    remoteRelease: { version: manifest.version, buildId: manifest.release.buildId, commit: manifest.release.commit },
+    release: manifest.version,
+    environment: host.environment,
   })
-  const telemetry = host.telemetry.child({ mfeId, instanceId, widgetId, release: manifest.version, environment: host.environment })
   const notifications: NotificationPort | undefined = input.notifications
     ? {
         notify: (notification) => {
           try {
             input.notifications!.notify(notification)
           } catch (error) {
-            input.diagnostics.emit({ type: "log", level: "warn", message: "notification port threw", detail: error instanceof Error ? error.message : String(error) })
+            input.diagnostics.emit({
+              type: "log",
+              level: "warn",
+              message: "notification port threw",
+              detail: error instanceof Error ? error.message : String(error),
+            })
           }
         },
       }
@@ -148,7 +192,12 @@ export function createBridge(input: BridgeInput): BuiltBridge {
     diagnostics: input.diagnostics,
     notifications,
     settingsValues: createSettingsValuePort(host.storage, mfeId, input.diagnostics),
-    host: { kind: host.kind, dev: manifest.dev !== undefined, environment: host.environment, headless: input.headless },
+    host: {
+      kind: host.kind,
+      dev: manifest.dev !== undefined,
+      environment: host.environment,
+      headless: input.headless,
+    },
   }
   return { bridge, contextStore }
 }

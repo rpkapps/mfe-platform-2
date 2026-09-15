@@ -16,7 +16,8 @@
 [data-platform-overlay-root] > [data-platform-layer] {
   z-index: var(--platform-layer, 1000);
 }
-body[data-platform-modal-count]:not([data-platform-modal-count="0"]) [data-platform-shell-chrome] {
+body[data-platform-modal-count]:not([data-platform-modal-count="0"])
+  [data-platform-shell-chrome] {
   pointer-events: none;
 }
 

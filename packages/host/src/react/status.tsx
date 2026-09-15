@@ -1,11 +1,17 @@
 import type { ReactNode } from "react"
 import type { PlatformError } from "@platform-internal/core"
 
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@tecton/react/components/alert"
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "@tecton/react/components/alert"
 import { Button } from "@tecton/react/components/button"
 import { Skeleton } from "@tecton/react/components/skeleton"
 
-export type OutletState = "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled" | "restart-required"
+export type OutletState =
+  "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled" | "restart-required"
 
 export function outletStateFor(error: PlatformError | undefined): OutletState {
   if (!error) return "mounted"
@@ -36,28 +42,69 @@ const TITLES: Record<OutletState, string> = {
   "restart-required": "The development server needs a restart",
 }
 
-export function LoadingState({ label = "Loading…", lines = 3 }: { label?: string; lines?: number }) {
+export function LoadingState({
+  label = "Loading…",
+  lines = 3,
+}: {
+  label?: string
+  lines?: number
+}) {
   return (
-    <div className="platform-outlet-loading" role="status" aria-label={label} data-platform-loading="">
+    <div
+      className="platform-outlet-loading"
+      role="status"
+      aria-label={label}
+      data-platform-loading=""
+    >
       {Array.from({ length: lines }, (_, index) => (
-        <Skeleton key={index} className="platform-outlet-skeleton" style={{ width: `${90 - index * 20}%` }} />
+        <Skeleton
+          key={index}
+          className="platform-outlet-skeleton"
+          style={{ width: `${90 - index * 20}%` }}
+        />
       ))}
       <span className="platform-visually-hidden">{label}</span>
     </div>
   )
 }
 
-export function RemoteErrorState({ error, state, onRetry, retryLabel = "Retry", children }: { error: PlatformError; state: OutletState; onRetry?: () => void; retryLabel?: string; children?: ReactNode }) {
-  const variant = state === "denied" || state === "disabled" ? "warning" : state === "restart-required" ? "info" : "destructive"
-  const missingGroups = Array.isArray(error.details?.missingGroups) ? (error.details.missingGroups as string[]) : []
+export function RemoteErrorState({
+  error,
+  state,
+  onRetry,
+  retryLabel = "Retry",
+  children,
+}: {
+  error: PlatformError
+  state: OutletState
+  onRetry?: () => void
+  retryLabel?: string
+  children?: ReactNode
+}) {
+  const variant =
+    state === "denied" || state === "disabled"
+      ? "warning"
+      : state === "restart-required"
+        ? "info"
+        : "destructive"
+  const missingGroups = Array.isArray(error.details?.missingGroups)
+    ? (error.details.missingGroups as string[])
+    : []
   return (
-    <Alert variant={variant} className="platform-outlet-error" data-platform-error-code={error.code}>
+    <Alert
+      variant={variant}
+      className="platform-outlet-error"
+      data-platform-error-code={error.code}
+    >
       <AlertTitle>
-        {TITLES[state] || TITLES.error} <code className="platform-error-code">{error.code}</code>
+        {TITLES[state] || TITLES.error}{" "}
+        <code className="platform-error-code">{error.code}</code>
       </AlertTitle>
       <AlertDescription>
         <p>{error.message}</p>
-        {missingGroups.length ? <p>Missing permission groups: {missingGroups.join(", ")}</p> : null}
+        {missingGroups.length ? (
+          <p>Missing permission groups: {missingGroups.join(", ")}</p>
+        ) : null}
         <p className="platform-error-hint">{error.hint}</p>
         {error.override ? (
           <p>
@@ -65,7 +112,12 @@ export function RemoteErrorState({ error, state, onRetry, retryLabel = "Retry", 
           </p>
         ) : null}
         <p>
-          <a href={error.docsUrl} target="_blank" rel="noreferrer" className="platform-error-docs">
+          <a
+            href={error.docsUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="platform-error-docs"
+          >
             Read the documentation
           </a>
         </p>

@@ -1,7 +1,18 @@
 import { useEffect, useMemo, type ReactNode } from "react"
-import { announceBreadcrumbs, truncateBreadcrumbs, type BreadcrumbEntry } from "@platform-internal/core"
+import {
+  announceBreadcrumbs,
+  truncateBreadcrumbs,
+  type BreadcrumbEntry,
+} from "@platform-internal/core"
 
-import { Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage } from "@tecton/react/components/breadcrumb"
+import {
+  Breadcrumb,
+  BreadcrumbEllipsis,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@tecton/react/components/breadcrumb"
 
 import { usePlatformHost, useSubscription } from "./context"
 
@@ -15,9 +26,18 @@ export interface BreadcrumbsProps {
 }
 
 /** Shell-owned breadcrumb bar: shell entries followed by the active MFE trail, truncated, announced. */
-export function Breadcrumbs({ renderer, maxItems = 5, className, announcePrefix = "Location:" }: BreadcrumbsProps) {
+export function Breadcrumbs({
+  renderer,
+  maxItems = 5,
+  className,
+  announcePrefix = "Location:",
+}: BreadcrumbsProps) {
   const host = usePlatformHost()
-  const state = useSubscription((listener) => host.breadcrumbs.subscribe(listener), () => host.breadcrumbs.getState(), Object.is)
+  const state = useSubscription(
+    (listener) => host.breadcrumbs.subscribe(listener),
+    () => host.breadcrumbs.getState(),
+    Object.is
+  )
   const entries = useMemo(() => {
     const active = state.activeInstanceId ? state.trails[state.activeInstanceId] : undefined
     const record = active ? host.remotes.get(active.owner.mfeId) : undefined
@@ -45,26 +65,44 @@ export function Breadcrumbs({ renderer, maxItems = 5, className, announcePrefix 
   const visible = entries.filter((entry) => !entry.hidden)
   const lastKey = visible[visible.length - 1]?.key
   return (
-    <Breadcrumb className={["platform-breadcrumbs", className].filter(Boolean).join(" ")} data-platform-breadcrumbs="">
+    <Breadcrumb
+      className={["platform-breadcrumbs", className].filter(Boolean).join(" ")}
+      data-platform-breadcrumbs=""
+    >
       <BreadcrumbList>
         {items.map((item) => {
           if ("ellipsis" in item) {
             return (
               <BreadcrumbItem key="ellipsis">
-                <BreadcrumbEllipsis title={item.collapsed.map((entry) => entry.label ?? entry.key).join(" › ")} />
+                <BreadcrumbEllipsis
+                  title={item.collapsed.map((entry) => entry.label ?? entry.key).join(" › ")}
+                />
               </BreadcrumbItem>
             )
           }
           const isCurrent = item.key === lastKey
-          const label = item.state === "loading" ? (item.label ?? "…") : item.state === "unavailable" ? (item.label ?? "Unavailable") : (item.label ?? "Untitled")
+          const label =
+            item.state === "loading"
+              ? (item.label ?? "…")
+              : item.state === "unavailable"
+                ? (item.label ?? "Unavailable")
+                : (item.label ?? "Untitled")
           return (
-            <BreadcrumbItem key={item.key} className={`platform-breadcrumb platform-breadcrumb-${item.state} platform-breadcrumb-kind-${item.kind}`}>
+            <BreadcrumbItem
+              key={item.key}
+              className={`platform-breadcrumb platform-breadcrumb-${item.state} platform-breadcrumb-kind-${item.kind}`}
+            >
               {isCurrent || !item.href || item.state !== "ready" ? (
-                <BreadcrumbPage aria-busy={item.state === "loading" || undefined} className={item.state !== "ready" ? "platform-breadcrumb-pending" : undefined}>
+                <BreadcrumbPage
+                  aria-busy={item.state === "loading" || undefined}
+                  className={item.state !== "ready" ? "platform-breadcrumb-pending" : undefined}
+                >
                   {label}
                 </BreadcrumbPage>
               ) : (
-                <BreadcrumbLink onPress={() => host.navigation.push(item.href!)}>{label}</BreadcrumbLink>
+                <BreadcrumbLink onPress={() => host.navigation.push(item.href!)}>
+                  {label}
+                </BreadcrumbLink>
               )}
             </BreadcrumbItem>
           )

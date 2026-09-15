@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react"
 import type { DiagnosticSnapshot } from "@platform-internal/diagnostics"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@tecton/react/components/tabs"
@@ -16,20 +23,40 @@ import { RuntimePanel } from "./panels/runtime"
 import { SessionPanel } from "./panels/session"
 import { SettingsPanel } from "./panels/settings"
 import { TelemetryPanel } from "./panels/telemetry"
-import { listDevtoolsPanels, subscribeDevtoolsPanels, type DevtoolsPanelRenderProps } from "./registry"
+import {
+  listDevtoolsPanels,
+  subscribeDevtoolsPanels,
+  type DevtoolsPanelRenderProps,
+} from "./registry"
 
-export const DEVTOOLS_TABS: { id: string; title: string; render: (props: DevtoolsPanelRenderProps) => ReactNode }[] = [
+export const DEVTOOLS_TABS: {
+  id: string
+  title: string
+  render: (props: DevtoolsPanelRenderProps) => ReactNode
+}[] = [
   { id: "overview", title: "Overview", render: (props) => <OverviewPanel {...props} /> },
-  { id: "dependencies", title: "Dependencies", render: (props) => <DependenciesPanel {...props} /> },
+  {
+    id: "dependencies",
+    title: "Dependencies",
+    render: (props) => <DependenciesPanel {...props} />,
+  },
   { id: "routes", title: "Routes", render: (props) => <RoutesPanel {...props} /> },
   { id: "commands", title: "Commands", render: (props) => <CommandsPanel {...props} /> },
   { id: "settings", title: "Settings", render: (props) => <SettingsPanel {...props} /> },
-  { id: "breadcrumbs", title: "Breadcrumbs", render: (props) => <BreadcrumbsPanel {...props} /> },
+  {
+    id: "breadcrumbs",
+    title: "Breadcrumbs",
+    render: (props) => <BreadcrumbsPanel {...props} />,
+  },
   { id: "help", title: "Help", render: (props) => <HelpPanel {...props} /> },
   { id: "session", title: "Session", render: (props) => <SessionPanel {...props} /> },
   { id: "runtime", title: "Runtime", render: (props) => <RuntimePanel {...props} /> },
   { id: "telemetry", title: "Telemetry", render: (props) => <TelemetryPanel {...props} /> },
-  { id: "diagnostics", title: "Diagnostics", render: (props) => <DiagnosticsPanel {...props} /> },
+  {
+    id: "diagnostics",
+    title: "Diagnostics",
+    render: (props) => <DiagnosticsPanel {...props} />,
+  },
   { id: "overlays", title: "Overlays", render: (props) => <OverlaysPanel {...props} /> },
 ]
 
@@ -70,15 +97,38 @@ export function useHostSnapshot(host: DevtoolsHost, refreshMs = 250): Diagnostic
 }
 
 /** Read-only developer tools: tabs over the live host snapshot; extensible through `registerDevtoolsPanel`. */
-export function DevtoolsPanel({ host, defaultTab = "overview", refreshMs, className }: DevtoolsPanelProps) {
+export function DevtoolsPanel({
+  host,
+  defaultTab = "overview",
+  refreshMs,
+  className,
+}: DevtoolsPanelProps) {
   const snapshot = useHostSnapshot(host, refreshMs)
-  const custom = useSyncExternalStore(subscribeDevtoolsPanels, listDevtoolsPanels, listDevtoolsPanels)
-  const tabs = useMemo(() => [...DEVTOOLS_TABS, ...custom.filter((panel) => !DEVTOOLS_TABS.some((tab) => tab.id === panel.id))], [custom])
+  const custom = useSyncExternalStore(
+    subscribeDevtoolsPanels,
+    listDevtoolsPanels,
+    listDevtoolsPanels
+  )
+  const tabs = useMemo(
+    () => [
+      ...DEVTOOLS_TABS,
+      ...custom.filter((panel) => !DEVTOOLS_TABS.some((tab) => tab.id === panel.id)),
+    ],
+    [custom]
+  )
   const props: DevtoolsPanelRenderProps = { host, snapshot }
   return (
-    <div className={["platform-devtools", className].filter(Boolean).join(" ")} data-testid="platform-devtools-panel" data-platform-devtools="">
+    <div
+      className={["platform-devtools", className].filter(Boolean).join(" ")}
+      data-testid="platform-devtools-panel"
+      data-platform-devtools=""
+    >
       <Tabs defaultSelectedKey={defaultTab} className="platform-devtools-tabs">
-        <TabsList aria-label="Developer tools" variant="line" className="platform-devtools-tablist">
+        <TabsList
+          aria-label="Developer tools"
+          variant="line"
+          className="platform-devtools-tablist"
+        >
           {tabs.map((tab) => (
             <TabsTrigger key={tab.id} id={tab.id}>
               {tab.title}
@@ -97,7 +147,10 @@ export function DevtoolsPanel({ host, defaultTab = "overview", refreshMs, classN
 
 import { Component, type ErrorInfo } from "react"
 
-class PanelBoundary extends Component<{ title: string; children: ReactNode }, { error: Error | null }> {
+class PanelBoundary extends Component<
+  { title: string; children: ReactNode },
+  { error: Error | null }
+> {
   override state = { error: null as Error | null }
   static getDerivedStateFromError(error: Error) {
     return { error }

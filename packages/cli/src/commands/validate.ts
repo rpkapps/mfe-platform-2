@@ -323,8 +323,10 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
     )
   }
 
+  // Widget libraries have no routes directory: no root route and no route tree to check.
+  const hasRoutes = existsSync(join(root, "src", "routes"))
   checks.push("routes")
-  if (!existsSync(join(root, "src", "routes", "__root.tsx"))) {
+  if (hasRoutes && !existsSync(join(root, "src", "routes", "__root.tsx"))) {
     findings.add(
       "error",
       "routes",
@@ -447,7 +449,9 @@ export async function validate(options: ValidateOptions = {}): Promise<ValidateR
 
   checks.push("routeTree")
   const routeTreeFile = join(root, "src", "routeTree.gen.ts")
-  if (!existsSync(routeTreeFile)) {
+  if (!hasRoutes) {
+    // nothing to generate for a widget library
+  } else if (!existsSync(routeTreeFile)) {
     findings.add(
       "error",
       "routeTree",

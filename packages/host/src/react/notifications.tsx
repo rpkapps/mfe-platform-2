@@ -7,7 +7,10 @@ import { Toaster } from "@tecton/react/components/sonner"
 export function createSonnerNotificationPort(): NotificationPort {
   return {
     notify(notification) {
-      const options = { description: notification.description, duration: notification.durationMs }
+      const options = {
+        description: notification.description,
+        duration: notification.durationMs,
+      }
       switch (notification.kind) {
         case "success":
           toast.success(notification.title, options)

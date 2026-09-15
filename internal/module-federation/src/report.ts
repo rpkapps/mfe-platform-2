@@ -1,4 +1,8 @@
-import { negotiateShared, type MfeManifest, type ShareResolution } from "@platform-internal/core"
+import {
+  negotiateShared,
+  type MfeManifest,
+  type ShareResolution,
+} from "@platform-internal/core"
 
 import type { FederationShareScopeMap } from "./federation"
 import { providersFrom, type ShareResolutionRecord } from "./share-policy"
@@ -42,13 +46,20 @@ export function buildSharedReport(options: {
   if (pending.length) {
     let providers: ReturnType<typeof providersFrom> = []
     try {
-      providers = providersFrom(options.shareScopeMap).filter((provider) => provider.from !== options.federationName)
+      providers = providersFrom(options.shareScopeMap).filter(
+        (provider) => provider.from !== options.federationName
+      )
     } catch {
       providers = []
     }
-    for (const resolution of negotiateShared({ requester: options.federationName, requests: pending, providers })) {
+    for (const resolution of negotiateShared({
+      requester: options.federationName,
+      requests: pending,
+      providers,
+    })) {
       const row = toRow(resolution)
-      if (!options.recorded?.size && row.outcome === "shared") row.reason = `${row.reason} (predicted: remote not loaded yet)`
+      if (!options.recorded?.size && row.outcome === "shared")
+        row.reason = `${row.reason} (predicted: remote not loaded yet)`
       rows.set(row.name, row)
     }
   }

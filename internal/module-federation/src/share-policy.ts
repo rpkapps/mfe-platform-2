@@ -11,7 +11,10 @@ import type { FederationShareScopeMap, FederationSharedEntry } from "./federatio
 const PAIRS: Record<string, string> = { react: "react-dom", "react-dom": "react" }
 
 /** Providers available in a share scope map for one package. */
-export function providersFrom(map: FederationShareScopeMap | undefined, name?: string): SharedProvider[] {
+export function providersFrom(
+  map: FederationShareScopeMap | undefined,
+  name?: string
+): SharedProvider[] {
   const providers: SharedProvider[] = []
   if (!map || typeof map !== "object") return providers
   for (const [scope, packages] of Object.entries(map)) {
@@ -19,7 +22,9 @@ export function providersFrom(map: FederationShareScopeMap | undefined, name?: s
     for (const [pkgName, versions] of Object.entries(packages)) {
       if (name !== undefined && pkgName !== name) continue
       if (!versions || typeof versions !== "object") continue
-      for (const [version, entry] of Object.entries(versions as Record<string, FederationSharedEntry>)) {
+      for (const [version, entry] of Object.entries(
+        versions as Record<string, FederationSharedEntry>
+      )) {
         if (!entry || typeof entry !== "object") continue
         providers.push({
           name: pkgName,
@@ -60,7 +65,11 @@ export interface ResolveShareArgs {
  * the same provider, and a request without a compatible provider falls back
  * to the remote's own bundled copy. Every decision is recorded per requester.
  */
-export function applySharePolicy(state: SharePolicyState, args: ResolveShareArgs, now = Date.now): ResolveShareArgs {
+export function applySharePolicy(
+  state: SharePolicyState,
+  args: ResolveShareArgs,
+  now = Date.now
+): ResolveShareArgs {
   const { scope, pkgName, shareInfo } = args
   const requester = shareInfo.from
   const versions = args.shareScopeMap?.[scope]?.[pkgName] ?? {}
@@ -85,16 +94,40 @@ export function applySharePolicy(state: SharePolicyState, args: ResolveShareArgs
   const partner = partnerName ? state.resolutions.get(requester)?.get(partnerName) : undefined
   if (partner) {
     if (partner.outcome === "shared" && partner.provider) {
-      if (resolution.outcome !== "shared" || resolution.provider?.from !== partner.provider.from) {
+      if (
+        resolution.outcome !== "shared" ||
+        resolution.provider?.from !== partner.provider.from
+      ) {
         const same = providers.find(
-          (provider) => provider.from === partner.provider!.from && negotiateShared({ requester, requests: [request], providers: [provider] })[0]?.outcome === "shared"
+          (provider) =>
+            provider.from === partner.provider!.from &&
+            negotiateShared({ requester, requests: [request], providers: [provider] })[0]
+              ?.outcome === "shared"
         )
         resolution = same
-          ? { ...resolution, outcome: "shared", provider: same, version: same.version, reason: `paired with ${partnerName} from ${same.from}` }
-          : { ...resolution, outcome: "bundled", provider: undefined, version: args.version, reason: `${pkgName} and ${partnerName} must come from one provider; bundled pair used` }
+          ? {
+              ...resolution,
+              outcome: "shared",
+              provider: same,
+              version: same.version,
+              reason: `paired with ${partnerName} from ${same.from}`,
+            }
+          : {
+              ...resolution,
+              outcome: "bundled",
+              provider: undefined,
+              version: args.version,
+              reason: `${pkgName} and ${partnerName} must come from one provider; bundled pair used`,
+            }
       }
     } else if (partner.outcome === "bundled" && resolution.outcome === "shared") {
-      resolution = { ...resolution, outcome: "bundled", provider: undefined, version: args.version, reason: `${partnerName} is bundled; ${pkgName} bundled to keep the pair together` }
+      resolution = {
+        ...resolution,
+        outcome: "bundled",
+        provider: undefined,
+        version: args.version,
+        reason: `${partnerName} is bundled; ${pkgName} bundled to keep the pair together`,
+      }
     }
   }
   let byRequester = state.resolutions.get(requester)

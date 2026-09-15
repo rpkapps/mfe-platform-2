@@ -5,7 +5,8 @@ import type { MountedInstance, WidgetInstance } from "../types"
 import { usePlatformHost } from "./context"
 import { LoadingState, RemoteErrorState, outletStateFor, type OutletState } from "./status"
 
-type Phase = { phase: "loading" } | { phase: "mounted" } | { phase: "error"; error: PlatformError }
+type Phase =
+  { phase: "loading" } | { phase: "mounted" } | { phase: "error"; error: PlatformError }
 
 export interface MfeOutletProps {
   mfeId: string
@@ -23,7 +24,15 @@ export interface MfeOutletProps {
  * around mounting is rendered here (loading, unavailable, error, permission
  * denied, disabled, restart required) and never leaves the outlet.
  */
-export function MfeOutlet({ mfeId, routePrefix, fallback, errorFallback, className, headless, onStateChange }: MfeOutletProps) {
+export function MfeOutlet({
+  mfeId,
+  routePrefix,
+  fallback,
+  errorFallback,
+  className,
+  headless,
+  onStateChange,
+}: MfeOutletProps) {
   const host = usePlatformHost()
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<Phase>({ phase: "loading" })
@@ -47,7 +56,11 @@ export function MfeOutlet({ mfeId, routePrefix, fallback, errorFallback, classNa
         setPhase({ phase: "mounted" })
       })
       .catch((error: unknown) => {
-        if (!cancelled) setPhase({ phase: "error", error: toPlatformError(error, { code: "MOUNT_FAILED", owner: { mfeId } }) })
+        if (!cancelled)
+          setPhase({
+            phase: "error",
+            error: toPlatformError(error, { code: "MOUNT_FAILED", owner: { mfeId } }),
+          })
       })
     return () => {
       cancelled = true
@@ -61,16 +74,44 @@ export function MfeOutlet({ mfeId, routePrefix, fallback, errorFallback, classNa
     setAttempt((value) => value + 1)
   }, [host, mfeId])
 
-  const state: OutletState = phase.phase === "loading" ? "loading" : phase.phase === "mounted" ? "mounted" : outletStateFor(phase.error)
+  const state: OutletState =
+    phase.phase === "loading"
+      ? "loading"
+      : phase.phase === "mounted"
+        ? "mounted"
+        : outletStateFor(phase.error)
   useEffect(() => {
     onStateChange?.(state)
   }, [state, onStateChange])
 
   return (
-    <div data-platform-outlet={mfeId} data-platform-outlet-state={state} className={["platform-outlet", className].filter(Boolean).join(" ")} hidden={headless || undefined}>
-      <div ref={containerRef} data-platform-outlet-container="" className="platform-outlet-container" />
-      {phase.phase === "loading" ? <div className="platform-outlet-status">{fallback ?? <LoadingState label={`Loading ${host.remotes.get(mfeId)?.displayName ?? mfeId}…`} />}</div> : null}
-      {phase.phase === "error" ? <div className="platform-outlet-status">{errorFallback ? errorFallback(phase.error, retry) : <RemoteErrorState error={phase.error} state={state} onRetry={retry} />}</div> : null}
+    <div
+      data-platform-outlet={mfeId}
+      data-platform-outlet-state={state}
+      className={["platform-outlet", className].filter(Boolean).join(" ")}
+      hidden={headless || undefined}
+    >
+      <div
+        ref={containerRef}
+        data-platform-outlet-container=""
+        className="platform-outlet-container"
+      />
+      {phase.phase === "loading" ? (
+        <div className="platform-outlet-status">
+          {fallback ?? (
+            <LoadingState label={`Loading ${host.remotes.get(mfeId)?.displayName ?? mfeId}…`} />
+          )}
+        </div>
+      ) : null}
+      {phase.phase === "error" ? (
+        <div className="platform-outlet-status">
+          {errorFallback ? (
+            errorFallback(phase.error, retry)
+          ) : (
+            <RemoteErrorState error={phase.error} state={state} onRetry={retry} />
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -86,7 +127,15 @@ export interface WidgetSlotProps {
 }
 
 /** Mounts one widget instance; prop changes reach the widget through `setProps` (shallow compare). */
-export function WidgetSlot({ mfeId, widgetId, props, slot, fallback, errorFallback, className }: WidgetSlotProps) {
+export function WidgetSlot({
+  mfeId,
+  widgetId,
+  props,
+  slot,
+  fallback,
+  errorFallback,
+  className,
+}: WidgetSlotProps) {
   const host = usePlatformHost()
   const containerRef = useRef<HTMLDivElement>(null)
   const instanceRef = useRef<WidgetInstance | null>(null)
@@ -101,18 +150,31 @@ export function WidgetSlot({ mfeId, widgetId, props, slot, fallback, errorFallba
     let cancelled = false
     setPhase({ phase: "loading" })
     host.remotes
-      .mountWidget(mfeId, widgetId, { container, props: lastProps.current ?? {}, slot, signal: controller.signal })
+      .mountWidget(mfeId, widgetId, {
+        container,
+        props: lastProps.current ?? {},
+        slot,
+        signal: controller.signal,
+      })
       .then((mounted) => {
         if (cancelled) {
           mounted.dispose("navigation")
           return
         }
         instanceRef.current = mounted
-        if (lastProps.current && !shallowEqual(lastProps.current, props)) mounted.setProps(lastProps.current)
+        if (lastProps.current && !shallowEqual(lastProps.current, props))
+          mounted.setProps(lastProps.current)
         setPhase({ phase: "mounted" })
       })
       .catch((error: unknown) => {
-        if (!cancelled) setPhase({ phase: "error", error: toPlatformError(error, { code: "WIDGET_MOUNT_FAILED", owner: { mfeId, widgetId } }) })
+        if (!cancelled)
+          setPhase({
+            phase: "error",
+            error: toPlatformError(error, {
+              code: "WIDGET_MOUNT_FAILED",
+              owner: { mfeId, widgetId },
+            }),
+          })
       })
     return () => {
       cancelled = true
@@ -121,7 +183,6 @@ export function WidgetSlot({ mfeId, widgetId, props, slot, fallback, errorFallba
       instanceRef.current = null
     }
     // props are pushed through setProps below, not by remounting
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [host, mfeId, widgetId, slot, attempt])
 
   useEffect(() => {
@@ -135,12 +196,37 @@ export function WidgetSlot({ mfeId, widgetId, props, slot, fallback, errorFallba
     setAttempt((value) => value + 1)
   }, [host, mfeId])
 
-  const state = phase.phase === "loading" ? "loading" : phase.phase === "mounted" ? "mounted" : "error"
+  const state =
+    phase.phase === "loading" ? "loading" : phase.phase === "mounted" ? "mounted" : "error"
   return (
-    <div data-platform-widget-slot={widgetId} data-platform-widget-state={state} className={["platform-widget-slot", className].filter(Boolean).join(" ")}>
-      <div ref={containerRef} data-platform-widget-container="" className="platform-widget-container" />
-      {phase.phase === "loading" ? <div className="platform-outlet-status">{fallback ?? <LoadingState label={`Loading ${widgetId}…`} lines={2} />}</div> : null}
-      {phase.phase === "error" ? <div className="platform-outlet-status">{errorFallback ? errorFallback(phase.error, retry) : <RemoteErrorState error={phase.error} state={outletStateFor(phase.error)} onRetry={retry} />}</div> : null}
+    <div
+      data-platform-widget-slot={widgetId}
+      data-platform-widget-state={state}
+      className={["platform-widget-slot", className].filter(Boolean).join(" ")}
+    >
+      <div
+        ref={containerRef}
+        data-platform-widget-container=""
+        className="platform-widget-container"
+      />
+      {phase.phase === "loading" ? (
+        <div className="platform-outlet-status">
+          {fallback ?? <LoadingState label={`Loading ${widgetId}…`} lines={2} />}
+        </div>
+      ) : null}
+      {phase.phase === "error" ? (
+        <div className="platform-outlet-status">
+          {errorFallback ? (
+            errorFallback(phase.error, retry)
+          ) : (
+            <RemoteErrorState
+              error={phase.error}
+              state={outletStateFor(phase.error)}
+              onRetry={retry}
+            />
+          )}
+        </div>
+      ) : null}
     </div>
   )
 }

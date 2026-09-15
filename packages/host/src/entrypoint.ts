@@ -1,8 +1,15 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, resolve } from "node:path"
-import { generateRuntimeConfig, isPlatformError, parseRuntimeConfig, type RuntimeConfig, type RuntimeConfigInput } from "@platform-internal/core"
+import {
+  generateRuntimeConfig,
+  isPlatformError,
+  parseRuntimeConfig,
+  type RuntimeConfig,
+  type RuntimeConfigInput,
+} from "@platform-internal/core"
 
-export const RUNTIME_CONFIG_SCHEMA_URL = "https://platform.docs.local/schemas/runtime-config.json"
+export const RUNTIME_CONFIG_SCHEMA_URL =
+  "https://platform.docs.local/schemas/runtime-config.json"
 
 export interface GenerateRuntimeConfigFileOptions {
   /** Output file (`platform-config.json`). Omit to skip writing. */
@@ -25,15 +32,25 @@ export interface GenerateRuntimeConfigFileResult {
 }
 
 /** Generate, validate and (optionally) write the runtime configuration document. */
-export function generateRuntimeConfigFile(options: GenerateRuntimeConfigFileOptions = {}): GenerateRuntimeConfigFileResult {
+export function generateRuntimeConfigFile(
+  options: GenerateRuntimeConfigFileOptions = {}
+): GenerateRuntimeConfigFileResult {
   const cwd = options.cwd ?? process.cwd()
   let base: RuntimeConfigInput | undefined
   if (typeof options.base === "string") {
     const basePath = resolve(cwd, options.base)
     base = JSON.parse(readFileSync(basePath, "utf8")) as RuntimeConfigInput
   } else base = options.base
-  const result = generateRuntimeConfig({ env: options.env ?? process.env, base, knownMfeIds: options.known, now: options.now })
-  const config = parseRuntimeConfig({ $schema: RUNTIME_CONFIG_SCHEMA_URL, ...result.config }, "entrypoint")
+  const result = generateRuntimeConfig({
+    env: options.env ?? process.env,
+    base,
+    knownMfeIds: options.known,
+    now: options.now,
+  })
+  const config = parseRuntimeConfig(
+    { $schema: RUNTIME_CONFIG_SCHEMA_URL, ...result.config },
+    "entrypoint"
+  )
   const json = `${JSON.stringify({ $schema: RUNTIME_CONFIG_SCHEMA_URL, ...config }, null, 2)}\n`
   let outPath: string | undefined
   if (options.out) {
@@ -56,7 +73,9 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
   const parsed: ParsedArgs = { print: false, help: false }
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]!
-    const [flag, inline] = arg.includes("=") ? [arg.slice(0, arg.indexOf("=")), arg.slice(arg.indexOf("=") + 1)] : [arg, undefined]
+    const [flag, inline] = arg.includes("=")
+      ? [arg.slice(0, arg.indexOf("=")), arg.slice(arg.indexOf("=") + 1)]
+      : [arg, undefined]
     const next = () => {
       if (inline !== undefined) return inline
       index += 1
@@ -75,7 +94,10 @@ export function parseArgs(argv: readonly string[]): ParsedArgs {
         break
       case "--known":
       case "-k":
-        parsed.known = next().split(",").map((id) => id.trim()).filter(Boolean)
+        parsed.known = next()
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean)
         break
       case "--print":
       case "-p":
@@ -104,7 +126,12 @@ export interface CliIo {
 }
 
 /** Run the CLI; returns the exit code. */
-export function runEntrypoint(argv: readonly string[], env: Record<string, string | undefined> = process.env, io: CliIo = console, cwd = process.cwd()): number {
+export function runEntrypoint(
+  argv: readonly string[],
+  env: Record<string, string | undefined> = process.env,
+  io: CliIo = console,
+  cwd = process.cwd()
+): number {
   let args: ParsedArgs
   try {
     args = parseArgs(argv)
@@ -123,10 +150,22 @@ export function runEntrypoint(argv: readonly string[], env: Record<string, strin
     return 2
   }
   try {
-    const result = generateRuntimeConfigFile({ out: args.out, base: args.base, known: args.known, env, cwd })
-    if (result.outPath) io.log(`Runtime configuration written to ${result.outPath} (environment: ${result.config.environment}, ${Object.keys(result.config.mfes).length} MFE entries).`)
+    const result = generateRuntimeConfigFile({
+      out: args.out,
+      base: args.base,
+      known: args.known,
+      env,
+      cwd,
+    })
+    if (result.outPath)
+      io.log(
+        `Runtime configuration written to ${result.outPath} (environment: ${result.config.environment}, ${Object.keys(result.config.mfes).length} MFE entries).`
+      )
     for (const [key, source] of Object.entries(result.sources)) io.log(`  ${key} ← ${source}`)
-    for (const name of result.refused) io.error(`  refused ${name}: sensitive-looking variables are never written to the client configuration.`)
+    for (const name of result.refused)
+      io.error(
+        `  refused ${name}: sensitive-looking variables are never written to the client configuration.`
+      )
     if (args.print) io.log(result.json)
     return 0
   } catch (error) {
@@ -141,7 +180,11 @@ const isMain = (() => {
     const entry = process.argv[1]
     if (!entry) return false
     const self = new URL(import.meta.url).pathname
-    return resolve(entry) === resolve(self) || entry.endsWith("platform-host-entrypoint") || entry.endsWith("entrypoint.js")
+    return (
+      resolve(entry) === resolve(self) ||
+      entry.endsWith("platform-host-entrypoint") ||
+      entry.endsWith("entrypoint.js")
+    )
   } catch {
     return false
   }

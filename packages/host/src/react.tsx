@@ -1,4 +1,12 @@
-export { PlatformProvider, usePlatformHost, useHostSelector, useHostDiagnostics, useSubscription, useShellLocation, useRegistryVersion } from "./react/context"
+export {
+  PlatformProvider,
+  usePlatformHost,
+  useHostSelector,
+  useHostDiagnostics,
+  useSubscription,
+  useShellLocation,
+  useRegistryVersion,
+} from "./react/context"
 export { MfeOutlet, WidgetSlot } from "./react/outlet"
 export type { MfeOutletProps, WidgetSlotProps } from "./react/outlet"
 export { RemoteErrorState, LoadingState, outletStateFor } from "./react/status"

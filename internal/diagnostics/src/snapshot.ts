@@ -173,7 +173,12 @@ export interface DiagnosticSnapshot {
   readonly telemetry: RecordedTelemetryEvent[]
   readonly overlays: {
     roots: OverlayManagerState["roots"]
-    layers: { id: number; owner: OverlayManagerState["layers"][number]["owner"]; zIndex: number; openedAt: number }[]
+    layers: {
+      id: number
+      owner: OverlayManagerState["layers"][number]["owner"]
+      zIndex: number
+      openedAt: number
+    }[]
     top: number
   }
   readonly dev: {
@@ -181,8 +186,20 @@ export interface DiagnosticSnapshot {
     restartRequired: { mfeId: string; reason?: string }[]
     updates: DiagnosticEvent[]
   }
-  readonly protocolErrors: { code: PlatformErrorCode; error: SerializedPlatformError; mfeId?: string; at: number }[]
-  readonly boundaryFailures: { type: string; mfeId?: string; instanceId?: string; widgetId?: string; error: SerializedPlatformError; at: number }[]
+  readonly protocolErrors: {
+    code: PlatformErrorCode
+    error: SerializedPlatformError
+    mfeId?: string
+    at: number
+  }[]
+  readonly boundaryFailures: {
+    type: string
+    mfeId?: string
+    instanceId?: string
+    widgetId?: string
+    error: SerializedPlatformError
+    at: number
+  }[]
   readonly diagnostics: DiagnosticEvent[]
 }
 
@@ -236,7 +253,12 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
         updates.push(event)
         break
       case "protocol.error":
-        protocolErrors.push({ code: event.code, error: event.error, mfeId: event.mfeId, at: event.at })
+        protocolErrors.push({
+          code: event.code,
+          error: event.error,
+          mfeId: event.mfeId,
+          at: event.at,
+        })
         break
       case "mount.failed":
       case "widget.failed":
@@ -260,8 +282,16 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
           error: event.error,
           at: event.at,
         })
-        if (event.code === "PROTOCOL_INCOMPATIBLE" || event.code === "DEPENDENCY_INCOMPATIBLE") {
-          protocolErrors.push({ code: event.code, error: event.error, mfeId: event.mfeId, at: event.at })
+        if (
+          event.code === "PROTOCOL_INCOMPATIBLE" ||
+          event.code === "DEPENDENCY_INCOMPATIBLE"
+        ) {
+          protocolErrors.push({
+            code: event.code,
+            error: event.error,
+            mfeId: event.mfeId,
+            at: event.at,
+          })
         }
         break
       default:
@@ -283,10 +313,15 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
     },
     runtimeConfig: redactRuntimeConfig(input.runtimeConfig),
     remotes,
-    widgets: remotes.flatMap((remote) => remote.instances.filter((instance) => instance.widgetId)),
+    widgets: remotes.flatMap((remote) =>
+      remote.instances.filter((instance) => instance.widgetId)
+    ),
     routes: Array.from(routes.values()).sort((a, b) => a.at - b.at),
     shared: Object.fromEntries(
-      Object.entries(input.shared ?? {}).map(([mfeId, rows]) => [mfeId, rows.map((row) => ({ ...row }))])
+      Object.entries(input.shared ?? {}).map(([mfeId, rows]) => [
+        mfeId,
+        rows.map((row) => ({ ...row })),
+      ])
     ),
     commands: {
       registered: (input.commands ?? []).map(describeCommand),
@@ -334,7 +369,9 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
       owner: { mfeId: entry.owner.mfeId, instanceId: entry.owner.instanceId },
     })),
     session: {
-      user: context?.user ? { id: context.user.id, displayName: context.user.displayName } : null,
+      user: context?.user
+        ? { id: context.user.id, displayName: context.user.displayName }
+        : null,
       groupsCount: context?.permissionGroups.length ?? 0,
       tenant: context?.tenant?.id ?? null,
       project: context?.project?.id ?? null,
@@ -349,7 +386,9 @@ export function createSnapshot(input: SnapshotInput): DiagnosticSnapshot {
     runtimeEnv: Object.fromEntries(
       Object.entries(input.runtimeEnv ?? {}).map(([mfeId, env]) => [mfeId, { ...env }])
     ),
-    telemetry: tail(input.telemetry, input.telemetryLimit ?? 200).map((event) => ({ ...event })),
+    telemetry: tail(input.telemetry, input.telemetryLimit ?? 200).map((event) => ({
+      ...event,
+    })),
     overlays: {
       roots: (input.overlays?.roots ?? []).map((root) => ({ ...root })),
       layers: (input.overlays?.layers ?? []).map((layer) => ({

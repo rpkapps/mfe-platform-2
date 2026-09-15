@@ -9,7 +9,16 @@ export function OverviewPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
     <>
       <Section title={`Loaded MFEs (${snapshot.remotes.length})`}>
         <DataTable
-          columns={["MFE", "State", "Manifest", "Protocol", "React", "Router", "Instances", "Actions"]}
+          columns={[
+            "MFE",
+            "State",
+            "Manifest",
+            "Protocol",
+            "React",
+            "Router",
+            "Instances",
+            "Actions",
+          ]}
           empty="No remotes registered."
           rows={snapshot.remotes.map((remote) => [
             <span key="id">
@@ -48,7 +57,8 @@ export function OverviewPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
               {remote.error ? (
                 <>
                   <br />
-                  <code className="platform-devtools-error">{remote.error.code}</code> {remote.error.message}
+                  <code className="platform-devtools-error">{remote.error.code}</code>{" "}
+                  {remote.error.message}
                 </>
               ) : null}
             </span>,
@@ -71,7 +81,13 @@ export function OverviewPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
             </span>,
             <span key="actions">
               {host.remotes?.retry ? (
-                <Button size="xs" variant="outline" onPress={() => void host.remotes?.retry?.(remote.mfeId).catch(() => undefined)}>
+                <Button
+                  size="xs"
+                  variant="outline"
+                  onPress={() =>
+                    void host.remotes?.retry?.(remote.mfeId).catch(() => undefined)
+                  }
+                >
                   Retry
                 </Button>
               ) : null}
@@ -81,7 +97,9 @@ export function OverviewPanel({ host, snapshot }: DevtoolsPanelRenderProps) {
       </Section>
       <Section title="Host">
         <p>
-          {snapshot.host.kind} · environment <code>{snapshot.host.environment}</code> · protocol {snapshot.host.protocolVersion} · runtime config source <code>{snapshot.runtimeConfig.source ?? "static"}</code>
+          {snapshot.host.kind} · environment <code>{snapshot.host.environment}</code> · protocol{" "}
+          {snapshot.host.protocolVersion} · runtime config source{" "}
+          <code>{snapshot.runtimeConfig.source ?? "static"}</code>
         </p>
       </Section>
     </>

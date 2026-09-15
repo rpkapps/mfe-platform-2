@@ -78,25 +78,39 @@ const optionsCache = new WeakMap<SettingsFieldDefinition, OptionsCacheEntry>()
 
 function stateKeyOf(values: Record<string, unknown>, exclude?: string): string {
   try {
-    return JSON.stringify(exclude === undefined ? values : Object.fromEntries(Object.entries(values).filter(([key]) => key !== exclude)))
+    return JSON.stringify(
+      exclude === undefined
+        ? values
+        : Object.fromEntries(Object.entries(values).filter(([key]) => key !== exclude))
+    )
   } catch {
     return String(Date.now())
   }
 }
 
 function includesValue(options: SettingsOption[], value: unknown): boolean {
-  const same = (a: unknown, b: unknown) => Object.is(a, b) || (typeof a === "object" && typeof b === "object" && JSON.stringify(a) === JSON.stringify(b))
-  if (Array.isArray(value)) return value.every((item) => options.some((option) => same(option.value, item)))
+  const same = (a: unknown, b: unknown) =>
+    Object.is(a, b) ||
+    (typeof a === "object" && typeof b === "object" && JSON.stringify(a) === JSON.stringify(b))
+  if (Array.isArray(value))
+    return value.every((item) => options.some((option) => same(option.value, item)))
   return options.some((option) => same(option.value, value))
 }
 
-function readGroupValues(group: RegisteredSettingsGroup, port: SettingsValuePort): Record<string, unknown> {
+function readGroupValues(
+  group: RegisteredSettingsGroup,
+  port: SettingsValuePort
+): Record<string, unknown> {
   const values: Record<string, unknown> = {}
   for (const [key, field] of Object.entries(group.definition.fields ?? {})) {
     const meta = group.fields.find((f) => f.key === key)
-    const qualifiedKey = meta?.qualifiedKey ?? `${group.owner.mfeId}:${group.definition.key}.${key}`
+    const qualifiedKey =
+      meta?.qualifiedKey ?? `${group.owner.mfeId}:${group.definition.key}.${key}`
     try {
-      values[key] = resolveFieldValue(field as SettingsFieldDefinition, port.read(qualifiedKey)).value
+      values[key] = resolveFieldValue(
+        field as SettingsFieldDefinition,
+        port.read(qualifiedKey)
+      ).value
     } catch {
       values[key] = (field as SettingsFieldDefinition).defaultValue
     }
@@ -110,24 +124,52 @@ function readGroupValues(group: RegisteredSettingsGroup, port: SettingsValuePort
  * predicates against the group's values and loads async options with
  * abort, caching, retry and stale-selection detection.
  */
-export function settingsController(host: PlatformHost, group: RegisteredSettingsGroup | string, fieldKey: string): SettingsController {
+export function settingsController(
+  host: PlatformHost,
+  group: RegisteredSettingsGroup | string,
+  fieldKey: string
+): SettingsController {
   const registered = typeof group === "string" ? host.registries.settings.get(group) : group
   if (!registered) throw new Error(`Unknown settings group "${String(group)}".`)
   const field = registered.definition.fields?.[fieldKey] as SettingsFieldDefinition | undefined
   const meta = registered.fields.find((entry) => entry.key === fieldKey)
-  if (!field || !meta) throw new Error(`Unknown settings field "${fieldKey}" in group "${registered.qualifiedKey}".`)
+  if (!field || !meta)
+    throw new Error(
+      `Unknown settings field "${fieldKey}" in group "${registered.qualifiedKey}".`
+    )
   const qualifiedKey = meta.qualifiedKey
-  const port = createSettingsValuePort(host.storage, registered.owner.mfeId, host.diagnostics.scoped({ mfeId: registered.owner.mfeId }))
-  const diagnostics = host.diagnostics.scoped({ mfeId: registered.owner.mfeId, instanceId: registered.owner.instanceId })
+  const port = createSettingsValuePort(
+    host.storage,
+    registered.owner.mfeId,
+    host.diagnostics.scoped({ mfeId: registered.owner.mfeId })
+  )
+  const diagnostics = host.diagnostics.scoped({
+    mfeId: registered.owner.mfeId,
+    instanceId: registered.owner.instanceId,
+  })
   const idBase = `platform-setting-${qualifiedKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`
-  const ids = { input: `${idBase}-input`, label: `${idBase}-label`, description: `${idBase}-description`, error: `${idBase}-error` }
+  const ids = {
+    input: `${idBase}-input`,
+    label: `${idBase}-label`,
+    description: `${idBase}-description`,
+    error: `${idBase}-error`,
+  }
 
-  const evaluate = (predicate: ((state: Record<string, unknown>) => boolean) | undefined, values: Record<string, unknown>, fallback: boolean) => {
+  const evaluate = (
+    predicate: ((state: Record<string, unknown>) => boolean) | undefined,
+    values: Record<string, unknown>,
+    fallback: boolean
+  ) => {
     if (!predicate) return fallback
     try {
       return Boolean(predicate(values))
     } catch (error) {
-      diagnostics.emit({ type: "log", level: "warn", message: `predicate of ${qualifiedKey} threw`, detail: String(error) })
+      diagnostics.emit({
+        type: "log",
+        level: "warn",
+        message: `predicate of ${qualifiedKey} threw`,
+        detail: String(error),
+      })
       return fallback
     }
   }
@@ -136,7 +178,12 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     const stored = port.read(qualifiedKey)
     const resolved = resolveFieldValue(field, stored)
     if (!resolved.validation.valid) {
-      diagnostics.emit({ type: "settings.invalid", key: qualifiedKey, message: resolved.validation.message, recovered: resolved.validation.recovered })
+      diagnostics.emit({
+        type: "settings.invalid",
+        key: qualifiedKey,
+        message: resolved.validation.message,
+        recovered: resolved.validation.recovered,
+      })
     }
     const groupValues = readGroupValues(registered, port)
     groupValues[fieldKey] = resolved.value
@@ -153,7 +200,9 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     }
   }
 
-  const staticOptions = Array.isArray(field.options) ? (field.options as SettingsOption[]) : null
+  const staticOptions = Array.isArray(field.options)
+    ? (field.options as SettingsOption[])
+    : null
   const initial = resolve()
   const store = createStore<SettingsFieldState>({
     value: initial.value,
@@ -161,7 +210,11 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     origin: initial.origin ?? "default",
     validation: initial.validation ?? { valid: true },
     options: staticOptions,
-    optionsStatus: staticOptions ? "ready" : typeof field.options === "function" ? "idle" : "ready",
+    optionsStatus: staticOptions
+      ? "ready"
+      : typeof field.options === "function"
+        ? "idle"
+        : "ready",
     stale: staticOptions ? !includesValue(staticOptions, initial.value) : false,
     visible: initial.visible ?? true,
     disabled: initial.disabled ?? false,
@@ -182,8 +235,18 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     const stateKey = stateKeyOf(groupValues, fieldKey)
     const cacheMs = field.optionsCacheMs ?? 60_000
     const cached = optionsCache.get(field)
-    if (!loadOptions.force && cached && cached.stateKey === stateKey && Date.now() - cached.at < cacheMs) {
-      store.patch({ options: cached.options, optionsStatus: "ready", optionsError: undefined, stale: !includesValue(cached.options, store.getState().value) })
+    if (
+      !loadOptions.force &&
+      cached &&
+      cached.stateKey === stateKey &&
+      Date.now() - cached.at < cacheMs
+    ) {
+      store.patch({
+        options: cached.options,
+        optionsStatus: "ready",
+        optionsError: undefined,
+        stale: !includesValue(cached.options, store.getState().value),
+      })
       return
     }
     controller?.abort()
@@ -191,15 +254,28 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     controller = current
     store.patch({ optionsStatus: "loading", optionsError: undefined })
     try {
-      const result = await provider({ signal: current.signal, state: groupValues, platform: host.exposedContext.getState() })
+      const result = await provider({
+        signal: current.signal,
+        state: groupValues,
+        platform: host.exposedContext.getState(),
+      })
       if (current.signal.aborted || disposed) return
       const options = Array.isArray(result) ? result : []
       optionsCache.set(field, { at: Date.now(), stateKey, options })
-      store.patch({ options, optionsStatus: "ready", optionsError: undefined, stale: !includesValue(options, store.getState().value) })
+      store.patch({
+        options,
+        optionsStatus: "ready",
+        optionsError: undefined,
+        stale: !includesValue(options, store.getState().value),
+      })
     } catch (error) {
       if (current.signal.aborted || disposed) return
       const message = error instanceof Error ? error.message : String(error)
-      diagnostics.emit({ type: "log", level: "warn", message: `async options of ${qualifiedKey} failed: ${message}` })
+      diagnostics.emit({
+        type: "log",
+        level: "warn",
+        message: `async options of ${qualifiedKey} failed: ${message}`,
+      })
       store.patch({ optionsStatus: "error", optionsError: message })
     } finally {
       if (controller === current) controller = null
@@ -213,17 +289,34 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
       const next = resolve()
       const options = store.getState().options
       store.patch({ ...next, stale: options ? !includesValue(options, next.value) : false })
-      if (typeof field.options === "function" && stateKeyOf(next.groupValues ?? {}, fieldKey) !== previousKey && store.getState().optionsStatus !== "idle") void loadOptions()
+      if (
+        typeof field.options === "function" &&
+        stateKeyOf(next.groupValues ?? {}, fieldKey) !== previousKey &&
+        store.getState().optionsStatus !== "idle"
+      )
+        void loadOptions()
     })
   )
 
   const setValue = (next: unknown) => {
     const state = store.getState()
-    if (state.readOnly || state.disabled) return { ok: false, message: state.readOnly ? "This setting is read-only." : "This setting is disabled." }
+    if (state.readOnly || state.disabled)
+      return {
+        ok: false,
+        message: state.readOnly ? "This setting is read-only." : "This setting is disabled.",
+      }
     const check = validateCommit(field, next)
     if (!check.ok) {
-      store.patch({ value: next, validation: { valid: false, message: check.message, recovered: "none" } })
-      diagnostics.emit({ type: "settings.invalid", key: qualifiedKey, message: check.message, recovered: "none" })
+      store.patch({
+        value: next,
+        validation: { valid: false, message: check.message, recovered: "none" },
+      })
+      diagnostics.emit({
+        type: "settings.invalid",
+        key: qualifiedKey,
+        message: check.message,
+        recovered: "none",
+      })
       return { ok: false, message: check.message }
     }
     try {
@@ -235,15 +328,28 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
     }
     // The storage subscription refreshes the state; make the change visible synchronously too.
     const refreshed = resolve()
-    store.patch({ ...refreshed, stale: store.getState().options ? !includesValue(store.getState().options!, refreshed.value) : false })
-    host.telemetry.track("settings.changed", { mfeId: registered.owner.mfeId, key: qualifiedKey })
+    store.patch({
+      ...refreshed,
+      stale: store.getState().options
+        ? !includesValue(store.getState().options!, refreshed.value)
+        : false,
+    })
+    host.telemetry.track("settings.changed", {
+      mfeId: registered.owner.mfeId,
+      key: qualifiedKey,
+    })
     return { ok: true }
   }
 
   const reset = () => {
     port.remove(qualifiedKey)
     const refreshed = resolve()
-    store.patch({ ...refreshed, stale: store.getState().options ? !includesValue(store.getState().options!, refreshed.value) : false })
+    store.patch({
+      ...refreshed,
+      stale: store.getState().options
+        ? !includesValue(store.getState().options!, refreshed.value)
+        : false,
+    })
   }
 
   const service: SettingsController = {
@@ -290,6 +396,9 @@ export function settingsController(host: PlatformHost, group: RegisteredSettings
 }
 
 /** Values of every field of a framework-managed group (for the search index and devtools). */
-export function readSettingsGroupValues(host: PlatformHost, group: RegisteredSettingsGroup): Record<string, unknown> {
+export function readSettingsGroupValues(
+  host: PlatformHost,
+  group: RegisteredSettingsGroup
+): Record<string, unknown> {
   return readGroupValues(group, createSettingsValuePort(host.storage, group.owner.mfeId))
 }
