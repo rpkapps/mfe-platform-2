@@ -159,14 +159,13 @@ describe("platform create", () => {
       git: false,
     })
     const pkg = json(result.dir, "package.json")
-    const specs = dependencySpecs(MONOREPO_ROOT)
-    expect(pkg.dependencies["@platform/react"]).toBe(specs.platformReact)
-    expect(pkg.dependencies["@platform/react"]).toMatch(/^link:.*\/packages\/react$/)
-    expect(pkg.devDependencies["@platform/vite"]).toMatch(/^link:.*\/packages\/vite$/)
-    expect(pkg.devDependencies["@platform/cli"]).toMatch(/^link:.*\/packages\/cli$/)
-    expect(pkg.devDependencies["@platform/host"]).toMatch(/^link:.*\/packages\/host$/)
-    expect(pkg.dependencies["@tecton/react"]).toMatch(/^link:.*\/@tecton\/react$/)
-    expect(existsSync(pkg.dependencies["@tecton/react"].slice("link:".length))).toBe(true)
+    expect(pkg.dependencies["@platform/react"]).toMatch(/^file:.*platform-react.*\.tgz$|^file:.*\/packages\/react$/)
+    expect(pkg.devDependencies["@platform/vite"]).toMatch(/^file:.*platform-vite.*\.tgz$|^file:.*\/packages\/vite$/)
+    expect(pkg.devDependencies["@platform/cli"]).toMatch(/^file:.*platform-cli.*\.tgz$|^file:.*\/packages\/cli$/)
+    expect(pkg.devDependencies["@platform/host"]).toMatch(/^file:.*platform-host.*\.tgz$|^file:.*\/packages\/host$/)
+    expect(pkg.dependencies["@tecton/react"]).toMatch(/^file:.*tecton-react.*\.tgz$|^file:.*\/@tecton\/react$/)
+    const tecton = pkg.dependencies["@tecton/react"].slice("file:".length)
+    expect(existsSync(tecton.startsWith("./") ? join(result.dir, tecton) : tecton)).toBe(true)
   })
 
   it("refuses a non-empty directory unless --force", async () => {

@@ -12,9 +12,9 @@ import { Badge } from "@tecton/react/components/badge"
 export const Route = createRootRouteWithContext<MfeRouterContext>()({
   staticData: { breadcrumb: "__DISPLAY_NAME__" },
   component: RootLayout,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: unknown }) => (
     <div role="alert" className="border-destructive rounded-md border p-4 text-sm">
-      __DISPLAY_NAME__ failed: {error.message}
+      __DISPLAY_NAME__ failed: {error instanceof Error ? error.message : String(error)}
     </div>
   ),
   notFoundComponent: () => <p className="text-muted-foreground p-4 text-sm">Nothing here.</p>,

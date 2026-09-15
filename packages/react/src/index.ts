@@ -80,6 +80,7 @@ export type {
   PlatformContextValue,
   PlatformRouteContext,
   MfeRouterContext,
+  MfeRouter,
   BreadcrumbLabel,
   BreadcrumbStaticData,
   NavigationStaticData,

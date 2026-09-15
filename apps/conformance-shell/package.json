@@ -9,9 +9,8 @@
     "preview": "vite preview --port 4100",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "config:generate": "platform-host-entrypoint --out ./public/platform-config.json",
-    "start": "node ./.output/server/index.mjs",
-    "start:prod": "node ./scripts/start.mjs"
+    "config:generate": "platform-host-entrypoint --out ./dist/client/platform-config.json",
+    "start": "node ./scripts/start.mjs"
   },
   "dependencies": {
     "@platform/host": "workspace:*",

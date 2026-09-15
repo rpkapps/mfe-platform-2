@@ -8,7 +8,7 @@ import { TEST_IDS, PROJECTS } from "@platform-internal/conformance"
 import { AppShell, AppShellBody, AppShellBrand, AppShellHeader, AppShellHeaderActions, AppShellMain, AppShellNav } from "@tecton/react/tecton/app-shell"
 import { Button } from "@tecton/react/components/button"
 
-import { getRuntimeConfig } from "@/lib/runtime-config.server"
+import { getRuntimeConfig } from "@/lib/runtime-config"
 import { ShellPlatform, switchUser, useShellHost, type UserKey } from "@/lib/platform"
 import appCss from "@/styles/app.css?url"
 
@@ -102,10 +102,10 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
               {item.title}
             </Link>
           ))}
-          <Link to="/asset-tracker" className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
+          <Link to="/$" params={{ _splat: "asset-tracker" }} className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
             Asset Tracker
           </Link>
-          <Link to="/legacy/reports" className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
+          <Link to="/$" params={{ _splat: "legacy/reports" }} className="rounded-md px-2 py-1 text-sm text-foreground/70 hover:bg-muted hover:text-foreground">
             Legacy Reports
           </Link>
         </AppShellNav>

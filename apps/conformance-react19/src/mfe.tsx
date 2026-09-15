@@ -1,4 +1,4 @@
-import { createMfe, createWidget } from "@platform/react"
+import { createMfe, createWidget, type MfeRouter } from "@platform/react"
 import { z } from "zod"
 
 import "./styles.css"
@@ -24,3 +24,10 @@ export default createMfe({
     releaseNotes: [{ id: "v1-0-0", version: "1.0.0", title: "Asset Tracker 1.0", date: "2026-09-01", summary: "First conformance release." }],
   },
 })
+
+// Registers the MFE router so route hooks, links and search params are typed.
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: MfeRouter<typeof routeTree>
+  }
+}

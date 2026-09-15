@@ -32,7 +32,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@platform-internal/core": "workspace:*",
     "@tanstack/history": "catalog:",
     "@standard-schema/spec": "catalog:",
     "zod": "catalog:"
@@ -63,6 +62,7 @@
     "react": "catalog:react19",
     "react-dom": "catalog:react19",
     "@types/react": "catalog:react19",
-    "@types/react-dom": "catalog:react19"
+    "@types/react-dom": "catalog:react19",
+    "@platform-internal/core": "workspace:*"
   }
 }

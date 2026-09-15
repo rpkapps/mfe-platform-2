@@ -32,7 +32,6 @@
     "build:templates": "node ./scripts/sync-templates.mjs"
   },
   "dependencies": {
-    "@platform-internal/core": "workspace:*",
     "cac": "catalog:",
     "picocolors": "catalog:",
     "@eslint/js": "catalog:",
@@ -70,6 +69,7 @@
     "eslint": "catalog:",
     "@typescript-eslint/rule-tester": "catalog:",
     "@types/node": "catalog:",
-    "vite": "catalog:"
+    "vite": "catalog:",
+    "@platform-internal/core": "workspace:*"
   }
 }

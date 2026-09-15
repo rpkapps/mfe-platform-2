@@ -1,6 +1,6 @@
 import * as React from "react"
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, useMfeInstance, usePlatform } from "@platform/react"
+import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router"
+import { MfeErrorBoundary, useMfeInstance, usePlatform, type MfeRouterContext } from "@platform/react"
 import { TEST_IDS } from "@platform-internal/conformance"
 
 import { Badge } from "@tecton/react/components/badge"
@@ -9,12 +9,12 @@ import { useAssetTrackerSettings } from "@/lib/settings"
 
 const ids = TEST_IDS.assetTracker
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<MfeRouterContext>()({
   staticData: { breadcrumb: "Asset Tracker" },
   component: RootLayout,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: unknown }) => (
     <div role="alert" className="rounded-md border border-destructive p-4 text-sm">
-      Asset Tracker failed: {error.message}
+      Asset Tracker failed: {error instanceof Error ? error.message : String(error)}
     </div>
   ),
   notFoundComponent: () => <p className="p-4 text-sm text-muted-foreground">Nothing here (MFE not-found boundary).</p>,

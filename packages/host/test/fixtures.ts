@@ -75,9 +75,7 @@ export interface FakeDefinitionOptions {
   widgets?: string[]
 }
 
-export function definition(
-  options: FakeDefinitionOptions = {}
-): RemoteDefinition & {
+export function definition(options: FakeDefinitionOptions = {}): RemoteDefinition & {
   mounts: number
   disposed: number
   lastBridge?: import("@platform-internal/core").HostBridge

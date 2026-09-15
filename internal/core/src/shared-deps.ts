@@ -91,7 +91,7 @@ export function inferSharedDependencies(options: InferSharedOptions): InferShare
       requests.push({ name, requiredVersion: range, version: installed[name], scope: shareScopeFor(name, reactMajor), singleton: false, shared: false, reason: "source-package" })
       continue
     }
-    const requiredVersion = typeof override === "object" && override.version ? override.version : range.startsWith("workspace:") || range.startsWith("catalog:") ? `^${installed[name] ?? "0.0.0"}` : range
+    const requiredVersion = typeof override === "object" && override.version ? override.version : /^(workspace:|catalog:|link:|file:)/.test(range) ? `^${installed[name] ?? "0.0.0"}` : range
     requests.push({
       name,
       requiredVersion,

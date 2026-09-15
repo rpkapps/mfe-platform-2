@@ -22,7 +22,7 @@ export interface CreateOptions {
   install?: boolean
   /** Run `git init` (default false programmatically, true in the CLI). */
   git?: boolean
-  /** Monorepo root: platform packages become `link:` dependencies (no registry needed). */
+  /** Monorepo root: platform packages become `file:` dependencies (installed like published packages, no registry needed). */
   linkPlatform?: string
   force?: boolean
   /** Parent directory of the new project (default: cwd). */
@@ -84,7 +84,30 @@ export interface DependencySpecs {
   tecton: string
 }
 
-export function dependencySpecs(linkPlatform: string | undefined): DependencySpecs {
+/**
+ * Pack a package directory with `pnpm pack` so the scaffold installs it exactly
+ * like a published package (catalog: / workspace: specifiers resolved, only the
+ * published files). Returns the tarball path, or null when packing is not possible.
+ */
+export function packPackage(packageDir: string, destination: string): string | null {
+  mkdirSync(destination, { recursive: true })
+  const result = spawnSync("pnpm", ["pack", "--pack-destination", destination], {
+    cwd: packageDir,
+    encoding: "utf8",
+    shell: process.platform === "win32",
+  })
+  if (result.status !== 0) return null
+  const line = result.stdout
+    .split(/\r?\n/)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.endsWith(".tgz"))
+    .pop()
+  if (!line) return null
+  const file = isAbsolute(line) ? line : join(destination, basename(line))
+  return existsSync(file) ? file : null
+}
+
+export function dependencySpecs(linkPlatform: string | undefined, targetDir?: string): DependencySpecs {
   if (!linkPlatform) {
     return {
       platformReact: PLATFORM_VERSION_RANGE,
@@ -95,13 +118,19 @@ export function dependencySpecs(linkPlatform: string | undefined): DependencySpe
     }
   }
   const root = resolve(linkPlatform)
-  const link = (...segments: string[]) => `link:${toPosix(join(root, ...segments))}`
+  // Tarballs (pnpm pack) resolve catalog:/workspace: specifiers and install like a registry
+  // release; without pnpm the package directories are used directly.
+  const packs = targetDir ? join(targetDir, ".platform", "packs") : undefined
+  const link = (dir: string) => {
+    const tarball = packs ? packPackage(dir, packs) : null
+    return tarball ? `file:./.platform/packs/${basename(tarball)}` : `file:${toPosix(dir)}`
+  }
   return {
-    platformReact: link("packages", "react"),
-    platformVite: link("packages", "vite"),
-    platformCli: link("packages", "cli"),
-    platformHost: link("packages", "host"),
-    tecton: `link:${toPosix(resolveTectonLink(root))}`,
+    platformReact: link(join(root, "packages", "react")),
+    platformVite: link(join(root, "packages", "vite")),
+    platformCli: link(join(root, "packages", "cli")),
+    platformHost: link(join(root, "packages", "host")),
+    tecton: link(resolveTectonLink(root)),
   }
 }
 
@@ -207,7 +236,7 @@ export async function create(options: CreateOptions): Promise<CreateResult> {
   const tecton = options.tecton ?? true
   const displayName = options.displayName ?? titleCase(mfeId)
   const routePrefix = inferRoutePrefix(mfeId)
-  const specs = dependencySpecs(options.linkPlatform)
+  const specs = dependencySpecs(options.linkPlatform, dir)
   const context = templateContext({
     mfeId,
     packageName,

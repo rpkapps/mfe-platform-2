@@ -1,15 +1,15 @@
 import * as React from "react"
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router"
-import { MfeErrorBoundary, useRegisterSettingsGroup, useRuntimeEnv } from "@platform/react"
+import { createRootRouteWithContext, Link, Outlet } from "@tanstack/react-router"
+import { MfeErrorBoundary, useRegisterSettingsGroup, useRuntimeEnv, type MfeRouterContext } from "@platform/react"
 import { TEST_IDS } from "@platform-internal/conformance"
 import { z } from "zod"
 
 const ids = TEST_IDS.legacyReports
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<MfeRouterContext>()({
   staticData: { breadcrumb: "Legacy Reports" },
   component: RootLayout,
-  errorComponent: ({ error }) => <p role="alert">Legacy Reports failed: {error.message}</p>,
+  errorComponent: ({ error }: { error: unknown }) => <p role="alert">Legacy Reports failed: {error instanceof Error ? error.message : String(error)}</p>,
   notFoundComponent: () => <p>Report not found (MFE boundary).</p>,
 })
 

@@ -89,6 +89,9 @@ describe("SettingsHost", () => {
       </PlatformProvider>
     )
     expect(screen.getByRole("navigation", { name: "Settings groups" })).toBeInTheDocument()
+    // Groups are listed alphabetically per owner; "Advanced" (MFE-managed) comes first.
+    expect(screen.getByRole("button", { name: "Open Advanced" })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Display" }))
     const toggle = screen.getByRole("switch", { name: "Compact mode" })
     expect(toggle).not.toBeChecked()
     await userEvent.click(toggle)
@@ -112,8 +115,8 @@ describe("SettingsHost", () => {
         )
       ).toMatchObject({ value: "World" })
     )
-    expect(screen.getByText("Airy")).toBeInTheDocument()
-    await userEvent.click(screen.getByRole("button", { name: "Advanced" }))
+    expect(screen.getAllByText("Airy").length).toBeGreaterThanOrEqual(1)
+    await userEvent.click(screen.getByRole("button", { name: /^Advanced/ }))
     await userEvent.click(screen.getByRole("button", { name: "Open Advanced" }))
     expect(host.navigation.getLocation().pathname).toBe("/asset-tracker/settings")
   })

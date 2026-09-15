@@ -16,9 +16,9 @@ export const Route = createFileRoute("/reports/$reportId")({
     if (!report) throw new Error(`Unknown report ${params.reportId}`)
     return { report, breadcrumb: report.title }
   },
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: unknown }) => (
     <p role="alert" data-testid={ids.guardMessage}>
-      {error.message}
+      {error instanceof Error ? error.message : String(error)}
     </p>
   ),
   component: ReportDetail,

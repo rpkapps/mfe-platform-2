@@ -30,9 +30,9 @@ export const Route = createFileRoute("/assets/$assetId")({
     }
   },
   pendingComponent: () => <p className="text-sm text-muted-foreground">Loading asset…</p>,
-  errorComponent: ({ error }) => (
+  errorComponent: ({ error }: { error: unknown }) => (
     <p role="alert" data-testid={ids.guardMessage} className="text-sm text-destructive">
-      {error.message}
+      {error instanceof Error ? error.message : String(error)}
     </p>
   ),
   component: AssetDetail,

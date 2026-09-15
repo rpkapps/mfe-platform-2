@@ -7,7 +7,7 @@ import { listAssets } from "@/lib/data"
 
 export const Route = createFileRoute("/assets/")({
   staticData: { breadcrumb: "Assets", navigation: { title: "Assets", description: "All equipment", keywords: ["pumps", "valves"], order: 1 } },
-  loader: () => listAssets(),
+  loader: async () => listAssets(),
   component: AssetList,
 })
 

@@ -37,16 +37,17 @@ export default async function globalSetup() {
   }
   // Runtime configuration through the Docker entrypoint (never rebuilds assets).
   const env = { ...process.env, ...conformanceEnv({ mode: "production" }) }
-  const outputDir = join(root, "apps/conformance-shell/.output")
-  const configPath = join(outputDir, "public", "platform-config.json")
+  const shellDir = join(root, "apps/conformance-shell")
+  const configPath = join(shellDir, "dist", "client", "platform-config.json")
   mkdirSync(dirname(configPath), { recursive: true })
   const entrypoint = join(root, "packages/host/dist/entrypoint.js")
   const generated = spawnSync(process.execPath, [entrypoint, "--out", configPath, "--known", "asset-tracker,legacy-reports,widget-a,widget-b,unavailable-remote,disabled-remote"], { env, encoding: "utf8" })
   if (generated.status !== 0) throw new Error(`entrypoint failed: ${generated.stdout}\n${generated.stderr}`)
   writeFileSync(join(root, "test-results-config-source.txt"), configPath)
-  const server = join(outputDir, "server", "index.mjs")
-  if (!existsSync(server)) throw new Error("apps/conformance-shell/.output/server/index.mjs is missing — run `pnpm build:all` first.")
-  const child = spawn(process.execPath, [server], { cwd: join(root, "apps/conformance-shell"), env: { ...env, PORT: "4100", HOST: "127.0.0.1", PLATFORM_CONFIG_PATH: configPath, NITRO_PORT: "4100", NITRO_HOST: "127.0.0.1" }, stdio: "pipe", shell: shellOnWindows })
+  if (!existsSync(join(shellDir, "dist", "server", "server.js"))) throw new Error("apps/conformance-shell/dist/server/server.js is missing — run `pnpm build:all` first.")
+  // The built SSR shell is served by `vite preview` (the same handler a Node adapter would host).
+  const viteBin = join(root, "node_modules", "vite", "bin", "vite.js")
+  const child = spawn(process.execPath, [viteBin, "preview", "--port", "4100", "--strictPort", "--host", "127.0.0.1"], { cwd: shellDir, env: { ...env, PLATFORM_CONFIG_PATH: configPath }, stdio: "pipe", shell: shellOnWindows })
   child.stdout?.on("data", (chunk) => process.stdout.write(`[shell] ${chunk}`))
   child.stderr?.on("data", (chunk) => process.stderr.write(`[shell] ${chunk}`))
   state.children.push(child)

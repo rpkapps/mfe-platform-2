@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react"
-import type { AnyRoute, RouteMatch } from "@tanstack/react-router"
+import type { AnyRoute, RouteMatch, Router } from "@tanstack/react-router"
 import type {
   AnySchema,
   BreadcrumbEntry,
@@ -138,6 +138,18 @@ export interface PlatformRouteContext {
   getState(): PlatformContextValue
   subscribe(listener: () => void): () => void
 }
+
+/**
+ * The router `createMfe` builds for a route tree. Register it so TanStack can
+ * type `Route.useLoaderData()`, `Link` targets and search params across the MFE:
+ *
+ * ```ts
+ * declare module "@tanstack/react-router" {
+ *   interface Register { router: MfeRouter<typeof routeTree> }
+ * }
+ * ```
+ */
+export type MfeRouter<TRouteTree extends AnyRoute> = Router<TRouteTree, "never", false>
 
 /** Router context shape expected by `createRootRouteWithContext<MfeRouterContext>()`. */
 export interface MfeRouterContext {

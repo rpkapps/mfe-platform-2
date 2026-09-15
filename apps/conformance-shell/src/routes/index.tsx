@@ -19,13 +19,13 @@ function Home() {
       <div data-testid={TEST_IDS.shell.appFinder}>{host ? <AppFinder /> : <p className="text-sm text-muted-foreground">Starting platform…</p>}</div>
       <ul className="list-disc pl-5 text-sm">
         <li>
-          <Link to="/asset-tracker" className="underline">
+          <Link to="/$" params={{ _splat: "asset-tracker" }} className="underline">
             /asset-tracker
           </Link>{" "}
           — React 19 + Tecton MFE
         </li>
         <li>
-          <Link to="/legacy/reports" className="underline">
+          <Link to="/$" params={{ _splat: "legacy/reports" }} className="underline">
             /legacy/reports
           </Link>{" "}
           — React 18 MFE with a legacy route prefix

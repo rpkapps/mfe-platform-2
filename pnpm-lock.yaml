@@ -858,9 +858,6 @@ importers:
       '@eslint/js':
         specifier: 'catalog:'
         version: 9.39.5
-      '@platform-internal/core':
-        specifier: workspace:*
-        version: link:../../internal/core
       '@tanstack/eslint-plugin-router':
         specifier: 'catalog:'
         version: 1.162.0(eslint@9.39.5(jiti@2.7.0))(typescript@6.0.3)
@@ -895,6 +892,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@platform-internal/core':
+        specifier: workspace:*
+        version: link:../../internal/core
       '@platform/vite':
         specifier: workspace:*
         version: link:../vite
@@ -922,6 +922,13 @@ importers:
       '@module-federation/runtime':
         specifier: 'catalog:'
         version: 2.9.0
+      '@xyflow/react':
+        specifier: 'catalog:'
+        version: 12.11.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.1.18)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.5
+    devDependencies:
       '@platform-internal/core':
         specifier: workspace:*
         version: link:../../internal/core
@@ -934,13 +941,6 @@ importers:
       '@platform-internal/module-federation':
         specifier: workspace:*
         version: link:../../internal/module-federation
-      '@xyflow/react':
-        specifier: 'catalog:'
-        version: 12.11.6(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(immer@11.1.18)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.5
-    devDependencies:
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -1022,9 +1022,6 @@ importers:
 
   packages/react:
     dependencies:
-      '@platform-internal/core':
-        specifier: workspace:*
-        version: link:../../internal/core
       '@standard-schema/spec':
         specifier: 'catalog:'
         version: 1.1.0
@@ -1035,6 +1032,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@platform-internal/core':
+        specifier: workspace:*
+        version: link:../../internal/core
       '@tanstack/react-router':
         specifier: 'catalog:'
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -1095,9 +1095,6 @@ importers:
       '@module-federation/vite':
         specifier: 'catalog:'
         version: 1.21.6(typescript@6.0.3)(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
-      '@platform-internal/core':
-        specifier: workspace:*
-        version: link:../../internal/core
       '@tailwindcss/vite':
         specifier: 'catalog:'
         version: 4.3.3(vite@8.3.0(@types/node@22.20.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -1123,6 +1120,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.5
     devDependencies:
+      '@platform-internal/core':
+        specifier: workspace:*
+        version: link:../../internal/core
       '@tanstack/react-router':
         specifier: 'catalog:'
         version: 1.170.36(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
