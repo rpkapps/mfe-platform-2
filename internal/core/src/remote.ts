@@ -43,7 +43,13 @@ export interface HostBridge {
   /** Settings values persisted by the framework for `managedBy: "framework"` groups. */
   settingsValues: SettingsValuePort
   /** Host environment flags. */
-  host: { kind: "shell" | "harness"; dev: boolean; environment: string }
+  host: {
+    kind: "shell" | "harness"
+    dev: boolean
+    environment: string
+    /** Headless mounts (e.g. a settings owner mounted by the shell settings page) render but do not publish breadcrumbs or become the active route MFE. */
+    headless?: boolean
+  }
 }
 
 export interface NotificationPort {
