@@ -197,3 +197,20 @@ describe("internal packages are bundled, never installed by consumers", () => {
     expect(offences).toEqual([])
   })
 })
+
+describe("the lockfile resolves every dependency over HTTPS", () => {
+  it("has no git-protocol resolutions", () => {
+    // `@tecton/react` is a git dependency, which pnpm normally resolves to a
+    // codeload tarball over HTTPS. Regenerating the lockfile on a machine that
+    // cannot reach codeload makes pnpm fall back to `git clone
+    // git@github.com:…` and write *that* into the lockfile — where it works for
+    // whoever has an SSH key and fails for CI, which has none.
+    const lockfile = readFileSync(join(root, "pnpm-lock.yaml"), "utf8")
+    const offences = lockfile
+      .split("\n")
+      .map((line, index) => [index + 1, line] as const)
+      .filter(([, line]) => /type: git\b|git@[\w.-]+:/.test(line))
+      .map(([number, line]) => `pnpm-lock.yaml:${number}: ${line.trim()}`)
+    expect(offences).toEqual([])
+  })
+})
