@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process"
 import { readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 
 import { conformanceEnv } from "../../scripts/conformance-env.mjs"
 import { waitFor } from "../../scripts/wait-for.mjs"
@@ -63,21 +63,50 @@ test.beforeAll(async () => {
 })
 
 // A remote that fails to mount does so in the browser; without this the CI log
-// shows only the assertion timeout and the dev servers stay silent.
+// shows only the assertion timeout and the dev servers stay silent. The shell
+// writes its diagnostics stream through the console, so every level is
+// forwarded: the mount's own progress is what says where it stopped.
+const browserLog: string[] = []
+
+function record(line: string) {
+  browserLog.push(line)
+  process.stdout.write(`${line}\n`)
+}
+
 test.beforeEach(({ page }) => {
-  page.on("console", (message) => {
-    if (message.type() === "error" || message.type() === "warning")
-      process.stdout.write(`[browser:${message.type()}] ${message.text()}\n`)
-  })
-  page.on("pageerror", (error) =>
-    process.stdout.write(`[browser:pageerror] ${error.stack ?? error.message}\n`)
-  )
+  browserLog.length = 0
+  page.on("console", (message) => record(`[${message.type()}] ${message.text()}`))
+  page.on("pageerror", (error) => record(`[pageerror] ${error.stack ?? error.message}`))
   page.on("requestfailed", (request) =>
-    process.stdout.write(
-      `[browser:requestfailed] ${request.url()} ${request.failure()?.errorText ?? ""}\n`
-    )
+    record(`[requestfailed] ${request.url()} ${request.failure()?.errorText ?? ""}`)
   )
 })
+
+/**
+ * Waits for a remote's root and, if it never arrives, fails with what the shell
+ * rendered and what the browser reported instead of a bare locator timeout.
+ */
+async function expectMounted(page: Page, testId: string) {
+  try {
+    await expect(page.getByTestId(testId)).toBeVisible({
+      timeout: process.env.CI ? 120_000 : 60_000,
+    })
+  } catch (error) {
+    const body = await page
+      .locator("body")
+      .innerText({ timeout: 5_000 })
+      .catch(() => "<unreadable>")
+    throw new Error(
+      [
+        error instanceof Error ? error.message : String(error),
+        `page: ${page.url()}`,
+        `body: ${body.replace(/\s+/g, " ").slice(0, 800)}`,
+        "browser:",
+        ...browserLog.slice(-60),
+      ].join("\n")
+    )
+  }
+}
 
 test.afterAll(async () => {
   for (const [file, original] of edited) writeFileSync(file, original)
@@ -88,9 +117,7 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   page,
 }) => {
   await page.goto("/asset-tracker")
-  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({
-    timeout: process.env.CI ? 120_000 : 60_000,
-  })
+  await expectMounted(page, ids.assetTracker.root)
   await expect(page.getByTestId(ids.assetTracker.hmrLabel)).toHaveText("HMR_LABEL_V1")
   await page.getByTestId(ids.shell.counter).click()
   await page.getByTestId(ids.assetTracker.counter).click()
@@ -106,9 +133,7 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   await expect(page.getByTestId(ids.assetTracker.counter)).toContainText("Counter 1")
 
   await page.goto("/dashboard")
-  await expect(page.getByTestId(ids.widgets.reportSummary)).toBeVisible({
-    timeout: process.env.CI ? 120_000 : 60_000,
-  })
+  await expectMounted(page, ids.widgets.reportSummary)
   await expect(page.getByTestId(ids.widgets.counterWidget)).toHaveCount(2)
   await page
     .getByTestId(ids.widgets.counterWidget)
@@ -137,9 +162,7 @@ test("restart-requiring changes produce a clear diagnostic instead of a stale re
   page,
 }) => {
   await page.goto("/asset-tracker")
-  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({
-    timeout: process.env.CI ? 120_000 : 60_000,
-  })
+  await expectMounted(page, ids.assetTracker.root)
   edit(
     join(root, "apps/conformance-react19/mfe.config.ts"),
     'displayName: "Asset Tracker"',
