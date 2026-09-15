@@ -56,7 +56,7 @@ Public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @p
 - [Overlays](https://platform.docs.local/docs/overlays): Ordinary Tecton dialogs, popovers, menus and tooltips work in every MFE and widget without configuration, through a centralized shell overlay manager.
 - [Transparent overlays](https://platform.docs.local/docs/overlays/transparent-overlays): The Tecton portal provider adapter gives every MFE an owner-tagged, body-level overlay root, so scoped styles and theme tokens apply to dialogs that escape the MFE container.
 - [Modal ordering](https://platform.docs.local/docs/overlays/modal-ordering): Deterministic layer allocation across MFEs and widgets, with owner metadata for every open overlay.
-- [Developer tools](https://platform.docs.local/docs/developer-tools): A private panel the shell loads on demand: the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
+- [Developer tools](https://platform.docs.local/docs/developer-tools): A private panel the shell loads on demand — the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
 
 ## Operations
 

@@ -1,6 +1,6 @@
 ---
 title: Developer tools
-description: A private panel the shell loads on demand: the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
+description: A private panel the shell loads on demand — the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
 ---
 
 ## Enabling
@@ -64,7 +64,9 @@ The failures that matter most are the ones hardest to reach by hand. The _Faults
 | Incompatible shared    | every shared request is pinned to a range nothing satisfies (`DEPENDENCY_INCOMPATIBLE`)        |
 | Withhold a capability  | the named capability never reaches the bridge, so the MFE feature-detects it as absent         |
 
-Faults are set through `host.remotes.setFault(fault, value)` and read with `host.remotes.faults()`. Both are gated on the same `decideDevtools` check as the tools themselves, so production cannot reach them even by calling them; setting one drops cached definitions so the next load takes the faulted path. _Clear every fault_ resets all of them.
+Faults are set through `host.remotes.setFault(fault, value)` and read with `host.remotes.faults()`. Both are gated on the same `decideDevtools` check as the tools themselves, so production cannot reach them even by calling them; setting one drops cached definitions so the next load takes the faulted path. A mounted remote is not torn down, so navigate away and back to see the fault take effect.
+
+Faults live in the host, in memory, and are never persisted: _Clear every fault_ resets them, and so does reloading the page. There is no way to set one and forget it.
 
 Withholding `auth` is the quickest way to see what an MFE does when it cannot authenticate ([Authentication](/docs/authentication)).
 

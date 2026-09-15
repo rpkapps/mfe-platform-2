@@ -1,7 +1,10 @@
 import { defineConfig } from "tsdown"
 
 export default defineConfig({
-  entry: { index: "src/index.ts" },
+  // Named `devtools`, not `index`: a shell lazily imports this package, and the
+  // chunk its bundler emits is named after this file. "devtools-*.js" in a
+  // network panel is worth more than "dist-*.js".
+  entry: { devtools: "src/index.ts" },
   format: ["esm"],
   dts: true,
   platform: "browser",
