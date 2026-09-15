@@ -25,7 +25,9 @@ function names(plugins: Plugin[]): string[] {
 }
 
 async function defines(plugins: Plugin[]): Promise<Record<string, unknown>> {
-  const define = plugins.find((plugin) => plugin.name === "platform:define")!
+  const define = plugins.find(
+    (plugin) => plugin.name === "platform:test" || plugin.name === "platform:define"
+  )!
   const hook = define.config
   const handler = typeof hook === "function" ? hook : hook!.handler
   const result = await handler.call({} as never, {}, { command: "serve", mode: "test" })
@@ -38,8 +40,9 @@ describe("platform() under Vitest", () => {
     const plugins = await flatten(platform({ root }))
     const list = names(plugins)
     expect(list.some((name) => name.startsWith("vite:react"))).toBe(true)
-    expect(list).toContain("platform:define")
-    expect(list.filter((name) => name.startsWith("platform:"))).toEqual(["platform:define"])
+    // The test-mode plugin resolves the project root lazily from the Vitest project config.
+    expect(list).toContain("platform:test")
+    expect(list.filter((name) => name.startsWith("platform:"))).toEqual(["platform:test"])
     expect(
       list.some((name) => /federation|module-federation|tanstack|router|tailwind/i.test(name))
     ).toBe(false)
@@ -90,7 +93,9 @@ describe("platform() under Vitest", () => {
   })
 
   it("rejects with a formatted PlatformError for invalid configuration", async () => {
-    await expect(flatten(platform({ root, mfeId: "Not Valid" }))).rejects.toThrow(
+    const plugins = await flatten(platform({ root, mfeId: "Not Valid" }))
+    await expect(defines(plugins)).rejects.toThrow(/\[platform:MFE_ID_INVALID\]/)
+    await expect(flatten(platform({ root, mfeId: "Not Valid", test: false }))).rejects.toThrow(
       /\[platform:MFE_ID_INVALID\]/
     )
   })
