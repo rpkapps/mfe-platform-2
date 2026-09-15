@@ -48,7 +48,9 @@ function AssetCardWidget({ assetId }: { assetId: string }) {
                 </Button>
                 <Button
                   slot="close"
-                  onPress={() => notify({ title: `Alarm on ${assetId} acknowledged`, kind: "success" })}
+                  onPress={() =>
+                    notify({ title: `Alarm on ${assetId} acknowledged`, kind: "success" })
+                  }
                 >
                   Acknowledge
                 </Button>

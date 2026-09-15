@@ -95,7 +95,9 @@ Reports local ids and keys built from runtime values (``id: `cmd-${n}` ``). Keys
 ```ts
 export default platformConfig({
   rules: { "platform/telemetry-context": "off" },
-  overrides: [{ files: ["src/experimental/**"], rules: { "platform/no-direct-runtime-env": "warn" } }],
+  overrides: [
+    { files: ["src/experimental/**"], rules: { "platform/no-direct-runtime-env": "warn" } },
+  ],
 })
 ```
 

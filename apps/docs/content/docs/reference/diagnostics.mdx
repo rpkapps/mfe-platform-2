@@ -11,46 +11,48 @@ Every event carries `id`, `at`, `level` and, when known, `mfeId`, `instanceId` a
 
 ## Events
 
-| Type | Fields | When |
-| --- | --- | --- |
-| `runtime-config.loaded` | `source`, `environment` | configuration accepted |
-| `manifest.resolved` | `url`, `urlSource` (`query`, `override`, `runtime-config`, `registry`, `default`), `cacheBusted` | URL chosen |
-| `manifest.loaded` | `url`, `version`, `protocolVersion`, `dev` | manifest validated |
-| `manifest.failed` | `url`, `attempt`, `error` | fetch or validation failed |
-| `manifest.retry` | `url`, `attempt`, `delayMs` | retry scheduled |
-| `preflight.denied` | `missingGroups` | permission preflight failed |
-| `remote.registered` | `loader`, `entryUrl` | remote registered in the loader |
-| `remote.loading` | `entryUrl` | entry load started |
-| `remote.loaded` | `durationMs` | definition available |
-| `remote.failed` | `error`, `attempt` | load failed |
-| `shared.resolved` | `resolutions[]` (`name`, `scope`, `requiredVersion`, `outcome`, `version`, `from`, `reason`) | negotiation done |
-| `mount.started` | `container` | `mount()` called |
-| `mount.completed` | `durationMs`, `reactVersion`, `routerVersion` | root rendered |
-| `mount.failed` | `error` | `mount()` threw |
-| `unmount` | `reason` (`navigation`, `dispose`, `error`, `hmr`) | root disposed |
-| `widget.mounted` / `widget.unmounted` / `widget.failed` | `slot`, `error` | widget instance lifecycle |
-| `route.matched` | `pathname`, `routeId`, `guarded` | MFE router matched |
-| `route.guard` | `routeId`, `outcome` (`allowed`, `redirected`, `rejected`), `detail` | `beforeLoad` finished |
-| `route.error` | `routeId`, `error` | loader or render error |
-| `registration` | `kind`, `action`, `key` | command/settings/help/release-notes/breadcrumbs added or removed |
-| `shortcut.conflict` | `shortcut`, `holder`, `rejected` | second registration of a shortcut |
-| `command.run` | `qualifiedId`, `outcome`, `durationMs`, `error` | command lifecycle |
-| `settings.invalid` | `key`, `message`, `recovered` | stored settings value recovered |
-| `storage.invalid` | `key`, `scope`, `message`, `recovered` | stored value recovered |
-| `overlay.opened` / `overlay.closed` | `layer`, `ownerAttribute` | overlay layer changes |
-| `hmr.update` | `file`, `kind` (`module`, `css`, `restart-required`), `detail` | dev updates |
-| `devtools` | `action` (`requested`, `loaded`, `denied`, `failed`), `reason` | devtools lifecycle |
-| `telemetry.failed` | `operation`, `error` | adapter threw |
-| `protocol.error` | `code`, `error` | protocol-level failure |
-| `error` | `code`, `error` | any other `PlatformError` |
-| `log` | `message`, `detail` | free-form |
+| Type                                                    | Fields                                                                                           | When                                                             |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `runtime-config.loaded`                                 | `source`, `environment`                                                                          | configuration accepted                                           |
+| `manifest.resolved`                                     | `url`, `urlSource` (`query`, `override`, `runtime-config`, `registry`, `default`), `cacheBusted` | URL chosen                                                       |
+| `manifest.loaded`                                       | `url`, `version`, `protocolVersion`, `dev`                                                       | manifest validated                                               |
+| `manifest.failed`                                       | `url`, `attempt`, `error`                                                                        | fetch or validation failed                                       |
+| `manifest.retry`                                        | `url`, `attempt`, `delayMs`                                                                      | retry scheduled                                                  |
+| `preflight.denied`                                      | `missingGroups`                                                                                  | permission preflight failed                                      |
+| `remote.registered`                                     | `loader`, `entryUrl`                                                                             | remote registered in the loader                                  |
+| `remote.loading`                                        | `entryUrl`                                                                                       | entry load started                                               |
+| `remote.loaded`                                         | `durationMs`                                                                                     | definition available                                             |
+| `remote.failed`                                         | `error`, `attempt`                                                                               | load failed                                                      |
+| `shared.resolved`                                       | `resolutions[]` (`name`, `scope`, `requiredVersion`, `outcome`, `version`, `from`, `reason`)     | negotiation done                                                 |
+| `mount.started`                                         | `container`                                                                                      | `mount()` called                                                 |
+| `mount.completed`                                       | `durationMs`, `reactVersion`, `routerVersion`                                                    | root rendered                                                    |
+| `mount.failed`                                          | `error`                                                                                          | `mount()` threw                                                  |
+| `unmount`                                               | `reason` (`navigation`, `dispose`, `error`, `hmr`)                                               | root disposed                                                    |
+| `widget.mounted` / `widget.unmounted` / `widget.failed` | `slot`, `error`                                                                                  | widget instance lifecycle                                        |
+| `route.matched`                                         | `pathname`, `routeId`, `guarded`                                                                 | MFE router matched                                               |
+| `route.guard`                                           | `routeId`, `outcome` (`allowed`, `redirected`, `rejected`), `detail`                             | `beforeLoad` finished                                            |
+| `route.error`                                           | `routeId`, `error`                                                                               | loader or render error                                           |
+| `registration`                                          | `kind`, `action`, `key`                                                                          | command/settings/help/release-notes/breadcrumbs added or removed |
+| `shortcut.conflict`                                     | `shortcut`, `holder`, `rejected`                                                                 | second registration of a shortcut                                |
+| `command.run`                                           | `qualifiedId`, `outcome`, `durationMs`, `error`                                                  | command lifecycle                                                |
+| `settings.invalid`                                      | `key`, `message`, `recovered`                                                                    | stored settings value recovered                                  |
+| `storage.invalid`                                       | `key`, `scope`, `message`, `recovered`                                                           | stored value recovered                                           |
+| `overlay.opened` / `overlay.closed`                     | `layer`, `ownerAttribute`                                                                        | overlay layer changes                                            |
+| `hmr.update`                                            | `file`, `kind` (`module`, `css`, `restart-required`), `detail`                                   | dev updates                                                      |
+| `devtools`                                              | `action` (`requested`, `loaded`, `denied`, `failed`), `reason`                                   | devtools lifecycle                                               |
+| `telemetry.failed`                                      | `operation`, `error`                                                                             | adapter threw                                                    |
+| `protocol.error`                                        | `code`, `error`                                                                                  | protocol-level failure                                           |
+| `error`                                                 | `code`, `error`                                                                                  | any other `PlatformError`                                        |
+| `log`                                                   | `message`, `detail`                                                                              | free-form                                                        |
 
 `error` payloads are serialised `PlatformError`s: `{ name, code, message, owner?, source?, override?, hint, docsUrl, details?, cause? }`.
 
 ## Consuming
 
 ```ts
-host.diagnostics.subscribe((event) => { if (event.level === "error") report(event) })
+host.diagnostics.subscribe((event) => {
+  if (event.level === "error") report(event)
+})
 const snapshot = host.diagnostics.snapshot() // remotes, instances, registrations, shared, overlays, events
 ```
 

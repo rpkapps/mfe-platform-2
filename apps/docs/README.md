@@ -4,15 +4,15 @@ TanStack Start + TanStack Router + Vite + Fumadocs MDX, styled with `@tecton/rea
 
 ## Scripts
 
-| Script | What it does |
-| --- | --- |
-| `pnpm dev` | Vite dev server on http://localhost:3000 |
-| `pnpm build` | Production build with prerendering of `/` and every `/docs/*` page |
-| `pnpm preview` | Serve the build |
-| `pnpm typecheck` | `tsc --noEmit` (run `pnpm build` or `pnpm dev` once first: `src/routeTree.gen.ts` is generated) |
-| `pnpm lint` | ESLint with the repository configuration |
+| Script               | What it does                                                                                                                                                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`           | Vite dev server on http://localhost:3000                                                                                                                                                                                                |
+| `pnpm build`         | Production build with prerendering of `/` and every `/docs/*` page                                                                                                                                                                      |
+| `pnpm preview`       | Serve the build                                                                                                                                                                                                                         |
+| `pnpm typecheck`     | `tsc --noEmit` (run `pnpm build` or `pnpm dev` once first: `src/routeTree.gen.ts` is generated)                                                                                                                                         |
+| `pnpm lint`          | ESLint with the repository configuration                                                                                                                                                                                                |
 | `pnpm docs:generate` | Copies `internal/core/schemas/*.json` to `public/schemas/`, regenerates `content/docs/reference/generated/*` from the core package (`ERROR_CODES`, capabilities, schema index) and writes `llm.txt` / `llms.txt` at the repository root |
-| `pnpm docs:check` | Verifies that every `ERROR_CODES[*].docs` path resolves to a page (and heading anchor), that every `meta.json` entry exists and every page is listed, that every internal link and anchor resolves, and that `llms.txt` is up to date |
+| `pnpm docs:check`    | Verifies that every `ERROR_CODES[*].docs` path resolves to a page (and heading anchor), that every `meta.json` entry exists and every page is listed, that every internal link and anchor resolves, and that `llms.txt` is up to date   |
 
 `docs:generate` imports the built core package: run `pnpm --filter @platform-internal/core build` first (or `pnpm build` at the root).
 

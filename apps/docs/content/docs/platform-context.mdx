@@ -22,36 +22,36 @@ Reading the whole context rerenders on every change. Prefer a [selector](/docs/s
 
 ## Fields
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `user` | `{ id, displayName, email?, avatarUrl?, sessionId? } \| null` | |
-| `permissionGroups` | `string[]` | all groups the host policy exposes to the browser |
-| `permissions` | `{ hasGroup, hasAnyGroup, hasAllGroups }` | helpers over `permissionGroups` |
-| `tenant`, `project`, `job` | `{ id, name?, status? } \| null` | |
-| `locale`, `timezone` | `string` | `en-US`, `Europe/Oslo` |
-| `theme`, `resolvedTheme` | `"light" \| "dark" \| "system"`, `"light" \| "dark"` | |
-| `featureFlags` | typed via `Register.featureFlags` | |
-| `capabilities` | `CapabilityId[]` | approved for this remote |
-| `runtime` | `{ environment, env, shared }` | `env` typed via `Register.env` |
-| `release` | `{ version?, buildId?, commit? }` | shell release |
-| `remoteRelease` | `{ version, buildId?, commit? }` | this remote's release |
-| `environment` | `string` | `production`, `staging`, `local`… |
-| `mfeId`, `instanceId`, `widgetId?` | identity of the mount | |
-| `navigation` | `PlatformNavigation` | |
-| `telemetry` | `Telemetry` | enriched |
-| `revision` | `number` | increments on every change |
+| Field                              | Type                                                          | Notes                                             |
+| ---------------------------------- | ------------------------------------------------------------- | ------------------------------------------------- |
+| `user`                             | `{ id, displayName, email?, avatarUrl?, sessionId? } \| null` |                                                   |
+| `permissionGroups`                 | `string[]`                                                    | all groups the host policy exposes to the browser |
+| `permissions`                      | `{ hasGroup, hasAnyGroup, hasAllGroups }`                     | helpers over `permissionGroups`                   |
+| `tenant`, `project`, `job`         | `{ id, name?, status? } \| null`                              |                                                   |
+| `locale`, `timezone`               | `string`                                                      | `en-US`, `Europe/Oslo`                            |
+| `theme`, `resolvedTheme`           | `"light" \| "dark" \| "system"`, `"light" \| "dark"`          |                                                   |
+| `featureFlags`                     | typed via `Register.featureFlags`                             |                                                   |
+| `capabilities`                     | `CapabilityId[]`                                              | approved for this remote                          |
+| `runtime`                          | `{ environment, env, shared }`                                | `env` typed via `Register.env`                    |
+| `release`                          | `{ version?, buildId?, commit? }`                             | shell release                                     |
+| `remoteRelease`                    | `{ version, buildId?, commit? }`                              | this remote's release                             |
+| `environment`                      | `string`                                                      | `production`, `staging`, `local`…                 |
+| `mfeId`, `instanceId`, `widgetId?` | identity of the mount                                         |                                                   |
+| `navigation`                       | `PlatformNavigation`                                          |                                                   |
+| `telemetry`                        | `Telemetry`                                                   | enriched                                          |
+| `revision`                         | `number`                                                      | increments on every change                        |
 
 Everything is plain data or plain functions: no React values, so it can cross the root boundary.
 
 ## The same context everywhere
 
-| Surface | Access |
-| --- | --- |
-| Components | `usePlatform()`, `usePlatform(selector)`, `usePermissions()`, `useCapability(id)`, `useRuntimeEnv()`, `useTelemetry()`, `useNavigation()` |
-| Route guards and loaders | `context.platform` ([Route guards](/docs/routing/route-guards)) |
-| Command handlers | `platform` in the handler context |
-| Async option providers | `platform` in the provider context |
-| Tests | `createTestBridge({ user, permissionGroups, env, capabilities })` |
+| Surface                  | Access                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Components               | `usePlatform()`, `usePlatform(selector)`, `usePermissions()`, `useCapability(id)`, `useRuntimeEnv()`, `useTelemetry()`, `useNavigation()` |
+| Route guards and loaders | `context.platform` ([Route guards](/docs/routing/route-guards))                                                                           |
+| Command handlers         | `platform` in the handler context                                                                                                         |
+| Async option providers   | `platform` in the provider context                                                                                                        |
+| Tests                    | `createTestBridge({ user, permissionGroups, env, capabilities })`                                                                         |
 
 ## Changes
 
@@ -76,17 +76,17 @@ function Toolbar() {
 
 Calling an API whose capability was not approved fails with `CAPABILITY_UNAVAILABLE` (the hook throws with the owner and the capability id; the failure is isolated by the nearest error boundary). To avoid it, feature-detect with `useCapability` or `usePlatform((p) => p.capabilities)`, or request the capability explicitly with `capabilities: { add: ["notifications"] }` in `mfe.config.ts`.
 
-| Capability | Granted for |
-| --- | --- |
-| `context`, `navigation`, `telemetry`, `overlays` | always (implicit) |
-| `storage.local`, `storage.session` | `createPlatformStorage` with the scope |
-| `commands` | `useRegisterCommand`, `CommandRegistration` |
-| `settings` | `useRegisterSettingsGroup`, `useRegisterSettingsField`, `SettingsRegistration` |
-| `help`, `release-notes` | the corresponding registration APIs |
-| `breadcrumbs` | `useBreadcrumb` |
-| `notifications` | `useNotifications` |
-| `runtime-env` | `useRuntimeEnv` |
-| `widgets` | `createWidget` |
+| Capability                                       | Granted for                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `context`, `navigation`, `telemetry`, `overlays` | always (implicit)                                                              |
+| `storage.local`, `storage.session`               | `createPlatformStorage` with the scope                                         |
+| `commands`                                       | `useRegisterCommand`, `CommandRegistration`                                    |
+| `settings`                                       | `useRegisterSettingsGroup`, `useRegisterSettingsField`, `SettingsRegistration` |
+| `help`, `release-notes`                          | the corresponding registration APIs                                            |
+| `breadcrumbs`                                    | `useBreadcrumb`                                                                |
+| `notifications`                                  | `useNotifications`                                                             |
+| `runtime-env`                                    | `useRuntimeEnv`                                                                |
+| `widgets`                                        | `createWidget`                                                                 |
 
 The full list with descriptions is generated in the [capabilities reference](/docs/reference/generated/capabilities).
 

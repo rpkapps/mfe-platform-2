@@ -1,1 +1,4 @@
-{ "title": "Settings", "pages": ["index", "groups", "schemas", "async-options", "custom-pages"] }
+{
+  "title": "Settings",
+  "pages": ["index", "groups", "schemas", "async-options", "custom-pages"]
+}

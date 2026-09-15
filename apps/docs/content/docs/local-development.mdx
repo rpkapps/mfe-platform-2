@@ -17,7 +17,7 @@ pnpm dev
 - overlays through the real overlay manager,
 - route guards, telemetry (console + memory adapter) and the runtime environment (`env` defaults from `mfe.config.ts`, editable in the panel),
 - **failure toggles**: unavailable remote, slow manifest, invalid manifest, missing capability, incompatible dependency, telemetry adapter throwing,
-- a *Remotes* panel that lists connected local remotes and whether each runs in **HMR** or **production-artefact** mode.
+- a _Remotes_ panel that lists connected local remotes and whether each runs in **HMR** or **production-artefact** mode.
 
 The harness itself is a normal `createPlatformHost` user, so what works there works in the shell.
 
@@ -53,12 +53,12 @@ Restart the dev server; the diagnostic clears when the new manifest loads.
 
 ## HMR-capable versus production artefacts
 
-Only manifests produced by a development server carry a `dev` block. Production artefacts have none and are **never** shown as HMR-capable, even when served from `localhost` (`vite preview`). The harness *Remotes* panel labels each remote `HMR` or `artefact`; an artefact next to a dev server of the same `mfeId` is a common source of "my change does not show" confusion, and the panel shows which one is loaded and from which URL.
+Only manifests produced by a development server carry a `dev` block. Production artefacts have none and are **never** shown as HMR-capable, even when served from `localhost` (`vite preview`). The harness _Remotes_ panel labels each remote `HMR` or `artefact`; an artefact next to a dev server of the same `mfeId` is a common source of "my change does not show" confusion, and the panel shows which one is loaded and from which URL.
 
 ## Ports
 
-| App | Port |
-| --- | --- |
-| Harness (inside the remote's dev server) | the remote's port, `/__platform/harness/` |
-| Conformance shell (prod build / dev) | 4100 / 4110 |
-| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 |
+| App                                                       | Port                                      |
+| --------------------------------------------------------- | ----------------------------------------- |
+| Harness (inside the remote's dev server)                  | the remote's port, `/__platform/harness/` |
+| Conformance shell (prod build / dev)                      | 4100 / 4110                               |
+| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204                                 |

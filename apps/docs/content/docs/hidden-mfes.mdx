@@ -25,16 +25,16 @@ Widget libraries (no route tree) are hidden by default.
 
 ## What still works
 
-| Feature | Hidden remote |
-| --- | --- |
-| Routes under the prefix | ✓ deep-linkable, guarded, breadcrumbed |
-| Widgets | ✓ mountable from any slot |
-| Commands | ✓ listed in the palette (static ones before loading) |
-| Settings | ✓ groups appear in the settings host |
-| Help and release notes | ✓ |
-| Runtime configuration and environment | ✓ |
-| Loading as a dependency (`loadPolicy: "eager"`) | ✓ |
-| App Finder entry | ✗ |
+| Feature                                         | Hidden remote                                        |
+| ----------------------------------------------- | ---------------------------------------------------- |
+| Routes under the prefix                         | ✓ deep-linkable, guarded, breadcrumbed               |
+| Widgets                                         | ✓ mountable from any slot                            |
+| Commands                                        | ✓ listed in the palette (static ones before loading) |
+| Settings                                        | ✓ groups appear in the settings host                 |
+| Help and release notes                          | ✓                                                    |
+| Runtime configuration and environment           | ✓                                                    |
+| Loading as a dependency (`loadPolicy: "eager"`) | ✓                                                    |
+| App Finder entry                                | ✗                                                    |
 
 The App Finder consumes only `discoverable: true` entries; nothing else in the host filters on the flag.
 
@@ -44,4 +44,4 @@ A hidden remote loads when a URL under its prefix is visited, when a `WidgetSlot
 
 ## Diagnostics
 
-Hidden remotes appear in the developer tools like any other remote, with a *hidden* badge.
+Hidden remotes appear in the developer tools like any other remote, with a _hidden_ badge.

@@ -38,7 +38,7 @@ function HeadingAnchor({ id, children }: { id?: string; children: React.ReactNod
       <span className="underline-offset-4 group-hover:underline">{children}</span>
       <span
         aria-hidden="true"
-        className="ml-2 text-muted-foreground opacity-0 group-hover:opacity-100"
+        className="text-muted-foreground ml-2 opacity-0 group-hover:opacity-100"
       >
         #
       </span>
@@ -112,7 +112,7 @@ function Figcaption({ className, children, ...props }: React.ComponentProps<"fig
   return (
     <figcaption
       className={cn(
-        "flex items-center gap-2 text-code-foreground [&_svg]:size-4 [&_svg]:text-code-foreground [&_svg]:opacity-70",
+        "text-code-foreground [&_svg]:text-code-foreground flex items-center gap-2 [&_svg]:size-4 [&_svg]:opacity-70",
         className
       )}
       {...props}

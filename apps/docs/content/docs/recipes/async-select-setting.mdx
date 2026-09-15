@@ -22,7 +22,11 @@ export function useReportSettings() {
           const response = await fetch(url, { signal })
           if (!response.ok) throw new Error(`Sites unavailable (${response.status})`)
           const sites: { id: string; name: string; archived: boolean }[] = await response.json()
-          return sites.map((site) => ({ value: site.id, label: site.name, disabled: site.archived }))
+          return sites.map((site) => ({
+            value: site.id,
+            label: site.name,
+            disabled: site.archived,
+          }))
         },
       },
       area: {
@@ -56,8 +60,8 @@ function RootLayout() {
 
 Behaviour you get for free:
 
-- the control shows loading, error and *Retry* states; the stored value survives a failed load,
+- the control shows loading, error and _Retry_ states; the stored value survives a failed load,
 - changing `site` aborts the pending `area` request and reloads areas,
 - results are cached for five minutes per dependency snapshot,
-- a stored site that is no longer in the list is shown as stale with a *Reset* action,
+- a stored site that is no longer in the list is shown as stale with a _Reset_ action,
 - the provider sees only the typed platform view (context, runtime env, telemetry), not shell internals or storage.

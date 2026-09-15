@@ -4,7 +4,9 @@ description: Browser-visible permission groups for routing and UX. They never re
 ---
 
 <Callout variant="warning" title="Client-side only">
-  Permission groups in the browser decide what to show and where to route. Every backend service must authorize each request on its own; a user can always read the group list from the network tab.
+  Permission groups in the browser decide what to show and where to route. Every backend service
+  must authorize each request on its own; a user can always read the group list from the network
+  tab.
 </Callout>
 
 ## Reading groups
@@ -28,7 +30,7 @@ function Actions() {
 
 ## Preflight
 
-The shell performs a coarse check **before loading a remote** using the manifest's `permissionGroups` (from `mfe.config.ts` and route `staticData.permissionGroups`). A user without a required group never downloads the remote: `MfeOutlet` renders the *forbidden* state and the host records `preflight.denied` with the missing groups (`PERMISSION_DENIED`). Widgets declaring `permissionGroups` are preflighted the same way per slot.
+The shell performs a coarse check **before loading a remote** using the manifest's `permissionGroups` (from `mfe.config.ts` and route `staticData.permissionGroups`). A user without a required group never downloads the remote: `MfeOutlet` renders the _forbidden_ state and the host records `preflight.denied` with the missing groups (`PERMISSION_DENIED`). Widgets declaring `permissionGroups` are preflighted the same way per slot.
 
 Preflight is for efficiency and for a clean empty state; it does not replace guards.
 

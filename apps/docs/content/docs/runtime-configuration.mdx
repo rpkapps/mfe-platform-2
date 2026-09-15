@@ -31,18 +31,18 @@ The entrypoint reads only `PLATFORM_*` variables, merges them over an optional b
 
 ## `PLATFORM_*` variables
 
-| Variable | Key |
-| --- | --- |
-| `PLATFORM_ENVIRONMENT` | `environment` |
-| `PLATFORM_RELEASE_VERSION`, `PLATFORM_RELEASE_BUILD_ID`, `PLATFORM_RELEASE_COMMIT` | `release.*` |
-| `PLATFORM_SHARED_<KEY>` | `shared.<KEY>` (every MFE receives it) |
-| `PLATFORM_ALLOWED_ORIGINS` | `allowedOrigins` (comma separated) |
-| `PLATFORM_DEVTOOLS_POLICY` | `devtools.policy` (`flag`, `always`, `never`) |
-| `PLATFORM_MFE_<ID>_ENABLED` | `mfes.<id>.enabled` |
-| `PLATFORM_MFE_<ID>_MANIFEST_URL` | `mfes.<id>.manifestUrl` |
-| `PLATFORM_MFE_<ID>_PRELOAD` | `mfes.<id>.preload` (`none`, `entry`, `eager`) |
-| `PLATFORM_MFE_<ID>_ALLOWED_ORIGINS` | `mfes.<id>.allowedOrigins` |
-| `PLATFORM_MFE_<ID>_ENV_<KEY>` | `mfes.<id>.env.<KEY>` |
+| Variable                                                                           | Key                                            |
+| ---------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `PLATFORM_ENVIRONMENT`                                                             | `environment`                                  |
+| `PLATFORM_RELEASE_VERSION`, `PLATFORM_RELEASE_BUILD_ID`, `PLATFORM_RELEASE_COMMIT` | `release.*`                                    |
+| `PLATFORM_SHARED_<KEY>`                                                            | `shared.<KEY>` (every MFE receives it)         |
+| `PLATFORM_ALLOWED_ORIGINS`                                                         | `allowedOrigins` (comma separated)             |
+| `PLATFORM_DEVTOOLS_POLICY`                                                         | `devtools.policy` (`flag`, `always`, `never`)  |
+| `PLATFORM_MFE_<ID>_ENABLED`                                                        | `mfes.<id>.enabled`                            |
+| `PLATFORM_MFE_<ID>_MANIFEST_URL`                                                   | `mfes.<id>.manifestUrl`                        |
+| `PLATFORM_MFE_<ID>_PRELOAD`                                                        | `mfes.<id>.preload` (`none`, `entry`, `eager`) |
+| `PLATFORM_MFE_<ID>_ALLOWED_ORIGINS`                                                | `mfes.<id>.allowedOrigins`                     |
+| `PLATFORM_MFE_<ID>_ENV_<KEY>`                                                      | `mfes.<id>.env.<KEY>`                          |
 
 `<ID>` is the `mfeId` upper-cased with `-` → `_` (`asset-tracker` → `ASSET_TRACKER`). Values `true`/`false` become booleans and numeric strings become numbers. Pass `--known asset-tracker,legacy-reports` (or a base document) so ids containing digits or ambiguous separators map unambiguously.
 
@@ -95,7 +95,7 @@ The document is validated before the platform starts, in the entrypoint and agai
 
 ## Per-MFE enablement
 
-`mfes.<mfeId>.enabled: false` disables a remote everywhere: `MfeOutlet` shows the *disabled* state, widgets from it do not mount, the App Finder hides it and its static registrations are not listed. Loading it raises `REMOTE_DISABLED`; re-enable with `PLATFORM_MFE_<ID>_ENABLED=true`. Remotes absent from `mfes` are enabled by default when the registry knows them.
+`mfes.<mfeId>.enabled: false` disables a remote everywhere: `MfeOutlet` shows the _disabled_ state, widgets from it do not mount, the App Finder hides it and its static registrations are not listed. Loading it raises `REMOTE_DISABLED`; re-enable with `PLATFORM_MFE_<ID>_ENABLED=true`. Remotes absent from `mfes` are enabled by default when the registry knows them.
 
 ## Precedence
 

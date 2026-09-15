@@ -52,12 +52,12 @@ In loaders: `context.platform.runtime.env.API_BASE_URL`. In command handlers and
 
 ## Where values come from
 
-| Source | Example |
-| --- | --- |
+| Source            | Example                                                               |
+| ----------------- | --------------------------------------------------------------------- |
 | Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com` |
-| Static document | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json` |
-| Local harness | `harness.env` in the harness panel or `mfe.config.ts` defaults |
-| Tests | `createTestBridge({ env: { API_BASE_URL: "http://test" } })` |
+| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`      |
+| Local harness     | `harness.env` in the harness panel or `mfe.config.ts` defaults        |
+| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`          |
 
 See [Runtime configuration](/docs/runtime-configuration).
 

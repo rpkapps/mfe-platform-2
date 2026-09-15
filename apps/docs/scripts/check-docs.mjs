@@ -52,7 +52,8 @@ for (const [code, { docs }] of Object.entries(core.ERROR_CODES)) {
 // 2. meta.json entries exist, and every page is reachable from meta.json
 const reachable = new Set()
 for (const item of walkContent()) {
-  if (item.type === "missing") problem(`${rel(join(item.dir, "meta.json"))}: entry "${item.entry}" has no page or folder`)
+  if (item.type === "missing")
+    problem(`${rel(join(item.dir, "meta.json"))}: entry "${item.entry}" has no page or folder`)
   if (item.type === "page") reachable.add(item.file)
 }
 for (const file of listMdxFiles()) {
@@ -77,16 +78,25 @@ for (const file of listMdxFiles()) {
       const where = `${rel(file)}:${lineNumber}`
       if (/^(https?:|mailto:)/.test(target)) continue
       if (target.startsWith("#")) {
-        if (!pageInfo(file).ids.has(target.slice(1))) problem(`${where}: anchor ${target} not found in the page`)
+        if (!pageInfo(file).ids.has(target.slice(1)))
+          problem(`${where}: anchor ${target} not found in the page`)
       } else if (target.startsWith("/docs")) {
         const error = checkDocsUrl(target)
         if (error) problem(`${where}: ${target} → ${error}`)
       } else if (target.startsWith("/schemas/")) {
         const name = target.slice("/schemas/".length)
-        if (!existsSync(join(publicSchemasDir, name)) && !existsSync(join(coreSchemasDir, name))) {
+        if (
+          !existsSync(join(publicSchemasDir, name)) &&
+          !existsSync(join(coreSchemasDir, name))
+        ) {
           problem(`${where}: schema ${target} does not exist (run docs:generate)`)
         }
-      } else if (target === "/" || target === "/llm.txt" || target === "/llms.txt" || target === "/AGENTS.md") {
+      } else if (
+        target === "/" ||
+        target === "/llm.txt" ||
+        target === "/llms.txt" ||
+        target === "/AGENTS.md"
+      ) {
         // site root and repository files
       } else if (target.startsWith("/")) {
         problem(`${where}: unknown internal link ${target}`)
@@ -99,17 +109,23 @@ for (const file of listMdxFiles()) {
 
 // 4. llms.txt up to date
 const llmsFile = join(repoRoot, "llms.txt")
-if (!existsSync(llmsFile)) problem("llms.txt is missing at the repository root (run docs:generate)")
-else if (readFileSync(llmsFile, "utf8") !== renderLlmsTxt()) problem("llms.txt is out of date (run pnpm --filter docs docs:generate)")
-for (const match of renderLlmsTxt().matchAll(/\]\((https:\/\/platform\.docs\.local)(\/docs[^)\s]*)\)/g)) {
+if (!existsSync(llmsFile))
+  problem("llms.txt is missing at the repository root (run docs:generate)")
+else if (readFileSync(llmsFile, "utf8") !== renderLlmsTxt())
+  problem("llms.txt is out of date (run pnpm --filter docs docs:generate)")
+for (const match of renderLlmsTxt().matchAll(
+  /\]\((https:\/\/platform\.docs\.local)(\/docs[^)\s]*)\)/g
+)) {
   const error = checkDocsUrl(match[2])
   if (error) problem(`llms.txt: ${match[2]} → ${error}`)
 }
-if (!existsSync(join(repoRoot, "llm.txt"))) problem("llm.txt is missing at the repository root (run docs:generate)")
+if (!existsSync(join(repoRoot, "llm.txt")))
+  problem("llm.txt is missing at the repository root (run docs:generate)")
 
 // 5. generated pages present
 for (const name of ["error-codes", "capabilities", "schemas"]) {
-  if (!existsSync(join(contentDir, "reference", "generated", `${name}.mdx`))) problem(`reference/generated/${name}.mdx is missing (run docs:generate)`)
+  if (!existsSync(join(contentDir, "reference", "generated", `${name}.mdx`)))
+    problem(`reference/generated/${name}.mdx is missing (run docs:generate)`)
 }
 
 if (problems.length) {
@@ -117,4 +133,6 @@ if (problems.length) {
   for (const message of problems) console.error(`  - ${message}`)
   process.exit(1)
 }
-console.log(`docs:check: ${listMdxFiles().length} pages, ${Object.keys(core.ERROR_CODES).length} error codes, links and llms.txt OK`)
+console.log(
+  `docs:check: ${listMdxFiles().length} pages, ${Object.keys(core.ERROR_CODES).length} error codes, links and llms.txt OK`
+)

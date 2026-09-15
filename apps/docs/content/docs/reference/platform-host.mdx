@@ -24,43 +24,52 @@ const host = createPlatformHost({
 
 `PlatformHost`:
 
-| Member | Description |
-| --- | --- |
-| `context` | shell context store: `getState()`, `setState()`, `patch()`, `subscribe()` — update user, groups, tenant, project, job, theme, flags |
-| `remotes` | `resolve(mfeId)`, `load(mfeId)`, `preload(mfeId)`, `retry(mfeId)`, `invalidate(mfeId)`, `list()`, `setOverride(mfeId, url)`, `clearOverrides()` |
-| `mount(mfeId, container, options?)` | mount a route MFE; returns `MountHandle` |
-| `mountWidget({ mfeId, widgetId, container, props })` | mount a widget instance; returns `WidgetHandle` |
-| `commands` | `run(qualifiedId, { source? })`, `list()`, `conflicts()`, `states()`, `events` |
-| `settings`, `help`, `releaseNotes` | registries (`list()`, `events`) and the settings value port |
-| `breadcrumbs` | `setShell(entries)`, `current()`, `subscribe()`, `setRenderer()` |
-| `overlays` | overlay manager |
-| `runtimeConfig` | `get()`, `refresh()`, `viewFor(mfeId)` (redacted views for devtools) |
-| `diagnostics` | `snapshot()`, `subscribe(listener)`, `events` |
-| `telemetry` | shell-level `Telemetry` |
-| `devtools` | `enabled`, `open()`, `close()` |
-| `dispose()` | tear down everything |
+| Member                                               | Description                                                                                                                                     |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `context`                                            | shell context store: `getState()`, `setState()`, `patch()`, `subscribe()` — update user, groups, tenant, project, job, theme, flags             |
+| `remotes`                                            | `resolve(mfeId)`, `load(mfeId)`, `preload(mfeId)`, `retry(mfeId)`, `invalidate(mfeId)`, `list()`, `setOverride(mfeId, url)`, `clearOverrides()` |
+| `mount(mfeId, container, options?)`                  | mount a route MFE; returns `MountHandle`                                                                                                        |
+| `mountWidget({ mfeId, widgetId, container, props })` | mount a widget instance; returns `WidgetHandle`                                                                                                 |
+| `commands`                                           | `run(qualifiedId, { source? })`, `list()`, `conflicts()`, `states()`, `events`                                                                  |
+| `settings`, `help`, `releaseNotes`                   | registries (`list()`, `events`) and the settings value port                                                                                     |
+| `breadcrumbs`                                        | `setShell(entries)`, `current()`, `subscribe()`, `setRenderer()`                                                                                |
+| `overlays`                                           | overlay manager                                                                                                                                 |
+| `runtimeConfig`                                      | `get()`, `refresh()`, `viewFor(mfeId)` (redacted views for devtools)                                                                            |
+| `diagnostics`                                        | `snapshot()`, `subscribe(listener)`, `events`                                                                                                   |
+| `telemetry`                                          | shell-level `Telemetry`                                                                                                                         |
+| `devtools`                                           | `enabled`, `open()`, `close()`                                                                                                                  |
+| `dispose()`                                          | tear down everything                                                                                                                            |
 
 ## React components — `@platform/host/react`
 
 ```tsx
 import {
-  PlatformProvider, MfeOutlet, WidgetSlot, CommandPalette, SettingsHost,
-  HelpSlot, ReleaseNotesSlot, Breadcrumbs, AppFinder, PlatformDevtools, NotificationHost,
+  PlatformProvider,
+  MfeOutlet,
+  WidgetSlot,
+  CommandPalette,
+  SettingsHost,
+  HelpSlot,
+  ReleaseNotesSlot,
+  Breadcrumbs,
+  AppFinder,
+  PlatformDevtools,
+  NotificationHost,
 } from "@platform/host/react"
 ```
 
-| Component | Props |
-| --- | --- |
-| `PlatformProvider` | `host`; wraps the shell tree |
-| `MfeOutlet` | `mfeId`, `loading?`, `error?`, `unavailable?`, `forbidden?`, `disabled?` |
-| `WidgetSlot` | `mfeId`, `widgetId`, `props`, `slot?` (stable instance key), `loading?`, `error?` |
-| `CommandPalette` | `shortcut?`, `placeholder?`, `groups?` |
-| `SettingsHost` | `mfeId?`; renders framework-managed groups and links MFE-managed pages |
-| `HelpSlot`, `ReleaseNotesSlot` | `mfeId?` |
-| `Breadcrumbs` | `max?`, `renderer?` (custom renderer escape hatch) |
-| `AppFinder` | `category?`, `onOpen?`; discoverable remotes only |
-| `PlatformDevtools` | `position?`; lazy |
-| `NotificationHost` | Tecton `Toaster` bound to the notification port |
+| Component                      | Props                                                                             |
+| ------------------------------ | --------------------------------------------------------------------------------- |
+| `PlatformProvider`             | `host`; wraps the shell tree                                                      |
+| `MfeOutlet`                    | `mfeId`, `loading?`, `error?`, `unavailable?`, `forbidden?`, `disabled?`          |
+| `WidgetSlot`                   | `mfeId`, `widgetId`, `props`, `slot?` (stable instance key), `loading?`, `error?` |
+| `CommandPalette`               | `shortcut?`, `placeholder?`, `groups?`                                            |
+| `SettingsHost`                 | `mfeId?`; renders framework-managed groups and links MFE-managed pages            |
+| `HelpSlot`, `ReleaseNotesSlot` | `mfeId?`                                                                          |
+| `Breadcrumbs`                  | `max?`, `renderer?` (custom renderer escape hatch)                                |
+| `AppFinder`                    | `category?`, `onOpen?`; discoverable remotes only                                 |
+| `PlatformDevtools`             | `position?`; lazy                                                                 |
+| `NotificationHost`             | Tecton `Toaster` bound to the notification port                                   |
 
 ## TanStack bridge — `@platform/host/tanstack`
 
@@ -89,7 +98,11 @@ platform-host-entrypoint --out <file> [--base <file>] [--known <ids>] [--print]
 
 ```ts
 import { generateRuntimeConfig } from "@platform/host/entrypoint"
-const { config, refused, sources } = generateRuntimeConfig({ env: process.env, base, knownMfeIds })
+const { config, refused, sources } = generateRuntimeConfig({
+  env: process.env,
+  base,
+  knownMfeIds,
+})
 ```
 
 See [Runtime configuration](/docs/runtime-configuration).

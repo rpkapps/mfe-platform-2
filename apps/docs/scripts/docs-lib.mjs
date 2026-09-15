@@ -32,7 +32,10 @@ export function readFrontmatter(file) {
       const m = line.match(/^([A-Za-z_][\w-]*):\s*(.*)$/)
       if (!m) continue
       let value = m[2].trim()
-      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
         value = value.slice(1, -1)
       }
       data[m[1]] = value
@@ -55,7 +58,11 @@ export function readMeta(dir) {
 export function walkContent(dir = contentDir, urlBase = "/docs", depth = 0) {
   const items = []
   const meta = readMeta(dir)
-  const entries = meta?.pages ?? readdirSync(dir).filter((name) => name !== "meta.json").sort()
+  const entries =
+    meta?.pages ??
+    readdirSync(dir)
+      .filter((name) => name !== "meta.json")
+      .sort()
   for (const entry of entries) {
     const separator = entry.match(/^---(.*)---$/)
     if (separator) {
@@ -69,7 +76,14 @@ export function walkContent(dir = contentDir, urlBase = "/docs", depth = 0) {
     if (existsSync(file)) {
       const { data } = readFrontmatter(file)
       const url = name === "index" ? urlBase : `${urlBase}/${name}`
-      items.push({ type: "page", file, url, title: data.title ?? name, description: data.description ?? "", depth })
+      items.push({
+        type: "page",
+        file,
+        url,
+        title: data.title ?? name,
+        description: data.description ?? "",
+        depth,
+      })
     } else if (existsSync(folder) && statSync(folder).isDirectory()) {
       const folderMeta = readMeta(folder)
       items.push({ type: "folder", name: folderMeta?.title ?? name, url: `${urlBase}/${name}` })
@@ -135,7 +149,12 @@ export function headingIds(body) {
       id = custom[1]
       text = text.slice(0, custom.index)
     } else {
-      id = slugify(text.replace(/`/g, "").replace(/\*\*/g, "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1"))
+      id = slugify(
+        text
+          .replace(/`/g, "")
+          .replace(/\*\*/g, "")
+          .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      )
     }
     const seen = counts.get(id) ?? 0
     counts.set(id, seen + 1)
@@ -167,7 +186,8 @@ export function listSchemas() {
 /** Machine-readable documentation index. */
 export function renderLlmsTxt() {
   const lines = []
-  const link = (title, url, description) => `- [${title}](${DOCS_ORIGIN}${url})${description ? `: ${description}` : ""}`
+  const link = (title, url, description) =>
+    `- [${title}](${DOCS_ORIGIN}${url})${description ? `: ${description}` : ""}`
   lines.push("# MFE Platform")
   lines.push("")
   lines.push(
@@ -196,25 +216,101 @@ export function renderLlmsTxt() {
   flush()
   lines.push("", "## Schemas", "")
   for (const schema of listSchemas()) {
-    lines.push(link(`${schema.name}.json`, `/schemas/${schema.file}`, `${schema.description} (JSON Schema draft 2020-12)`))
+    lines.push(
+      link(
+        `${schema.name}.json`,
+        `/schemas/${schema.file}`,
+        `${schema.description} (JSON Schema draft 2020-12)`
+      )
+    )
   }
   lines.push("", "## Examples", "")
-  lines.push(link("Conformance shell", "/docs/examples#appsconformance-shell", "apps/conformance-shell — TanStack Start SSR shell using @platform/host"))
-  lines.push(link("asset-tracker (React 19, Tecton)", "/docs/examples#appsconformance-react19--asset-tracker", "apps/conformance-react19 — routes, guards, commands, settings, storage, widgets"))
-  lines.push(link("legacy-reports (React 18)", "/docs/examples#appsconformance-react18--legacy-reports", "apps/conformance-react18 — React 18 remote on a legacy route prefix"))
-  lines.push(link("widget-a (React 19 widgets)", "/docs/examples#appsconformance-widget-a--widget-a", "apps/conformance-widget-a — hidden widget library"))
-  lines.push(link("widget-b (React 18 widgets)", "/docs/examples#appsconformance-widget-b--widget-b", "apps/conformance-widget-b — hidden widget library"))
+  lines.push(
+    link(
+      "Conformance shell",
+      "/docs/examples#appsconformance-shell",
+      "apps/conformance-shell — TanStack Start SSR shell using @platform/host"
+    )
+  )
+  lines.push(
+    link(
+      "asset-tracker (React 19, Tecton)",
+      "/docs/examples#appsconformance-react19--asset-tracker",
+      "apps/conformance-react19 — routes, guards, commands, settings, storage, widgets"
+    )
+  )
+  lines.push(
+    link(
+      "legacy-reports (React 18)",
+      "/docs/examples#appsconformance-react18--legacy-reports",
+      "apps/conformance-react18 — React 18 remote on a legacy route prefix"
+    )
+  )
+  lines.push(
+    link(
+      "widget-a (React 19 widgets)",
+      "/docs/examples#appsconformance-widget-a--widget-a",
+      "apps/conformance-widget-a — hidden widget library"
+    )
+  )
+  lines.push(
+    link(
+      "widget-b (React 18 widgets)",
+      "/docs/examples#appsconformance-widget-b--widget-b",
+      "apps/conformance-widget-b — hidden widget library"
+    )
+  )
   lines.push("", "## Diagnostics", "")
-  lines.push(link("Error codes", "/docs/reference/generated/error-codes", "every PlatformError code with hint and docs link"))
-  lines.push(link("Diagnostic events", "/docs/reference/diagnostics", "every diagnostic event type and level"))
-  lines.push(link("Troubleshooting", "/docs/troubleshooting", "how to read a diagnostic; code → page table"))
+  lines.push(
+    link(
+      "Error codes",
+      "/docs/reference/generated/error-codes",
+      "every PlatformError code with hint and docs link"
+    )
+  )
+  lines.push(
+    link(
+      "Diagnostic events",
+      "/docs/reference/diagnostics",
+      "every diagnostic event type and level"
+    )
+  )
+  lines.push(
+    link(
+      "Troubleshooting",
+      "/docs/troubleshooting",
+      "how to read a diagnostic; code → page table"
+    )
+  )
   lines.push("", "## Supported patterns", "")
-  lines.push(link("Project structure", "/docs/getting-started/project-structure", "one canonical pattern for bootstrap, routes, commands, settings, storage, widgets"))
-  lines.push(link("Recipes", "/docs/recipes", "copy-ready solutions using only the canonical APIs"))
-  lines.push(link("Unsupported cases", "/docs/unsupported-cases", "what the platform deliberately does not do"))
-  lines.push(link("AI-friendly design", "/docs/ai-friendly", "AGENTS.md, llm.txt, llms.txt, schemas"))
+  lines.push(
+    link(
+      "Project structure",
+      "/docs/getting-started/project-structure",
+      "one canonical pattern for bootstrap, routes, commands, settings, storage, widgets"
+    )
+  )
+  lines.push(
+    link("Recipes", "/docs/recipes", "copy-ready solutions using only the canonical APIs")
+  )
+  lines.push(
+    link(
+      "Unsupported cases",
+      "/docs/unsupported-cases",
+      "what the platform deliberately does not do"
+    )
+  )
+  lines.push(
+    link("AI-friendly design", "/docs/ai-friendly", "AGENTS.md, llm.txt, llms.txt, schemas")
+  )
   lines.push("", "## Optional", "")
-  lines.push(link("AGENTS.md", "/AGENTS.md", "repository rules for humans and agents (in the platform monorepo)"))
+  lines.push(
+    link(
+      "AGENTS.md",
+      "/AGENTS.md",
+      "repository rules for humans and agents (in the platform monorepo)"
+    )
+  )
   lines.push(link("llm.txt", "/llm.txt", "concise canonical instructions"))
   return `${lines.join("\n")}\n`
 }

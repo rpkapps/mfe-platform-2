@@ -51,15 +51,15 @@ In loaders and guards use `context.platform.telemetry`; in command handlers use 
 
 The SDK derives a child telemetry per mount and per surface, so every call carries:
 
-| Attribute | Source |
-| --- | --- |
-| `mfeId`, `instanceId`, `widgetId` | mount |
-| `route` | current route id (route MFEs) |
-| `command` | qualified id inside command handlers |
-| `boundary` | which error boundary reported an error |
-| `environment`, `release`, `remoteRelease` | runtime configuration and manifest |
-| `sessionId`, `userId` | context (when the host exposes them) |
-| shared dependency summary | on mount events |
+| Attribute                                 | Source                                 |
+| ----------------------------------------- | -------------------------------------- |
+| `mfeId`, `instanceId`, `widgetId`         | mount                                  |
+| `route`                                   | current route id (route MFEs)          |
+| `command`                                 | qualified id inside command handlers   |
+| `boundary`                                | which error boundary reported an error |
+| `environment`, `release`, `remoteRelease` | runtime configuration and manifest     |
+| `sessionId`, `userId`                     | context (when the host exposes them)   |
+| shared dependency summary                 | on mount events                        |
 
 `telemetry.child({ feature: "bulk-edit" })` adds attributes for a subtree.
 
@@ -71,7 +71,10 @@ The host implements `TelemetryAdapter`:
 interface TelemetryAdapter {
   track(event: string, attributes: TelemetryAttributes): void
   error(error: unknown, attributes: TelemetryAttributes): void
-  spanStart?(name: string, attributes: TelemetryAttributes): { end(attrs): void; fail(error, attrs): void } | void
+  spanStart?(
+    name: string,
+    attributes: TelemetryAttributes
+  ): { end(attrs): void; fail(error, attrs): void } | void
 }
 ```
 
@@ -87,17 +90,26 @@ import type { TelemetryAdapter } from "@platform/host"
 
 export const faroAdapter: TelemetryAdapter = {
   track: (event, attributes) => faro.api.pushEvent(event, stringify(attributes)),
-  error: (error, attributes) => faro.api.pushError(toError(error), { context: stringify(attributes) }),
+  error: (error, attributes) =>
+    faro.api.pushError(toError(error), { context: stringify(attributes) }),
   spanStart: (name, attributes) => {
     const span = faro.api.getOTEL()?.trace.getTracer("platform").startSpan(name, { attributes })
     return {
-      end: (attrs) => { span?.setAttributes(attrs); span?.end() },
-      fail: (error, attrs) => { span?.recordException(toError(error)); span?.setAttributes(attrs); span?.end() },
+      end: (attrs) => {
+        span?.setAttributes(attrs)
+        span?.end()
+      },
+      fail: (error, attrs) => {
+        span?.recordException(toError(error))
+        span?.setAttributes(attrs)
+        span?.end()
+      },
     }
   },
 }
 
-const stringify = (a: TelemetryAttributes) => Object.fromEntries(Object.entries(a).map(([k, v]) => [k, String(v)]))
+const stringify = (a: TelemetryAttributes) =>
+  Object.fromEntries(Object.entries(a).map(([k, v]) => [k, String(v)]))
 ```
 
 Pass it to `createPlatformHost({ telemetry: composeTelemetryAdapters(faroAdapter, memoryAdapter) })`.

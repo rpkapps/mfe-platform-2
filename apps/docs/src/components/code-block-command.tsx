@@ -5,12 +5,7 @@ import { cn } from "cn"
 import { CheckIcon, CopyIcon, TerminalIcon } from "lucide-react"
 
 import { Button } from "@tecton/react/components/button"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@tecton/react/components/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@tecton/react/components/tabs"
 
 const PM_KEY = "platform-docs:package-manager"
 type PackageManager = "pnpm" | "npm" | "yarn" | "bun"
@@ -117,16 +112,16 @@ export function CodeBlockCommand({
           }
         }}
       >
-        <div className="flex items-center gap-2 border-b border-border/50 px-3 py-1">
-          <div className="flex size-4 items-center justify-center rounded-[1px] bg-foreground opacity-70">
-            <TerminalIcon className="size-3 text-code" />
+        <div className="border-border/50 flex items-center gap-2 border-b px-3 py-1">
+          <div className="bg-foreground flex size-4 items-center justify-center rounded-[1px] opacity-70">
+            <TerminalIcon className="text-code size-3" />
           </div>
           <TabsList className="h-auto rounded-none bg-transparent p-0">
             {order.map((key) => (
               <TabsTrigger
                 key={key}
                 id={key}
-                className="h-7 border border-transparent pt-0.5 shadow-none! data-selected:border-input data-selected:bg-background!"
+                className="data-selected:border-input data-selected:bg-background! h-7 border border-transparent pt-0.5 shadow-none!"
               >
                 {key}
               </TabsTrigger>

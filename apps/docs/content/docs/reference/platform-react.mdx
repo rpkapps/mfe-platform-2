@@ -52,35 +52,35 @@ Adds the Tecton `PortalProvider` adapter and theme sync. The generated entry app
 
 ## Hooks
 
-| Hook | Returns |
-| --- | --- |
-| `usePlatform()` | `PlatformContextValue` (full context) |
-| `usePlatform(selector, equals?)` | the selected slice; rerenders only when it changes ([Slice subscriptions](/docs/slice-subscriptions)) |
-| `useNavigation()` | `{ navigate(href \| { to, search, hash, replace, state }), navigateWithin(path), back(), forward(), reload(), location, subscribe(), routePrefix }` |
-| `useCapability(id)` | `boolean` |
-| `usePermissions()` | `{ groups, hasGroup, hasAnyGroup, hasAllGroups }` |
-| `useTelemetry()` | enriched `Telemetry` |
-| `useRuntimeEnv()` | `Register["env"]` |
-| `useNotifications()` | `{ notify({ title, description?, kind?, durationMs? }) }` |
-| `useMfeInstance()` | `{ mfeId, instanceId, widgetId?, routePrefix?, displayName?, host: { kind, dev, environment } }` |
-| `useRegisterCommand(definition, deps?, options?)` | `void`; `options.instanceScoped` |
-| `useRegisterSettingsGroup(definition)` | `{ values, set(key, value), reset(key?) }` |
-| `useRegisterSettingsField({ group, key, ...field })` | `{ value, set, reset }` |
-| `useRegisterHelp(definition \| definition[])` | `void` |
-| `useRegisterReleaseNotes(definition \| definition[])` | `void` |
-| `useBreadcrumb(entry \| null)` | `void`; overrides the current route's crumb |
-| `usePlatformStorage(store, selector?)` | the selected slice of a store |
+| Hook                                                  | Returns                                                                                                                                             |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `usePlatform()`                                       | `PlatformContextValue` (full context)                                                                                                               |
+| `usePlatform(selector, equals?)`                      | the selected slice; rerenders only when it changes ([Slice subscriptions](/docs/slice-subscriptions))                                               |
+| `useNavigation()`                                     | `{ navigate(href \| { to, search, hash, replace, state }), navigateWithin(path), back(), forward(), reload(), location, subscribe(), routePrefix }` |
+| `useCapability(id)`                                   | `boolean`                                                                                                                                           |
+| `usePermissions()`                                    | `{ groups, hasGroup, hasAnyGroup, hasAllGroups }`                                                                                                   |
+| `useTelemetry()`                                      | enriched `Telemetry`                                                                                                                                |
+| `useRuntimeEnv()`                                     | `Register["env"]`                                                                                                                                   |
+| `useNotifications()`                                  | `{ notify({ title, description?, kind?, durationMs? }) }`                                                                                           |
+| `useMfeInstance()`                                    | `{ mfeId, instanceId, widgetId?, routePrefix?, displayName?, host: { kind, dev, environment } }`                                                    |
+| `useRegisterCommand(definition, deps?, options?)`     | `void`; `options.instanceScoped`                                                                                                                    |
+| `useRegisterSettingsGroup(definition)`                | `{ values, set(key, value), reset(key?) }`                                                                                                          |
+| `useRegisterSettingsField({ group, key, ...field })`  | `{ value, set, reset }`                                                                                                                             |
+| `useRegisterHelp(definition \| definition[])`         | `void`                                                                                                                                              |
+| `useRegisterReleaseNotes(definition \| definition[])` | `void`                                                                                                                                              |
+| `useBreadcrumb(entry \| null)`                        | `void`; overrides the current route's crumb                                                                                                         |
+| `usePlatformStorage(store, selector?)`                | the selected slice of a store                                                                                                                       |
 
 ## Components
 
-| Component | Props |
-| --- | --- |
-| `<CommandRegistration definition />` | `CommandInput` |
-| `<SettingsRegistration definition />` | `SettingsGroupInput` |
-| `<HelpRegistration definition />` | `HelpEntryInput \| HelpEntryInput[]` |
+| Component                                 | Props                                    |
+| ----------------------------------------- | ---------------------------------------- |
+| `<CommandRegistration definition />`      | `CommandInput`                           |
+| `<SettingsRegistration definition />`     | `SettingsGroupInput`                     |
+| `<HelpRegistration definition />`         | `HelpEntryInput \| HelpEntryInput[]`     |
 | `<ReleaseNotesRegistration definition />` | `ReleaseNoteInput \| ReleaseNoteInput[]` |
-| `<MfeErrorBoundary fallback? />` | platform-styled boundary for a subtree |
-| `<MfeLoading />` | platform-styled skeleton |
+| `<MfeErrorBoundary fallback? />`          | platform-styled boundary for a subtree   |
+| `<MfeLoading />`                          | platform-styled skeleton                 |
 
 ## Storage
 
@@ -99,19 +99,19 @@ createPlatformStorage<TValue>({
 
 ## Types
 
-| Type | Purpose |
-| --- | --- |
-| `Register` | augment with `env` and `featureFlags` |
-| `MfeRouterContext` | `createRootRouteWithContext<MfeRouterContext>()` |
-| `PlatformRouteContext` | `context.platform` in guards and loaders |
-| `PlatformContextValue` | result of `usePlatform()` |
-| `PlatformNavigation` | result of `useNavigation()` |
-| `MfeInstance` | result of `useMfeInstance()` |
-| `WidgetDefinition`, `CreateMfeOptions`, `MfeDefinition`, `MfeEnhancer`, `MfeEnhancerContext` | bootstrap |
-| `CommandInput`, `SettingsGroupInput`, `SettingsFieldInput`, `SettingsFieldRegistration`, `HelpEntryInput`, `ReleaseNoteInput` | registrations as MFE code writes them |
-| `SettingsController`, `SettingsRenderer`, `SettingsRendererSurface` | custom settings controls |
-| `BreadcrumbStaticData`, `NavigationStaticData`, `BreadcrumbOverride` | route `staticData` |
-| `MountableSurface` | metadata + `mount/dispose` |
+| Type                                                                                                                          | Purpose                                          |
+| ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `Register`                                                                                                                    | augment with `env` and `featureFlags`            |
+| `MfeRouterContext`                                                                                                            | `createRootRouteWithContext<MfeRouterContext>()` |
+| `PlatformRouteContext`                                                                                                        | `context.platform` in guards and loaders         |
+| `PlatformContextValue`                                                                                                        | result of `usePlatform()`                        |
+| `PlatformNavigation`                                                                                                          | result of `useNavigation()`                      |
+| `MfeInstance`                                                                                                                 | result of `useMfeInstance()`                     |
+| `WidgetDefinition`, `CreateMfeOptions`, `MfeDefinition`, `MfeEnhancer`, `MfeEnhancerContext`                                  | bootstrap                                        |
+| `CommandInput`, `SettingsGroupInput`, `SettingsFieldInput`, `SettingsFieldRegistration`, `HelpEntryInput`, `ReleaseNoteInput` | registrations as MFE code writes them            |
+| `SettingsController`, `SettingsRenderer`, `SettingsRendererSurface`                                                           | custom settings controls                         |
+| `BreadcrumbStaticData`, `NavigationStaticData`, `BreadcrumbOverride`                                                          | route `staticData`                               |
+| `MountableSurface`                                                                                                            | metadata + `mount/dispose`                       |
 
 `StaticDataRouteOption` of `@tanstack/react-router` is augmented with `breadcrumb`, `navigation` and `permissionGroups`.
 

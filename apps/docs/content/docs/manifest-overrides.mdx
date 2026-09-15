@@ -20,13 +20,13 @@ The chosen URL and its source (`query`, `override`, `runtime-config`, `registry`
 https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
 ```
 
-The override is stored in `localStorage["platform:manifest-overrides"]` for the session, so it survives navigation, and the parameter is removed from the URL. Clear it from the devtools *Remotes* panel or with `platform.clearOverrides()` on the host object.
+The override is stored in `localStorage["platform:manifest-overrides"]` for the session, so it survives navigation, and the parameter is removed from the URL. Clear it from the devtools _Remotes_ panel or with `platform.clearOverrides()` on the host object.
 
 Query overrides are honoured only when the host policy allows them (`policy.allowLocalOverrides`, default `true` outside `production`).
 
 ## Developer tools
 
-*Remotes* lists every known `mfeId` with the effective URL, its source and an *Override* field. Saving writes `localStorage["platform:manifest-overrides"]` and invalidates the loader cache for that remote.
+_Remotes_ lists every known `mfeId` with the effective URL, its source and an _Override_ field. Saving writes `localStorage["platform:manifest-overrides"]` and invalidates the loader cache for that remote.
 
 ## Registry
 
@@ -36,8 +36,13 @@ const host = createPlatformHost({
   registry: {
     baseUrl: "https://remotes.example.com",
     remotes: {
-      "asset-tracker": { manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json" },
-      "legacy-reports": { manifestUrl: "https://legacy.example.com/reports/platform-manifest.json", allowedOrigins: ["https://legacy.example.com"] },
+      "asset-tracker": {
+        manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json",
+      },
+      "legacy-reports": {
+        manifestUrl: "https://legacy.example.com/reports/platform-manifest.json",
+        allowedOrigins: ["https://legacy.example.com"],
+      },
     },
   },
 })

@@ -11,27 +11,27 @@ The JSON Schema is published at [`/schemas/manifest.json`](/schemas/manifest.jso
 
 ## Fields
 
-| Field | Content | Source |
-| --- | --- | --- |
-| `schemaVersion`, `protocolVersion` | `1`, `"1.0"` | platform |
-| `mfeId`, `kind` | identity; `mfe` or `widget-library` | identity file / inference |
-| `version`, `release` | `{ version, buildId?, commit?, builtAt?, channel? }` | `package.json`, build env |
-| `displayName`, `description` | human names | config / `package.json` |
-| `entry` | `{ loader: "module-federation", name, file, expose, type, loaderManifest? }` | generated |
-| `remote` | `{ baseUrl, allowedOrigins?, preload }` | config / defaults |
-| `routePrefix`, `routes[]` | prefix and per-route metadata (`path`, `fullPath`, `file`, `guarded`, `breadcrumb`, `navigation`, `permissionGroups`) | route files |
-| `navigation` | App Finder entry (`title`, `description`, `icon`, `keywords`, `category`, `order`) | config |
-| `discoverable`, `enabled`, `loadPolicy` | `true`, `true`, `lazy` by default | config |
-| `permissionGroups` | groups required to load the remote | config + routes |
-| `capabilities` | requested capability ids | SDK usage inference |
-| `commands[]`, `settings[]`, `help[]`, `releaseNotes[]`, `widgets[]` | static contributions | registration calls, `createWidget` |
-| `breadcrumbs` | `{ rootLabel?, renderer }` | config |
-| `shared[]` | requested shared dependencies with ranges, scopes and reasons | `package.json` + overrides |
-| `runtime` | `{ react, reactDom?, tanstackRouter?, platformReact? }` with `requiredVersion`, `major`, `builtWith` | `package.json` + `runtime` overrides |
-| `tecton` | `{ enabled, version?, cssProtocol?, tokens?, foundation }` | dependency + config |
-| `css` | `{ ownerAttribute, scoped, assets[] }` | build |
-| `env` | allow-listed runtime environment keys with `required`, `description`, `default` | `env` config |
-| `dev` | `{ hmr, origin, refreshPreamble, configHash, restartRequired?, restartReason? }` | dev server only |
+| Field                                                               | Content                                                                                                               | Source                               |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `schemaVersion`, `protocolVersion`                                  | `1`, `"1.0"`                                                                                                          | platform                             |
+| `mfeId`, `kind`                                                     | identity; `mfe` or `widget-library`                                                                                   | identity file / inference            |
+| `version`, `release`                                                | `{ version, buildId?, commit?, builtAt?, channel? }`                                                                  | `package.json`, build env            |
+| `displayName`, `description`                                        | human names                                                                                                           | config / `package.json`              |
+| `entry`                                                             | `{ loader: "module-federation", name, file, expose, type, loaderManifest? }`                                          | generated                            |
+| `remote`                                                            | `{ baseUrl, allowedOrigins?, preload }`                                                                               | config / defaults                    |
+| `routePrefix`, `routes[]`                                           | prefix and per-route metadata (`path`, `fullPath`, `file`, `guarded`, `breadcrumb`, `navigation`, `permissionGroups`) | route files                          |
+| `navigation`                                                        | App Finder entry (`title`, `description`, `icon`, `keywords`, `category`, `order`)                                    | config                               |
+| `discoverable`, `enabled`, `loadPolicy`                             | `true`, `true`, `lazy` by default                                                                                     | config                               |
+| `permissionGroups`                                                  | groups required to load the remote                                                                                    | config + routes                      |
+| `capabilities`                                                      | requested capability ids                                                                                              | SDK usage inference                  |
+| `commands[]`, `settings[]`, `help[]`, `releaseNotes[]`, `widgets[]` | static contributions                                                                                                  | registration calls, `createWidget`   |
+| `breadcrumbs`                                                       | `{ rootLabel?, renderer }`                                                                                            | config                               |
+| `shared[]`                                                          | requested shared dependencies with ranges, scopes and reasons                                                         | `package.json` + overrides           |
+| `runtime`                                                           | `{ react, reactDom?, tanstackRouter?, platformReact? }` with `requiredVersion`, `major`, `builtWith`                  | `package.json` + `runtime` overrides |
+| `tecton`                                                            | `{ enabled, version?, cssProtocol?, tokens?, foundation }`                                                            | dependency + config                  |
+| `css`                                                               | `{ ownerAttribute, scoped, assets[] }`                                                                                | build                                |
+| `env`                                                               | allow-listed runtime environment keys with `required`, `description`, `default`                                       | `env` config                         |
+| `dev`                                                               | `{ hmr, origin, refreshPreamble, configHash, restartRequired?, restartReason? }`                                      | dev server only                      |
 
 ## MFE id
 
@@ -71,4 +71,4 @@ A hidden remote is still a complete platform remote: it can own deep-linkable ro
 
 - `pnpm manifest` in the remote project.
 - `curl https://remotes.example.com/asset-tracker/platform-manifest.json`.
-- Developer tools → *Remotes*: effective manifest URL, its source and the loaded manifest.
+- Developer tools → _Remotes_: effective manifest URL, its source and the loaded manifest.

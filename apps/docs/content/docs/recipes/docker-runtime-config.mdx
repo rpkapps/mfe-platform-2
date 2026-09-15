@@ -18,14 +18,21 @@ CMD ["node", "./scripts/start.mjs"]
 import { spawnSync, spawn } from "node:child_process"
 
 // 1. Generate the client-safe runtime configuration from PLATFORM_* variables.
-const generate = spawnSync("platform-host-entrypoint", ["--out", "./.output/public/platform-config.json"], {
-  stdio: "inherit",
-  shell: process.platform === "win32",
-})
+const generate = spawnSync(
+  "platform-host-entrypoint",
+  ["--out", "./.output/public/platform-config.json"],
+  {
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  }
+)
 if (generate.status !== 0) process.exit(generate.status ?? 1)
 
 // 2. Start the SSR shell; it inlines the document into every response.
-spawn("node", ["./.output/server/index.mjs"], { stdio: "inherit", shell: process.platform === "win32" })
+spawn("node", ["./.output/server/index.mjs"], {
+  stdio: "inherit",
+  shell: process.platform === "win32",
+})
 ```
 
 ```yaml title="compose.yaml"
@@ -78,5 +85,5 @@ The generated document:
 Checks:
 
 - `docker compose logs shell` shows the refused variable (`PLATFORM_MFE_ASSET_TRACKER_ENV_API_TOKEN`) and the per-key provenance.
-- In the app, `useRuntimeEnv().PAGE_SIZE` is the number `50`; `legacy-reports` renders the *disabled* state.
+- In the app, `useRuntimeEnv().PAGE_SIZE` is the number `50`; `legacy-reports` renders the _disabled_ state.
 - Changing a variable and restarting the container changes behaviour without rebuilding the image.

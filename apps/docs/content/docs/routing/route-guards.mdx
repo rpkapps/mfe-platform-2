@@ -4,7 +4,9 @@ description: Use native TanStack Router guards with a typed platform context. Th
 ---
 
 <Callout title="One guard system">
-  `beforeLoad`, `redirect`, `notFound`, loader errors, pending and error components are TanStack Router's own. The platform injects `context.platform` and makes sure a guard failure stays inside the MFE.
+  `beforeLoad`, `redirect`, `notFound`, loader errors, pending and error components are TanStack
+  Router's own. The platform injects `context.platform` and makes sure a guard failure stays
+  inside the MFE.
 </Callout>
 
 ## `context.platform`
@@ -22,21 +24,21 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 
 `context.platform` exposes:
 
-| Field | Type |
-| --- | --- |
-| `user` | `PlatformUser \| null` |
-| `permissionGroups` | `string[]` |
-| `permissions` | `{ hasGroup, hasAnyGroup, hasAllGroups }` |
-| `tenant`, `project`, `job` | context objects or `null` |
-| `locale`, `timezone`, `theme`, `resolvedTheme` | strings |
-| `featureFlags` | typed through `Register.featureFlags` |
-| `capabilities` | approved `CapabilityId[]` |
-| `runtime` | `{ environment, env, shared }` (typed `env`) |
-| `telemetry` | enriched `Telemetry` |
-| `navigation` | `PlatformNavigation` |
-| `mfeId`, `instanceId` | identity |
-| `revision` | increments on every context change |
-| `getState()`, `subscribe()` | escape hatches |
+| Field                                          | Type                                         |
+| ---------------------------------------------- | -------------------------------------------- |
+| `user`                                         | `PlatformUser \| null`                       |
+| `permissionGroups`                             | `string[]`                                   |
+| `permissions`                                  | `{ hasGroup, hasAnyGroup, hasAllGroups }`    |
+| `tenant`, `project`, `job`                     | context objects or `null`                    |
+| `locale`, `timezone`, `theme`, `resolvedTheme` | strings                                      |
+| `featureFlags`                                 | typed through `Register.featureFlags`        |
+| `capabilities`                                 | approved `CapabilityId[]`                    |
+| `runtime`                                      | `{ environment, env, shared }` (typed `env`) |
+| `telemetry`                                    | enriched `Telemetry`                         |
+| `navigation`                                   | `PlatformNavigation`                         |
+| `mfeId`, `instanceId`                          | identity                                     |
+| `revision`                                     | increments on every context change           |
+| `getState()`, `subscribe()`                    | escape hatches                               |
 
 ## Permission checks
 
@@ -104,12 +106,12 @@ loader: ({ context }) => queryClient.ensureQueryData(assetsQuery(context.platfor
 
 ## Where failures land
 
-| Failure | Handled by |
-| --- | --- |
-| Manifest missing, invalid, protocol mismatch, remote unreachable | Shell boundary around `MfeOutlet` ([Failure handling](/docs/failure-handling)) |
-| Manifest permission preflight denied | Shell (`PERMISSION_DENIED`), remote not loaded |
-| `beforeLoad` redirect or throw | MFE router, inside the MFE root |
-| Loader error, `notFound()` | Nearest MFE `errorComponent` / `notFoundComponent` |
-| Render error in a route component | MFE `errorComponent`, then `createMfe({ errorComponent })`, then the platform boundary |
+| Failure                                                          | Handled by                                                                             |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Manifest missing, invalid, protocol mismatch, remote unreachable | Shell boundary around `MfeOutlet` ([Failure handling](/docs/failure-handling))         |
+| Manifest permission preflight denied                             | Shell (`PERMISSION_DENIED`), remote not loaded                                         |
+| `beforeLoad` redirect or throw                                   | MFE router, inside the MFE root                                                        |
+| Loader error, `notFound()`                                       | Nearest MFE `errorComponent` / `notFoundComponent`                                     |
+| Render error in a route component                                | MFE `errorComponent`, then `createMfe({ errorComponent })`, then the platform boundary |
 
 A failing guard never unmounts the MFE or touches the shell. Client-side checks are for routing and UX only; backend services remain authoritative.

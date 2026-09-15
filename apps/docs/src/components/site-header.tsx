@@ -19,7 +19,7 @@ export function SiteHeader({ tree }: { tree: PageTree.Root }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-background">
+    <header className="bg-background sticky top-0 z-50 w-full">
       <div className="container-wrapper px-6">
         <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! **:data-[slot=separator]:self-center">
           <MobileNav tree={tree} pathname={pathname} className="flex lg:hidden" />
@@ -43,7 +43,7 @@ function MainNav({ pathname, className }: { pathname: string; className?: string
     <nav className={cn("items-center gap-0", className)}>
       <Link
         to="/"
-        className="mr-4 flex items-center gap-2 rounded-md text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+        className="focus-visible:ring-ring/60 mr-4 flex items-center gap-2 rounded-md text-sm font-medium outline-none focus-visible:ring-2"
       >
         <PlatformLogo className="size-5" />
         <span>{siteConfig.name}</span>
@@ -53,7 +53,7 @@ function MainNav({ pathname, className }: { pathname: string; className?: string
           key={item.href}
           to={item.href}
           data-active={active === item.href}
-          className="relative inline-flex h-8 items-center rounded-md px-2.5 text-sm font-medium text-foreground/70 transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/60 data-[active=true]:text-foreground"
+          className="text-foreground/70 hover:bg-muted hover:text-foreground focus-visible:ring-ring/60 data-[active=true]:text-foreground relative inline-flex h-8 items-center rounded-md px-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2"
         >
           {item.title}
         </Link>
@@ -93,13 +93,13 @@ function MobileNav({
           <div className="relative size-4">
             <span
               className={cn(
-                "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100",
+                "bg-foreground absolute left-0 block h-0.5 w-4 transition-all duration-100",
                 open ? "top-[0.4rem] -rotate-45" : "top-1"
               )}
             />
             <span
               className={cn(
-                "absolute left-0 block h-0.5 w-4 bg-foreground transition-all duration-100",
+                "bg-foreground absolute left-0 block h-0.5 w-4 transition-all duration-100",
                 open ? "top-[0.4rem] rotate-45" : "top-2.5"
               )}
             />
@@ -116,7 +116,7 @@ function MobileNav({
         </SheetHeader>
         <div className="flex flex-col gap-12 px-6 pb-6">
           <div className="flex flex-col gap-4">
-            <div className="text-sm font-medium text-muted-foreground">Menu</div>
+            <div className="text-muted-foreground text-sm font-medium">Menu</div>
             <div className="flex flex-col gap-3">
               {siteConfig.nav.map((item) => (
                 <Link key={item.href} to={item.href} className="text-2xl font-medium">
@@ -127,7 +127,7 @@ function MobileNav({
           </div>
           {groups.map((group) => (
             <div key={group.name} className="flex flex-col gap-4">
-              <div className="text-sm font-medium text-muted-foreground">{group.name}</div>
+              <div className="text-muted-foreground text-sm font-medium">{group.name}</div>
               <div className="flex flex-col gap-3">
                 {group.entries.map((entry) => (
                   <Link

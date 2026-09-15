@@ -130,10 +130,9 @@ function Home() {
             <h1 className="text-4xl font-medium tracking-tight text-balance md:text-5xl">
               Micro-frontends that feel like a normal TanStack Router app.
             </h1>
-            <p className="max-w-prose text-base text-muted-foreground md:text-lg">
-              {siteConfig.description} Write routes, components and business logic; the
-              platform owns federation, history, isolation, storage namespacing, overlays and
-              the shell.
+            <p className="text-muted-foreground max-w-prose text-base md:text-lg">
+              {siteConfig.description} Write routes, components and business logic; the platform
+              owns federation, history, isolation, storage namespacing, overlays and the shell.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <LinkButton href="/docs" size="lg">
@@ -143,7 +142,7 @@ function Home() {
                 Browse the guides
               </LinkButton>
             </div>
-            <div className="flex w-fit items-center gap-2 rounded-md border bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground">
+            <div className="bg-card text-muted-foreground flex w-fit items-center gap-2 rounded-md border px-3 py-1.5 font-mono text-xs">
               <TerminalIcon className="size-3.5" />
               <span>{siteConfig.createCommand}</span>
               <CopyButton value={siteConfig.createCommand} size="icon-xs" />
@@ -158,10 +157,10 @@ function Home() {
             {packages.map((pkg) => (
               <Card key={pkg.name} className="flex flex-col">
                 <CardHeader>
-                  <pkg.icon className="mb-2 size-5 text-muted-foreground" />
+                  <pkg.icon className="text-muted-foreground mb-2 size-5" />
                   <CardTitle className="font-mono text-sm">{pkg.name}</CardTitle>
                   <CardDescription>
-                    <span className="font-medium text-foreground">{pkg.title}.</span>{" "}
+                    <span className="text-foreground font-medium">{pkg.title}.</span>{" "}
                     {pkg.description}
                   </CardDescription>
                 </CardHeader>
@@ -182,7 +181,7 @@ function Home() {
           {principles.map((item) => (
             <Card key={item.title} className="flex flex-col">
               <CardHeader>
-                <item.icon className="mb-2 size-5 text-muted-foreground" />
+                <item.icon className="text-muted-foreground mb-2 size-5" />
                 <CardTitle>{item.title}</CardTitle>
                 <CardDescription>{item.description}</CardDescription>
               </CardHeader>
@@ -198,10 +197,10 @@ function Home() {
           ))}
         </section>
 
-        <section className="flex flex-col gap-4 rounded-xl border bg-card p-6 md:flex-row md:items-center md:justify-between">
+        <section className="bg-card flex flex-col gap-4 rounded-xl border p-6 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-lg font-medium">Built for people and coding agents.</h2>
-            <p className="max-w-prose text-sm text-muted-foreground">
+            <p className="text-muted-foreground max-w-prose text-sm">
               Predictable file locations, one canonical pattern per task, actionable errors with
               a docs link, and machine-readable manifests, schemas, <code>llm.txt</code> and{" "}
               <code>llms.txt</code>.

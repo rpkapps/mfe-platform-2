@@ -22,7 +22,7 @@ ruleTester.run("valid-settings-definition", rule, {
     { code: `${imports}useRegisterSettingsGroup({ key: "display", fields: { density: { defaultValue: "a", schema: { type: "string" } } } })`, errors: [{ messageId: "schemaObjectLiteral", data: { field: "density" } }] },
     { code: `${imports}useRegisterSettingsGroup({ key: "display", fields: { density: { defaultValue: "a" }, "density": { defaultValue: "b" } } })`, errors: [{ messageId: "duplicateField", data: { field: "density" } }] },
     { code: `${imports}useRegisterSettingsField({ key: "page-size", defaultValue: 25 })`, errors: [{ messageId: "fieldNeedsKeyAndGroup" }] },
-    { code: `${imports}useRegisterSettingsField({ group: "display", key: "PageSize", value: 25 })`, errors: [{ messageId: "keyNotKebab" }, { messageId: "missingDefaultValue" }, { messageId: "valueProperty" }] },
+    { code: `${imports}useRegisterSettingsField({ group: "display", key: "PageSize", value: 25 })`, errors: [{ messageId: "missingDefaultValue" }, { messageId: "keyNotKebab" }, { messageId: "valueProperty" }] },
     { code: `${imports}const el = <SettingsRegistration definition={{ key: "display", fields: { density: { value: "x" } } }} />`, filename: "/project/src/a.tsx", errors: [{ messageId: "missingDefaultValue" }, { messageId: "valueProperty" }] },
   ],
 })

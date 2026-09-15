@@ -10,7 +10,10 @@ export const Route = createFileRoute("/assets/$assetId/edit")({
   beforeLoad: ({ context, params }) => {
     const { permissions, telemetry } = context.platform
     if (!permissions.hasGroup("assets:write")) {
-      telemetry.track("guard.denied", { route: "/assets/$assetId/edit", assetId: params.assetId })
+      telemetry.track("guard.denied", {
+        route: "/assets/$assetId/edit",
+        assetId: params.assetId,
+      })
       throw redirect({
         to: "/assets/$assetId",
         params: { assetId: params.assetId },

@@ -1,1 +1,4 @@
-{ "title": "Routing", "pages": ["folder-routing", "route-guards", "shell-history", "breadcrumbs"] }
+{
+  "title": "Routing",
+  "pages": ["folder-routing", "route-guards", "shell-history", "breadcrumbs"]
+}

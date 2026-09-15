@@ -30,12 +30,12 @@ description: A platform for independently deployed React micro-frontends and wid
 
 ## Packages
 
-| Package | Role | Where it runs |
-| --- | --- | --- |
-| [`@platform/react`](/docs/reference/platform-react) | MFE SDK: `createMfe`, `createWidget`, hooks, storage, registrations, testing helpers | browser (React 18 or 19) |
-| [`@platform/vite`](/docs/reference/platform-vite) | `platform()` Vite plugin: route tree, code splitting, manifest, inference, CSS scoping, Module Federation, dev endpoints | node |
-| [`@platform/cli`](/docs/reference/platform-cli) | `platform create/dev/build/manifest/validate/lint/test` and `@platform/cli/eslint` | node |
-| [`@platform/host`](/docs/reference/platform-host) | Shell runtime, React components, TanStack shell bridge, local harness, Docker entrypoint | browser + node |
+| Package                                             | Role                                                                                                                     | Where it runs            |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------ |
+| [`@platform/react`](/docs/reference/platform-react) | MFE SDK: `createMfe`, `createWidget`, hooks, storage, registrations, testing helpers                                     | browser (React 18 or 19) |
+| [`@platform/vite`](/docs/reference/platform-vite)   | `platform()` Vite plugin: route tree, code splitting, manifest, inference, CSS scoping, Module Federation, dev endpoints | node                     |
+| [`@platform/cli`](/docs/reference/platform-cli)     | `platform create/dev/build/manifest/validate/lint/test` and `@platform/cli/eslint`                                       | node                     |
+| [`@platform/host`](/docs/reference/platform-host)   | Shell runtime, React components, TanStack shell bridge, local harness, Docker entrypoint                                 | browser + node           |
 
 Private packages (`@platform-internal/core`, `module-federation`, `diagnostics`, `devtools`, `conformance`) are bundled into the public ones; you never install them.
 
@@ -49,10 +49,10 @@ Private packages (`@platform-internal/core`, `module-federation`, `diagnostics`,
 
 ## Where to go next
 
-| Section | What it covers |
-| --- | --- |
-| [Create an MFE](/docs/getting-started/create-mfe) | `pnpm dlx @platform/cli create my-mfe`, the generated project, dev and build |
-| [Guides](/docs/guides) | Routing, widgets, isolation, manifests, commands, settings, storage, context, telemetry, configuration, operations |
-| [Recipes](/docs/recipes) | Short, copy-ready solutions for common tasks |
-| [Reference](/docs/reference) | Every export of the four packages, schemas, error codes, diagnostics |
-| [Examples](/docs/examples) | The conformance applications that exercise every feature |
+| Section                                           | What it covers                                                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| [Create an MFE](/docs/getting-started/create-mfe) | `pnpm dlx @platform/cli create my-mfe`, the generated project, dev and build                                       |
+| [Guides](/docs/guides)                            | Routing, widgets, isolation, manifests, commands, settings, storage, context, telemetry, configuration, operations |
+| [Recipes](/docs/recipes)                          | Short, copy-ready solutions for common tasks                                                                       |
+| [Reference](/docs/reference)                      | Every export of the four packages, schemas, error codes, diagnostics                                               |
+| [Examples](/docs/examples)                        | The conformance applications that exercise every feature                                                           |

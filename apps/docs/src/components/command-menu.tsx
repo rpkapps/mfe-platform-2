@@ -30,7 +30,7 @@ function CommandMenuKbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd
       className={cn(
-        "pointer-events-none flex h-5 items-center justify-center gap-1 rounded border bg-background px-1 font-sans text-[0.7rem] font-medium text-muted-foreground select-none [&_svg:not([class*='size-'])]:size-3",
+        "bg-background text-muted-foreground pointer-events-none flex h-5 items-center justify-center gap-1 rounded border px-1 font-sans text-[0.7rem] font-medium select-none [&_svg:not([class*='size-'])]:size-3",
         className
       )}
       {...props}
@@ -88,7 +88,7 @@ export function CommandMenu({ tree }: { tree: PageTree.Root }) {
     <>
       <Button
         variant="outline"
-        className="relative h-8 w-full justify-start rounded-lg border-none bg-muted pl-3 font-normal text-foreground shadow-none transition-colors hover:bg-muted/50 md:w-48 lg:w-40 xl:w-64 dark:bg-card"
+        className="bg-muted text-foreground hover:bg-muted/50 dark:bg-card relative h-8 w-full justify-start rounded-lg border-none pl-3 font-normal shadow-none transition-colors md:w-48 lg:w-40 xl:w-64"
         onPress={() => setOpen(true)}
         aria-label="Search documentation"
       >
@@ -100,24 +100,28 @@ export function CommandMenu({ tree }: { tree: PageTree.Root }) {
         onOpenChange={setOpen}
         title="Search documentation..."
         description="Search for a page to open..."
-        className="top-[15%] rounded-xl! border-none bg-popover bg-clip-padding p-2! pb-11! shadow-2xl ring-4 ring-border/60"
+        className="bg-popover ring-border/60 top-[15%] rounded-xl! border-none bg-clip-padding p-2! pb-11! shadow-2xl ring-4"
       >
-        <Command className="rounded-none bg-transparent **:data-[slot=command-input-wrapper]:p-0 **:data-[slot=command-input-wrapper]:pb-1 **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md! **:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50">
+        <Command className="**:data-[slot=input-group]:border-input **:data-[slot=input-group]:bg-input/50 rounded-none bg-transparent **:data-[slot=command-input-wrapper]:p-0 **:data-[slot=command-input-wrapper]:pb-1 **:data-[slot=input-group]:h-9! **:data-[slot=input-group]:rounded-md!">
           <CommandInput placeholder="Search documentation..." />
           <CommandList
-            className="no-scrollbar min-h-80 max-h-[60svh] scroll-pt-2 scroll-pb-1.5"
+            className="no-scrollbar max-h-[60svh] min-h-80 scroll-pt-2 scroll-pb-1.5"
             onAction={(key) => {
               setOpen(false)
               navigate({ to: String(key).slice(String(key).indexOf(":") + 1) })
             }}
             renderEmptyState={() => (
-              <CommandEmpty className="py-12 text-center text-sm text-muted-foreground">
+              <CommandEmpty className="text-muted-foreground py-12 text-center text-sm">
                 No results found.
               </CommandEmpty>
             )}
           >
             {groups.map((group) => (
-              <CommandGroup key={group.heading} heading={group.heading} className={groupClassName}>
+              <CommandGroup
+                key={group.heading}
+                heading={group.heading}
+                className={groupClassName}
+              >
                 {group.items.map((item) => (
                   <CommandItem
                     key={item.id}
@@ -133,7 +137,7 @@ export function CommandMenu({ tree }: { tree: PageTree.Root }) {
             ))}
           </CommandList>
         </Command>
-        <div className="absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t bg-muted/60 px-4 text-xs font-medium text-muted-foreground">
+        <div className="bg-muted/60 text-muted-foreground absolute inset-x-0 bottom-0 z-20 flex h-10 items-center gap-2 rounded-b-xl border-t px-4 text-xs font-medium">
           <div className="flex items-center gap-2">
             <CommandMenuKbd>
               <CornerDownLeftIcon />

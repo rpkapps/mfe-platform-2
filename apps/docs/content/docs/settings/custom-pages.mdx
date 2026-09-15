@@ -23,17 +23,17 @@ export const Route = createFileRoute("/settings/integrations")({
 })
 ```
 
-The settings host shows *Integrations* under the MFE's section and, when selected, navigates to `/asset-tracker/settings/integrations`. The route renders inside the MFE root with its guards, loaders and error boundaries.
+The settings host shows _Integrations_ under the MFE's section and, when selected, navigates to `/asset-tracker/settings/integrations`. The route renders inside the MFE root with its guards, loaders and error boundaries.
 
 ## Ownership
 
-| Concern | Owner |
-| --- | --- |
-| Page rendering, layout, controls | MFE |
-| State and persistence | MFE (use [`createPlatformStorage`](/docs/storage), never raw browser storage) |
-| Validation and migrations | MFE |
-| Discovery, placement, loading, error boundary | Shell |
-| Field-level search | optional; only fields declared in `fields` are indexed |
+| Concern                                       | Owner                                                                         |
+| --------------------------------------------- | ----------------------------------------------------------------------------- |
+| Page rendering, layout, controls              | MFE                                                                           |
+| State and persistence                         | MFE (use [`createPlatformStorage`](/docs/storage), never raw browser storage) |
+| Validation and migrations                     | MFE                                                                           |
+| Discovery, placement, loading, error boundary | Shell                                                                         |
+| Field-level search                            | optional; only fields declared in `fields` are indexed                        |
 
 ## Search metadata
 

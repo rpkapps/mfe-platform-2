@@ -5,11 +5,11 @@ description: The platform is designed so that coding agents and humans find the 
 
 ## The files
 
-| File | Audience | Content |
-| --- | --- | --- |
-| `AGENTS.md` | agents working in a repository | rules of the repository: layout, build order, what never to edit, conventions, common workflows |
-| `llm.txt` | agents starting a task | concise canonical instructions: what the platform is, the four packages, the canonical pattern for bootstrap, routes, commands, settings, storage and widgets, file locations, commands |
-| `llms.txt` | agents and tools that index documentation | machine-readable index of every documentation page, schema, example, recipe and diagnostic, with one-line descriptions |
+| File        | Audience                                  | Content                                                                                                                                                                                 |
+| ----------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AGENTS.md` | agents working in a repository            | rules of the repository: layout, build order, what never to edit, conventions, common workflows                                                                                         |
+| `llm.txt`   | agents starting a task                    | concise canonical instructions: what the platform is, the four packages, the canonical pattern for bootstrap, routes, commands, settings, storage and widgets, file locations, commands |
+| `llms.txt`  | agents and tools that index documentation | machine-readable index of every documentation page, schema, example, recipe and diagnostic, with one-line descriptions                                                                  |
 
 All three exist in the platform monorepo and are generated into every scaffolded MFE by `platform create`. `pnpm docs:generate` regenerates `llms.txt` from the documentation content and `docs:check` fails when it is stale.
 

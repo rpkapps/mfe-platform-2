@@ -5,17 +5,17 @@ description: Module Federation 2 is platform infrastructure. The Vite plugin gen
 
 ## What the platform manages
 
-| Concern | Owner |
-| --- | --- |
-| Remote entry (`remoteEntry.js`), container name (`mfe_<id>`), exposed module (`./mfe`) | `@platform/vite` |
-| Shared dependency declarations with share scopes | `@platform/vite` from [inference](/docs/dependency-sharing) |
-| Manifest (`platform-manifest.json`) and the loader manifest (`mf-manifest.json`) | `@platform/vite` |
-| Remote registration, `loadRemote`, share-scope initialisation | `@platform/host` |
-| Preload behaviour (`remote.preload`, `loadPolicy`) | manifest + runtime configuration |
-| Retry and cache handling | `@platform/host` ([Retries](/docs/retries)) |
-| Allowed origins | manifest + runtime configuration ([Manifest overrides](/docs/manifest-overrides#origin-validation)) |
-| Protocol compatibility and runtime version negotiation | `@platform/host` |
-| Local-development overrides and HMR wiring | `@platform/vite` + `@platform/host` |
+| Concern                                                                                | Owner                                                                                               |
+| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Remote entry (`remoteEntry.js`), container name (`mfe_<id>`), exposed module (`./mfe`) | `@platform/vite`                                                                                    |
+| Shared dependency declarations with share scopes                                       | `@platform/vite` from [inference](/docs/dependency-sharing)                                         |
+| Manifest (`platform-manifest.json`) and the loader manifest (`mf-manifest.json`)       | `@platform/vite`                                                                                    |
+| Remote registration, `loadRemote`, share-scope initialisation                          | `@platform/host`                                                                                    |
+| Preload behaviour (`remote.preload`, `loadPolicy`)                                     | manifest + runtime configuration                                                                    |
+| Retry and cache handling                                                               | `@platform/host` ([Retries](/docs/retries))                                                         |
+| Allowed origins                                                                        | manifest + runtime configuration ([Manifest overrides](/docs/manifest-overrides#origin-validation)) |
+| Protocol compatibility and runtime version negotiation                                 | `@platform/host`                                                                                    |
+| Local-development overrides and HMR wiring                                             | `@platform/vite` + `@platform/host`                                                                 |
 
 ## Hidden from MFE code
 

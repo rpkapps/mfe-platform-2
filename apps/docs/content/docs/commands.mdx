@@ -32,24 +32,24 @@ The registration lives as long as the component: it is added on mount and remove
 ```tsx
 import { CommandRegistration } from "@platform/react"
 
-<CommandRegistration definition={{ id: "export", label: "Export report", route: "/export" }} />
+;<CommandRegistration definition={{ id: "export", label: "Export report", route: "/export" }} />
 ```
 
 It is a thin wrapper over the hook; use whichever reads better.
 
 ## Definition
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | `string` | Local, kebab-case, unique within the MFE |
-| `label` | `string` | Required |
-| `description`, `group`, `keywords`, `icon` | | Palette metadata |
-| `shortcut` | `string` | `mod+shift+k`, `ctrl+alt+p`; `mod` is ⌘ on macOS, Ctrl elsewhere |
-| `permissionGroups` | `string[]` | Hidden and refused without them |
-| `availability` | `() => boolean` | Evaluated when the palette opens |
-| `handler` | `(ctx) => void \| Promise<void>` | Receives `{ signal, source, platform }` |
-| `route` | `string` | MFE-relative route to navigate to instead of a handler |
-| `telemetry` | attributes | Merged into every event about this command |
+| Field                                      | Type                             | Notes                                                            |
+| ------------------------------------------ | -------------------------------- | ---------------------------------------------------------------- |
+| `id`                                       | `string`                         | Local, kebab-case, unique within the MFE                         |
+| `label`                                    | `string`                         | Required                                                         |
+| `description`, `group`, `keywords`, `icon` |                                  | Palette metadata                                                 |
+| `shortcut`                                 | `string`                         | `mod+shift+k`, `ctrl+alt+p`; `mod` is ⌘ on macOS, Ctrl elsewhere |
+| `permissionGroups`                         | `string[]`                       | Hidden and refused without them                                  |
+| `availability`                             | `() => boolean`                  | Evaluated when the palette opens                                 |
+| `handler`                                  | `(ctx) => void \| Promise<void>` | Receives `{ signal, source, platform }`                          |
+| `route`                                    | `string`                         | MFE-relative route to navigate to instead of a handler           |
+| `telemetry`                                | attributes                       | Merged into every event about this command                       |
 
 An invalid definition (bad id, missing label, neither handler nor route, malformed shortcut, duplicate id) throws `COMMAND_INVALID` at registration with the owner and the offending id.
 
@@ -100,7 +100,9 @@ Commands that only navigate can be declared statically so the palette lists them
 export default createMfe({
   routeTree,
   registrations: {
-    commands: [{ id: "open-assets", label: "Open assets", route: "/assets", keywords: ["inventory"] }],
+    commands: [
+      { id: "open-assets", label: "Open assets", route: "/assets", keywords: ["inventory"] },
+    ],
   },
 })
 ```

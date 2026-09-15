@@ -21,10 +21,23 @@ export default createMfe({
   registrations: {
     // static: listed in the manifest and in the palette before the remote loads
     commands: [
-      { id: "open-diagnostics", label: "Open diagnostics", route: "/diagnostics", keywords: ["debug", "logs"], group: "Support" },
-      { id: "export-session", label: "Export session report", route: "/export", permissionGroups: ["support"] },
+      {
+        id: "open-diagnostics",
+        label: "Open diagnostics",
+        route: "/diagnostics",
+        keywords: ["debug", "logs"],
+        group: "Support",
+      },
+      {
+        id: "export-session",
+        label: "Export session report",
+        route: "/export",
+        permissionGroups: ["support"],
+      },
     ],
-    help: [{ id: "support-guide", title: "Support guide", href: "https://help.example.com/support" }],
+    help: [
+      { id: "support-guide", title: "Support guide", href: "https://help.example.com/support" },
+    ],
   },
 })
 ```
@@ -51,7 +64,7 @@ PLATFORM_MFE_SUPPORT_TOOLS_PRELOAD=eager
 
 Result:
 
-- The App Finder never shows *Support tools*.
+- The App Finder never shows _Support tools_.
 - `Open diagnostics` and `Export session report` appear in the palette immediately (static, filtered by permission groups); running one loads the remote and navigates to `/support-tools/diagnostics`.
 - With `preload: eager`, the remote is evaluated and mounted headlessly at startup, so `Copy session id` and its shortcut are live everywhere.
 - Deep links to `/support-tools/*` work like any route.

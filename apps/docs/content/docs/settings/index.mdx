@@ -49,16 +49,16 @@ Fields accept these overrides: `label`, `description`, `keywords`, `schema`, `op
 
 ## Inference
 
-| From | Inferred |
-| --- | --- |
-| `defaultValue: true` | boolean control |
-| `defaultValue: "…"` | text control |
-| `defaultValue: 25` | numeric control |
-| `options` present | single select |
-| array default + `options` | multi-select |
-| key `showArchived` | label "Show archived" |
-| `schema` | validation on read and on commit |
-| `renderer` | custom control; control metadata from `kind` when given |
+| From                      | Inferred                                                |
+| ------------------------- | ------------------------------------------------------- |
+| `defaultValue: true`      | boolean control                                         |
+| `defaultValue: "…"`       | text control                                            |
+| `defaultValue: 25`        | numeric control                                         |
+| `options` present         | single select                                           |
+| array default + `options` | multi-select                                            |
+| key `showArchived`        | label "Show archived"                                   |
+| `schema`                  | validation on read and on commit                        |
+| `renderer`                | custom control; control metadata from `kind` when given |
 
 ## Independent fields
 
@@ -117,7 +117,7 @@ When a stored value fails its schema (or its `version` differs from the field's)
 
 1. the declared `migrate(stored, version)` runs, if any; a valid result is used (`origin: "migrated"`),
 2. otherwise the field resets to `defaultValue` with `validation: { valid: false, message, recovered: "default" }`,
-3. the settings host shows the recoverable state with a *Reset* action and reports `SETTINGS_VALUE_INVALID` for that field only.
+3. the settings host shows the recoverable state with a _Reset_ action and reports `SETTINGS_VALUE_INVALID` for that field only.
 
 Other fields, other groups and the shell are unaffected. See [Settings schemas](/docs/settings/schemas).
 

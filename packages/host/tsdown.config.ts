@@ -33,7 +33,7 @@ export default defineConfig([
     sourcemap: true,
     noExternal: [/^@platform-internal\//],
     external,
-    copy: [{ from: "src/styles.css", to: "dist/styles.css" }],
+    copy: [{ from: "src/styles.css", to: "dist" }],
   },
   {
     entry: { entrypoint: "src/entrypoint.ts" },
@@ -44,6 +44,7 @@ export default defineConfig([
     sourcemap: true,
     noExternal: [/^@platform-internal\//],
     external: ["zod"],
+    fixedExtension: false,
     banner: { js: "#!/usr/bin/env node" },
   },
 ])

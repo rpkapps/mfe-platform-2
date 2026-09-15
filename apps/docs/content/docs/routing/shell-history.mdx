@@ -16,7 +16,9 @@ interface ShellNavigation {
   forward(): void
   go(delta: number): void
   reload(): void
-  subscribe(listener: (location: ShellLocation, action: "push" | "replace" | "pop") => void): () => void
+  subscribe(
+    listener: (location: ShellLocation, action: "push" | "replace" | "pop") => void
+  ): () => void
   canLeave?(next: string): boolean
 }
 ```
@@ -46,13 +48,13 @@ Because the shell is the only writer, two MFEs and the shell never fight over an
 
 ## Semantics
 
-| MFE action | Shell effect |
-| --- | --- |
-| `navigate({ to: "/assets/1" })` | `push("/asset-tracker/assets/1")` |
-| `navigate({ to: "/assets", replace: true })` | `replace("/asset-tracker/assets")` |
-| `router.history.back()` | `back()` — may leave the MFE; the shell unmounts it on the next route match |
-| Shell navigates to `/reports` | MFE router receives a pop it does not match; the shell disposes the root |
-| Browser back into the MFE | Shell mounts the MFE and the adapter delivers the location as the initial entry |
+| MFE action                                   | Shell effect                                                                    |
+| -------------------------------------------- | ------------------------------------------------------------------------------- |
+| `navigate({ to: "/assets/1" })`              | `push("/asset-tracker/assets/1")`                                               |
+| `navigate({ to: "/assets", replace: true })` | `replace("/asset-tracker/assets")`                                              |
+| `router.history.back()`                      | `back()` — may leave the MFE; the shell unmounts it on the next route match     |
+| Shell navigates to `/reports`                | MFE router receives a pop it does not match; the shell disposes the root        |
+| Browser back into the MFE                    | Shell mounts the MFE and the adapter delivers the location as the initial entry |
 
 ## Navigating outside the MFE
 
@@ -66,7 +68,9 @@ function Links() {
   return (
     <>
       <button onClick={() => nav.navigateWithin("/assets/pump-42")}>Pump 42</button>
-      <button onClick={() => nav.navigate("/legacy/reports/daily-production")}>Daily report</button>
+      <button onClick={() => nav.navigate("/legacy/reports/daily-production")}>
+        Daily report
+      </button>
     </>
   )
 }

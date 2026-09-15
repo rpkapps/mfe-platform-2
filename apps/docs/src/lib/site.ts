@@ -17,9 +17,11 @@ export const siteConfig = {
 /** Which top-level navigation entry a docs pathname belongs to. */
 export function activeNavHref(pathname: string): string | null {
   if (pathname === "/docs/guides") return "/docs/guides"
-  if (pathname === "/docs/reference" || pathname.startsWith("/docs/reference/")) return "/docs/reference"
+  if (pathname === "/docs/reference" || pathname.startsWith("/docs/reference/"))
+    return "/docs/reference"
   if (pathname === "/docs/examples") return "/docs/reference"
-  if (pathname === "/docs/recipes" || pathname.startsWith("/docs/recipes/")) return "/docs/recipes"
+  if (pathname === "/docs/recipes" || pathname.startsWith("/docs/recipes/"))
+    return "/docs/recipes"
   if (pathname === "/docs" || pathname.startsWith("/docs/getting-started")) return "/docs"
   if (pathname.startsWith("/docs/")) return "/docs/guides"
   return null

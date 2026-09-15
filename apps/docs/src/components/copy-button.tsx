@@ -13,7 +13,7 @@ export function CopyButton({
     <TectonCopyButton
       size="icon-sm"
       className={cn(
-        "absolute top-3 right-2 z-10 size-7 bg-code text-muted-foreground hover:text-foreground hover:opacity-100 focus-visible:opacity-100",
+        "bg-code text-muted-foreground hover:text-foreground absolute top-3 right-2 z-10 size-7 hover:opacity-100 focus-visible:opacity-100",
         className
       )}
       {...props}

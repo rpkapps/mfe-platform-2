@@ -4,12 +4,7 @@ import * as React from "react"
 import { cn } from "cn"
 
 import { Alert, AlertDescription, AlertTitle } from "@tecton/react/components/alert"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@tecton/react/components/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@tecton/react/components/tabs"
 
 /* ------------------------------------------------------------------------ */
 /* CodeTabs — "Command" / "Manual" installation tabs. The chosen tab is       */
@@ -71,7 +66,7 @@ export function DocsTabsTrigger({
     <TabsTrigger
       id={id ?? value}
       className={cn(
-        "h-auto px-0 pb-3 text-base font-medium text-muted-foreground hover:text-foreground data-selected:text-foreground",
+        "text-muted-foreground hover:text-foreground data-selected:text-foreground h-auto px-0 pb-3 text-base font-medium",
         className
       )}
       {...props}
@@ -97,10 +92,7 @@ export function DocsTabsContent({
   )
 }
 
-export function DocsTabsList({
-  className,
-  ...props
-}: React.ComponentProps<typeof TabsList>) {
+export function DocsTabsList({ className, ...props }: React.ComponentProps<typeof TabsList>) {
   return (
     <TabsList
       variant="line"
@@ -133,7 +125,7 @@ export function Steps({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "steps mb-12 [counter-reset:step] md:ml-4 md:border-l md:pl-8 [&>h3]:step",
+        "steps [&>h3]:step mb-12 [counter-reset:step] md:ml-4 md:border-l md:pl-8",
         className
       )}
       {...props}
@@ -165,7 +157,7 @@ export function Callout({
       data-not-typeset
       data-variant={variant}
       className={cn(
-        "mt-6 w-auto rounded-2xl border-surface bg-surface text-surface-foreground md:-mx-1 **:[code]:border",
+        "border-surface bg-surface text-surface-foreground mt-6 w-auto rounded-2xl md:-mx-1 **:[code]:border",
         variant === "warning" && "[&>svg]:text-warning",
         variant === "info" && "[&>svg]:text-info",
         className
@@ -185,15 +177,12 @@ export function Callout({
 /* LinkedCard (used by index pages such as /docs/forms)                       */
 /* ------------------------------------------------------------------------ */
 
-export function LinkedCard({
-  className,
-  ...props
-}: React.ComponentProps<"a">) {
+export function LinkedCard({ className, ...props }: React.ComponentProps<"a">) {
   return (
     <a
       data-not-typeset
       className={cn(
-        "flex w-full flex-col items-center rounded-2xl bg-surface p-6 text-surface-foreground transition-colors hover:bg-surface/80 sm:p-10",
+        "bg-surface text-surface-foreground hover:bg-surface/80 flex w-full flex-col items-center rounded-2xl p-6 transition-colors sm:p-10",
         className
       )}
       {...props}

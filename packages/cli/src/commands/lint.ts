@@ -2,6 +2,8 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 
 import { CliError } from "../errors"
+import { createRequire } from "node:module"
+
 import { loadProjectModule, readProjectModuleVersion, requireProjectRoot, resolveProjectModule } from "../project"
 
 export interface LintOptions {
@@ -45,6 +47,20 @@ export function findEslintConfig(root: string): string | undefined {
   return CONFIG_FILES.map((name) => join(root, name)).find((file) => existsSync(file))
 }
 
+/** ESLint imports jiti from its own location; accept it there or in the project. */
+function jitiAvailable(root: string): boolean {
+  const eslintPackage = resolveProjectModule(root, "eslint/package.json")
+  if (eslintPackage) {
+    try {
+      createRequire(eslintPackage).resolve("jiti")
+      return true
+    } catch {
+      // fall through to the project lookup
+    }
+  }
+  return resolveProjectModule(root, "jiti") !== null
+}
+
 function parseVersion(version: string | null): [number, number] {
   const [major = 0, minor = 0] = (version ?? "0.0.0").split(".").map((part) => Number.parseInt(part, 10))
   return [major, minor]
@@ -66,11 +82,11 @@ export async function lint(options: LintOptions = {}): Promise<LintResult> {
   const version = readProjectModuleVersion(root, "eslint")
   const [major, minor] = parseVersion(version)
   if (major < 9) {
-    throw new CliError({ code: "DEPENDENCY_MISSING", message: `ESLint ${version ?? "(not installed)"} found; the platform config needs ESLint 9 (flat config).`, source: join(root, "package.json"), override: "pnpm add -D eslint@^9" })
+    throw new CliError({ code: "DEPENDENCY_MISSING", message: version ? `ESLint ${version} is installed; the platform config needs ESLint 9 (flat config).` : "ESLint is not installed in the project; the platform config needs ESLint 9 (flat config).", source: join(root, "package.json"), override: "pnpm add -D eslint@^9" })
   }
   const flags: string[] = []
   if (/\.[mc]?ts$/.test(configFile)) {
-    if (!resolveProjectModule(root, "jiti")) {
+    if (!jitiAvailable(root)) {
       throw new CliError({ code: "DEPENDENCY_MISSING", message: `${configFile} is TypeScript; ESLint loads it with "jiti", which is not installed in the project.`, source: join(root, "package.json"), override: "pnpm add -D jiti" })
     }
     // Native TS config support shipped unflagged in ESLint 9.18.

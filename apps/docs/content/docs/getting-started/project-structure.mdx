@@ -7,20 +7,20 @@ The scaffold has exactly one place for each concern. Add features by adding file
 
 ## File locations
 
-| Concern | Location | Canonical API |
-| --- | --- | --- |
-| Bootstrap | `src/mfe.tsx` | `createMfe({ routeTree, widgets })` (default export) |
-| Routes | `src/routes/**` | `createFileRoute` / `createRootRouteWithContext<MfeRouterContext>` |
-| Route tree | `src/routeTree.gen.ts` | generated; never edited |
-| Widgets | `src/widgets/*.tsx` | `createWidget({ component, propsSchema })` |
-| Commands | `src/commands.tsx` (or next to the feature) | `useRegisterCommand` |
-| Settings | `src/settings.ts` | `useRegisterSettingsGroup` |
-| Storage | `src/storage.ts` | `createPlatformStorage` |
-| Help, release notes | `src/help.ts`, `src/release-notes.ts` | `useRegisterHelp`, `useRegisterReleaseNotes` |
-| Runtime env typing | `src/env.d.ts` | `declare module "@platform/react" { interface Register { env } }` |
-| Configuration | `mfe.config.ts` | `defineMfeConfig` |
-| Identity | `.platform/identity.json` | generated once; committed |
-| Styles | `src/styles.css` | `@import "@tecton/react/globals.css"` |
+| Concern             | Location                                    | Canonical API                                                      |
+| ------------------- | ------------------------------------------- | ------------------------------------------------------------------ |
+| Bootstrap           | `src/mfe.tsx`                               | `createMfe({ routeTree, widgets })` (default export)               |
+| Routes              | `src/routes/**`                             | `createFileRoute` / `createRootRouteWithContext<MfeRouterContext>` |
+| Route tree          | `src/routeTree.gen.ts`                      | generated; never edited                                            |
+| Widgets             | `src/widgets/*.tsx`                         | `createWidget({ component, propsSchema })`                         |
+| Commands            | `src/commands.tsx` (or next to the feature) | `useRegisterCommand`                                               |
+| Settings            | `src/settings.ts`                           | `useRegisterSettingsGroup`                                         |
+| Storage             | `src/storage.ts`                            | `createPlatformStorage`                                            |
+| Help, release notes | `src/help.ts`, `src/release-notes.ts`       | `useRegisterHelp`, `useRegisterReleaseNotes`                       |
+| Runtime env typing  | `src/env.d.ts`                              | `declare module "@platform/react" { interface Register { env } }`  |
+| Configuration       | `mfe.config.ts`                             | `defineMfeConfig`                                                  |
+| Identity            | `.platform/identity.json`                   | generated once; committed                                          |
+| Styles              | `src/styles.css`                            | `@import "@tecton/react/globals.css"`                              |
 
 ## Bootstrap
 

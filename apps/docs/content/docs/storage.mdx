@@ -32,19 +32,21 @@ function ColumnPicker() {
     dashboardStore.setKey("columns", (current) =>
       current.includes(column) ? current.filter((c) => c !== column) : [...current, column]
     )
-  return <ColumnMenu columns={columns} onToggle={toggle} onReset={() => dashboardStore.reset()} />
+  return (
+    <ColumnMenu columns={columns} onToggle={toggle} onReset={() => dashboardStore.reset()} />
+  )
 }
 ```
 
-| API | Description |
-| --- | --- |
-| `use(selector?)` | React subscription; rerenders only when the selected slice changes |
-| `get()` | Current validated value |
-| `set(value \| updater)` | Replace the value (validated before writing) |
-| `setKey(key, value \| updater)` | Update one key of an object value |
-| `reset()` | Remove the stored value; readers see `defaults` |
-| `subscribe(listener)` | Non-React subscription |
-| `namespacedKey`, `scope`, `lastError` | Introspection |
+| API                                   | Description                                                        |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| `use(selector?)`                      | React subscription; rerenders only when the selected slice changes |
+| `get()`                               | Current validated value                                            |
+| `set(value \| updater)`               | Replace the value (validated before writing)                       |
+| `setKey(key, value \| updater)`       | Update one key of an object value                                  |
+| `reset()`                             | Remove the stored value; readers see `defaults`                    |
+| `subscribe(listener)`                 | Non-React subscription                                             |
+| `namespacedKey`, `scope`, `lastError` | Introspection                                                      |
 
 `usePlatformStorage(store, selector?)` is the hook form for stores created elsewhere.
 
@@ -93,13 +95,13 @@ Values are stored as `{ v, data, updatedAt }`. When `v` differs from `version`, 
 
 ## Malformed data
 
-| Stored | Result | Diagnostic |
-| --- | --- | --- |
-| Not JSON, not an envelope | defaults | `STORAGE_INVALID`, `recovered: "defaults"` |
-| Version mismatch, migration succeeds | migrated value | none |
-| Version mismatch, no or failing migration | defaults | `STORAGE_INVALID` |
-| Schema failure, migration repairs it | migrated value | `STORAGE_INVALID`, `recovered: "migrated"` |
-| Schema failure otherwise | defaults | `STORAGE_INVALID`, `recovered: "defaults"` |
+| Stored                                    | Result         | Diagnostic                                 |
+| ----------------------------------------- | -------------- | ------------------------------------------ |
+| Not JSON, not an envelope                 | defaults       | `STORAGE_INVALID`, `recovered: "defaults"` |
+| Version mismatch, migration succeeds      | migrated value | none                                       |
+| Version mismatch, no or failing migration | defaults       | `STORAGE_INVALID`                          |
+| Schema failure, migration repairs it      | migrated value | `STORAGE_INVALID`, `recovered: "migrated"` |
+| Schema failure otherwise                  | defaults       | `STORAGE_INVALID`, `recovered: "defaults"` |
 
 The store keeps working with defaults, `lastError` holds the diagnostic, and the host records a `storage.invalid` event with the namespaced key. Nothing crashes.
 

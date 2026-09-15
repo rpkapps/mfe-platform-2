@@ -37,10 +37,10 @@ function AssetHelp() {
 
 ## Kinds of entries
 
-| Field | Behaviour |
-| --- | --- |
-| `href` | opens the URL |
-| `route` | navigates to the MFE route |
+| Field     | Behaviour                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| `href`    | opens the URL                                                                                                   |
+| `route`   | navigates to the MFE route                                                                                      |
 | `content` | the component is wrapped into a mountable surface and rendered by the MFE's React inside the shell's `HelpSlot` |
 
 Ids are local and namespaced (`asset-tracker:glossary`). Invalid ids or missing titles throw `COMMAND_INVALID` at registration.
@@ -61,7 +61,7 @@ export default createMfe({
 ```tsx title="apps/shell"
 import { HelpSlot } from "@platform/host/react"
 
-<HelpSlot mfeId={activeMfeId} /> // or without mfeId for every remote
+;<HelpSlot mfeId={activeMfeId} /> // or without mfeId for every remote
 ```
 
 A `content` surface that throws is isolated: the slot shows an error state for that entry, the others render, and the failure is reported with the owner.

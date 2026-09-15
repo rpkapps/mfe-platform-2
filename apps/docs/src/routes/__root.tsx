@@ -1,5 +1,11 @@
 import * as React from "react"
-import { createRootRoute, HeadContent, Outlet, Scripts, useRouter } from "@tanstack/react-router"
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+  useRouter,
+} from "@tanstack/react-router"
 import { TanstackProvider } from "fumadocs-core/framework/tanstack"
 import { ThemeProvider } from "next-themes"
 import { RouterProvider as AriaRouterProvider } from "react-aria-components"
@@ -63,8 +69,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body className="group/body min-h-svh overscroll-none bg-background font-sans text-foreground antialiased [--footer-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+      <body className="group/body bg-background text-foreground min-h-svh overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
           <TanstackProvider>
             <AriaRouter>{children}</AriaRouter>
           </TanstackProvider>

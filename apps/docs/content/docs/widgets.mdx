@@ -57,13 +57,13 @@ Each `WidgetSlot` produces a separate **instance** with its own React root, `ins
 
 `useMfeInstance()` returns `{ mfeId, instanceId, widgetId, host }`. Anything the platform manages is namespaced per instance where it matters:
 
-| Surface | Namespace |
-| --- | --- |
-| Commands | `<mfeId>:<id>@<instanceId>` (widget commands are always instance-scoped) |
-| Storage | `platform:<mfeId>:<instanceId>:<scope>:<key>` when `instanceScoped: true` |
-| Overlays | owner-tagged root per instance (`data-platform-instance`) |
-| Telemetry | `instanceId` and `widgetId` attributes on every event |
-| Settings | shared per MFE; a second instance registering the same group is a no-op |
+| Surface   | Namespace                                                                 |
+| --------- | ------------------------------------------------------------------------- |
+| Commands  | `<mfeId>:<id>@<instanceId>` (widget commands are always instance-scoped)  |
+| Storage   | `platform:<mfeId>:<instanceId>:<scope>:<key>` when `instanceScoped: true` |
+| Overlays  | owner-tagged root per instance (`data-platform-instance`)                 |
+| Telemetry | `instanceId` and `widgetId` attributes on every event                     |
+| Settings  | shared per MFE; a second instance registering the same group is a no-op   |
 
 ## Overlays from widgets
 

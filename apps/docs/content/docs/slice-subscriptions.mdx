@@ -48,7 +48,10 @@ Route loaders get the same through `context.platform.getState()` and `context.pl
 `createTestBridge()` returns a bridge whose context store can be updated to assert rerender behaviour:
 
 ```ts
-const bridge = createTestBridge({ mfeId: "asset-tracker", user: { id: "u1", displayName: "Ada" } })
+const bridge = createTestBridge({
+  mfeId: "asset-tracker",
+  user: { id: "u1", displayName: "Ada" },
+})
 const { rerenders } = renderMfe(definition, { bridge })
 bridge.context.update({ theme: "light" }) // UserName does not rerender
 bridge.context.update({ user: { id: "u1", displayName: "Grace" } }) // it does

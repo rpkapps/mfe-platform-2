@@ -47,19 +47,19 @@ density: {
 
 ## Invalid stored values
 
-| Situation | Result |
-| --- | --- |
-| Stored value valid | used (`origin: "stored"`) |
-| Version mismatch, migration returns a valid value | used (`origin: "migrated"`) |
-| Version mismatch, no migration | default, `validation.recovered = "default"` |
-| Invalid value, no migration | default, `SETTINGS_VALUE_INVALID` reported for the field |
-| Migration throws | default, message `migration failed: …` |
+| Situation                                         | Result                                                   |
+| ------------------------------------------------- | -------------------------------------------------------- |
+| Stored value valid                                | used (`origin: "stored"`)                                |
+| Version mismatch, migration returns a valid value | used (`origin: "migrated"`)                              |
+| Version mismatch, no migration                    | default, `validation.recovered = "default"`              |
+| Invalid value, no migration                       | default, `SETTINGS_VALUE_INVALID` reported for the field |
+| Migration throws                                  | default, message `migration failed: …`                   |
 
-Only the affected field is touched. The settings host shows a *Reset* action that clears the stored envelope; the [developer tools](/docs/developer-tools) list `settings.invalid` diagnostics.
+Only the affected field is touched. The settings host shows a _Reset_ action that clears the stored envelope; the [developer tools](/docs/developer-tools) list `settings.invalid` diagnostics.
 
 ## Reset
 
-`controller.reset()`, the group hook's `reset(key)` and the shell's *Reset to defaults* action remove the stored envelope, so the next read yields `defaultValue`.
+`controller.reset()`, the group hook's `reset(key)` and the shell's _Reset to defaults_ action remove the stored envelope, so the next read yields `defaultValue`.
 
 ## Serialisation
 

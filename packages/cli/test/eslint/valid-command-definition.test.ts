@@ -26,6 +26,6 @@ ruleTester.run("valid-command-definition", rule, {
     { code: `${imports}useRegisterCommand({ id: "open", label: "Open", shortcut: "ctrl+ctrl+k", handler })`, errors: [{ messageId: "shortcutDuplicateModifier", data: { shortcut: "ctrl+ctrl+k", modifier: "ctrl" } }] },
     { code: `${imports}useRegisterCommand({ id: "open", label: "Open" })`, errors: [{ messageId: "handlerOrRoute" }] },
     { code: `${imports}useRegisterCommand({ id: "open", label: "Open", keywords: ["a", 1], handler })`, errors: [{ messageId: "keywordsNotStrings" }] },
-    { code: `${imports}const el = <CommandRegistration definition={{ id: "Open", label: "Open" }} />`, filename: "/project/src/a.tsx", errors: [{ messageId: "idNotKebab" }, { messageId: "handlerOrRoute" }] },
+    { code: `${imports}const el = <CommandRegistration definition={{ id: "Open", label: "Open" }} />`, filename: "/project/src/a.tsx", errors: [{ messageId: "handlerOrRoute" }, { messageId: "idNotKebab" }] },
   ],
 })

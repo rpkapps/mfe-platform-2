@@ -61,7 +61,7 @@ function SidebarLink({
       <SidebarMenuButton
         href={href}
         isActive={active}
-        className={cn(itemClassName, nested && "ml-3 text-muted-foreground")}
+        className={cn(itemClassName, nested && "text-muted-foreground ml-3")}
       >
         <span className="absolute inset-0 flex w-(--sidebar-menu-width) bg-transparent" />
         {children}
@@ -91,7 +91,9 @@ export function DocsSidebar({
         const activeRect = active.getBoundingClientRect()
         if (activeRect.top < containerRect.top || activeRect.bottom > containerRect.bottom) {
           container.scrollTop +=
-            activeRect.top - containerRect.top - (container.clientHeight - activeRect.height) / 2
+            activeRect.top -
+            containerRect.top -
+            (container.clientHeight - activeRect.height) / 2
         }
       }
     }
@@ -118,11 +120,11 @@ export function DocsSidebar({
       <SidebarContent
         ref={contentRef}
         data-docs-sidebar-content=""
-        className="w-(--sidebar-menu-width) scroll-fade no-scrollbar overflow-x-hidden pl-2.5"
+        className="scroll-fade no-scrollbar w-(--sidebar-menu-width) overflow-x-hidden pl-2.5"
       >
         {groups.map((group, index) => (
           <SidebarGroup key={group.name} className={cn(index === 0 && "pt-12")}>
-            <SidebarGroupLabel className="font-medium text-muted-foreground">
+            <SidebarGroupLabel className="text-muted-foreground font-medium">
               {group.name}
             </SidebarGroupLabel>
             <SidebarGroupContent>
