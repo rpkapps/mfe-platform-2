@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process"
 import { readFileSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { expect, test } from "@playwright/test"
 
 import { conformanceEnv } from "../../scripts/conformance-env.mjs"
@@ -13,7 +14,7 @@ import { ids } from "./helpers"
  * updates it without losing shell or remote state; React 18 and React 19
  * refresh runtimes stay separate.
  */
-const root = join(__dirname, "..", "..")
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const shell = process.platform === "win32"
 const cli = join(root, "packages/cli/dist/bin.js")
 const children: ChildProcess[] = []

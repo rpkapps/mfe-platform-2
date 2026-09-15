@@ -1,0 +1,1 @@
+/home/user/mfe-platform-2/apps/conformance-shell/dist/client/platform-config.json

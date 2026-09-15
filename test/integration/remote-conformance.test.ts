@@ -1,11 +1,12 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
 
 import { PLATFORM_PROTOCOL_VERSION } from "@platform-internal/core"
 import { checkRemoteConformance, MFE_IDS, ROUTE_PREFIXES } from "@platform-internal/conformance"
 
-const root = join(__dirname, "..", "..")
+const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const apps = [
   { dir: "apps/conformance-react19", mfeId: MFE_IDS.assetTracker, react: 19, prefix: ROUTE_PREFIXES.assetTracker, tecton: true, kind: "mfe" },
   { dir: "apps/conformance-react18", mfeId: MFE_IDS.legacyReports, react: 18, prefix: ROUTE_PREFIXES.legacyReports, tecton: false, kind: "mfe" },

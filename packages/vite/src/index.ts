@@ -10,7 +10,7 @@ import type { Plugin, PluginOption } from "vite"
 import { createPlatformContext } from "./plugin/context"
 import { platformCorePlugin } from "./plugin/core"
 import { platformCssPlugin } from "./plugin/css"
-import { platformDefinePlugin, MFE_ID_DEFINE, ROUTE_PREFIX_DEFINE } from "./plugin/define"
+import { platformDefinePlugin, DEDUPED_PACKAGES, MFE_ID_DEFINE, ROUTE_PREFIX_DEFINE } from "./plugin/define"
 import { platformDevPlugin } from "./plugin/dev"
 import type { PlatformPluginOptions } from "./options"
 import { DEFAULT_ROUTE_TREE } from "./resolve-config"
@@ -139,15 +139,34 @@ function outsideTestMode(plugins: Plugin[]): Plugin[] {
  * default) unless `root` is passed.
  */
 export function platform(options: PlatformPluginOptions = {}): PluginOption[] {
-  const root = resolve(options.root ?? process.cwd())
   const test = options.test ?? isTestEnvironment()
   const command: "build" | "serve" = process.argv.includes("build") ? "build" : "serve"
-  const context = createPlatformContext(root, options, command)
   const reactPlugins = (): PluginOption[] =>
     options.react === false ? [] : [react(options.react ?? {})]
+  if (test) {
+    // Under Vitest the project root comes from the project config (a workspace run
+    // starts every project from the repository root, so `process.cwd()` would be wrong).
+    const lazy: Plugin = {
+      name: "platform:test",
+      async config(userConfig) {
+        const root = resolve(options.root ?? userConfig.root ?? process.cwd())
+        const context = createPlatformContext(root, options, command)
+        const config = await context.resolve()
+        return {
+          resolve: { dedupe: DEDUPED_PACKAGES },
+          define: {
+            [MFE_ID_DEFINE]: JSON.stringify(config.mfeId),
+            [ROUTE_PREFIX_DEFINE]: JSON.stringify(config.routePrefix),
+          },
+        }
+      },
+    }
+    return [...reactPlugins(), lazy]
+  }
+  const root = resolve(options.root ?? process.cwd())
+  const context = createPlatformContext(root, options, command)
   return [
     context.resolve().then((config): PluginOption[] => {
-      if (test) return [...reactPlugins(), platformDefinePlugin(context)]
       const composed: PluginOption[] = []
       if (config.tailwind) composed.push(outsideTestMode(tailwindcss()))
       // The router plugin must run before JSX transformation (it enforces this order).
