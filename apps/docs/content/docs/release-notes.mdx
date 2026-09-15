@@ -1,0 +1,61 @@
+---
+title: Release notes
+description: Register release notes per version. The shell shows them in its release notes slot and searches them from the palette.
+---
+
+## Register
+
+```tsx
+import { useRegisterReleaseNotes } from "@platform/react"
+
+function AssetReleaseNotes() {
+  useRegisterReleaseNotes([
+    {
+      id: "v2-1",
+      version: "2.1.0",
+      title: "Bulk edit",
+      date: "2026-03-02",
+      summary: "Edit tags and sites for many assets at once.",
+      keywords: ["bulk", "tags"],
+      content: BulkEditNotes, // optional rich content, rendered by the MFE
+    },
+    {
+      id: "v2-0",
+      version: "2.0.0",
+      title: "New asset list",
+      date: "2026-01-15",
+      href: "https://…",
+    },
+  ])
+  return null
+}
+```
+
+`<ReleaseNotesRegistration definition={…} />` is the declarative form.
+
+## Release information
+
+The manifest's `release` block (`version`, `buildId`, `commit`, `builtAt`) is inferred from `package.json`, `PLATFORM_BUILD_ID` and the commit (`GITHUB_SHA`, `CI_COMMIT_SHA`, `PLATFORM_COMMIT_SHA` or git). The developer tools show it per remote; `usePlatform((p) => p.remoteRelease)` reads it inside the MFE.
+
+## Static entries
+
+```tsx title="src/mfe.tsx"
+export default createMfe({
+  routeTree,
+  registrations: {
+    releaseNotes: [
+      { id: "v2-1", version: "2.1.0", title: "Bulk edit", date: "2026-03-02", summary: "…" },
+    ],
+  },
+})
+```
+
+## Rendering
+
+```tsx title="apps/shell"
+import { ReleaseNotesSlot } from "@platform/host/react"
+
+;<ReleaseNotesSlot /> // sorted by version, newest first, grouped by MFE
+```
+
+Rich `content` renders through a mountable surface; a failing surface only affects its own entry.

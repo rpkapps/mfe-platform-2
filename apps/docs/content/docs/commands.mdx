@@ -1,0 +1,112 @@
+---
+title: Commands
+description: Register command palette commands with a hook or a declarative component. Ids are local; the platform namespaces, cleans up and reports them.
+---
+
+## The hook
+
+```tsx
+import { useRegisterCommand } from "@platform/react"
+
+function AssetCommands() {
+  useRegisterCommand({
+    id: "new-asset",
+    label: "New asset",
+    description: "Create an asset in the current project",
+    group: "Assets",
+    keywords: ["create", "add"],
+    shortcut: "mod+shift+n",
+    permissionGroups: ["assets:write"],
+    availability: () => featureEnabled,
+    handler: ({ platform }) => platform.navigation.navigateWithin("/assets/new"),
+    telemetry: { feature: "assets" },
+  })
+  return null
+}
+```
+
+The registration lives as long as the component: it is added on mount and removed on unmount or when the definition changes (pass `deps` as the second argument to control that, like `useEffect`).
+
+## The component
+
+```tsx
+import { CommandRegistration } from "@platform/react"
+
+;<CommandRegistration definition={{ id: "export", label: "Export report", route: "/export" }} />
+```
+
+It is a thin wrapper over the hook; use whichever reads better.
+
+## Definition
+
+| Field                                      | Type                             | Notes                                                            |
+| ------------------------------------------ | -------------------------------- | ---------------------------------------------------------------- |
+| `id`                                       | `string`                         | Local, kebab-case, unique within the MFE                         |
+| `label`                                    | `string`                         | Required                                                         |
+| `description`, `group`, `keywords`, `icon` |                                  | Palette metadata                                                 |
+| `shortcut`                                 | `string`                         | `mod+shift+k`, `ctrl+alt+p`; `mod` is ⌘ on macOS, Ctrl elsewhere |
+| `permissionGroups`                         | `string[]`                       | Hidden and refused without them                                  |
+| `availability`                             | `() => boolean`                  | Evaluated when the palette opens                                 |
+| `handler`                                  | `(ctx) => void \| Promise<void>` | Receives `{ signal, source, platform }`                          |
+| `route`                                    | `string`                         | MFE-relative route to navigate to instead of a handler           |
+| `telemetry`                                | attributes                       | Merged into every event about this command                       |
+
+An invalid definition (bad id, missing label, neither handler nor route, malformed shortcut, duplicate id) throws `COMMAND_INVALID` at registration with the owner and the offending id.
+
+## Namespacing
+
+You write `new-asset`; the registry stores `asset-tracker:new-asset`. Widget commands are instance-scoped automatically: `asset-tracker:refresh@asset-tracker#3`. Route MFEs can opt in with `useRegisterCommand(definition, deps, { instanceScoped: true })`.
+
+## Shortcuts
+
+Shortcuts are normalised (`Mod+Shift+K` → `mod+shift+k`) and matched against keyboard events by the shell, which owns the single global listener. Commands with shortcuts run from anywhere in the page; the palette shows the key combination.
+
+## Shortcut conflicts
+
+Conflicts are rejected deterministically: **the first registration keeps the shortcut; the newcomer is registered without it**. The registry emits a `conflict` event, the host records a `shortcut.conflict` diagnostic (`SHORTCUT_CONFLICT`) naming the holder and the rejected command, and the developer tools list all conflicts. Nothing is silently overridden. When the holder unregisters, the shortcut becomes free again — the rejected command does not inherit it retroactively; it re-registers on its next mount.
+
+## Async handlers and cancellation
+
+```tsx
+useRegisterCommand({
+  id: "sync",
+  label: "Sync assets",
+  handler: async ({ signal, platform }) => {
+    const response = await fetch(`${platform.runtime.env.API_BASE_URL}/sync`, { signal })
+    if (!response.ok) throw new Error(`sync failed: ${response.status}`)
+  },
+})
+```
+
+The palette shows a running state while the promise is pending. Invoking the command again, closing the palette or unmounting the owner aborts `signal`. `source` tells the handler whether it was invoked from the `palette`, a `shortcut` or the `api`.
+
+## States
+
+Each command has a state in the registry: `idle`, `running`, `succeeded` or `failed` (with the error message). The palette renders them; devtools list them.
+
+## Failure states
+
+A handler that throws or rejects moves the command to `failed`, shows the message in the palette, emits `COMMAND_FAILED` with the qualified id and reports it to telemetry. The shell and other commands keep running. The next invocation starts from `idle`.
+
+## Telemetry
+
+Every run emits `command.run` diagnostics and telemetry events (`started`, `succeeded`, `failed`, `cancelled`) with `mfeId`, `instanceId`, `command`, `source`, duration and the `telemetry` attributes from the definition.
+
+## Static commands
+
+Commands that only navigate can be declared statically so the palette lists them before the remote is loaded:
+
+```tsx title="src/mfe.tsx"
+export default createMfe({
+  routeTree,
+  registrations: {
+    commands: [
+      { id: "open-assets", label: "Open assets", route: "/assets", keywords: ["inventory"] },
+    ],
+  },
+})
+```
+
+They end up in the manifest (`commands[]` with `static: true`); running one loads the remote and navigates.
+
+A static command states its `id` and `label` as literals, because the manifest is built from the source without running it. A command a component registers is different: it may label itself from its props — `` label: `Open ${asset.name}` `` is the usual shape for a widget command — and it is then left out of the manifest and registered when the MFE loads, which is no loss, since only a command with a `route` can be offered before that. So a runtime label is ordinary and not reported; a static registration that cannot state its label is.

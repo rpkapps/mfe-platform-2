@@ -1,0 +1,34 @@
+# Working in __DISPLAY_NAME__ (for humans and AI agents)
+
+This is a platform MFE. `docs` = https://platform.docs.local/docs. Read `llm.txt` first.
+
+## One canonical pattern per task
+
+- **Bootstrap**: `src/mfe.tsx` default-exports `createMfe({ routeTree, widgets, registrations })`. Nothing else creates roots, routers or federation.
+- **Routes**: files under `src/routes/` with `createFileRoute("/relative/path")`. Paths are relative to the route prefix (`__ROUTE_PREFIX__`); never hard-code the prefix. `staticData` carries `breadcrumb`, `navigation` and `permissionGroups`. Guards are native: `beforeLoad` + `context.platform.permissions`.
+- **Commands**: `useRegisterCommand({ id, label, handler | route, shortcut?, keywords? })` inside a component. Ids are local kebab-case; the platform namespaces them.
+- **Settings**: `useRegisterSettingsGroup({ key, title, fields: { name: { defaultValue, schema?, options? } } })`. Every field has `defaultValue`; never `value`. Async options receive `{ signal }`.
+- **Storage**: `createPlatformStorage({ scope, key, schema, defaults })` in `src/lib/storage.ts`; `store.use(selector)` in components. Never `localStorage`.
+- **Context**: `usePlatform((p) => p.user?.displayName)` (slice subscription), `usePermissions()`, `useRuntimeEnv()`, `useTelemetry()`, `useNavigation()`, `useNotifications()`.
+- **Widgets**: components in `src/widgets/`, exposed through `createWidget({ component, propsSchema })` under a kebab-case key. Props are plain data.
+- **Help / release notes**: static entries in `createMfe({ registrations })`; `useRegisterHelp` for entries that depend on state.
+
+## Never
+
+- Import `@module-federation/*`, read `window.__PLATFORM_CONFIG__`, `import.meta.env.VITE_PLATFORM_*` or fetch `/platform-config.json`.
+- Pass React elements, components, hooks or contexts across roots (notifications, telemetry, storage, widget props, command metadata take plain data).
+- Edit `src/routeTree.gen.ts`, `.platform/*` or `dist/platform-manifest.json` by hand.
+- Import another MFE (`@scope/mfe-*`, federation aliases, paths outside this project).
+- Put secrets in `mfe.config.ts → env`; runtime env values are public.
+
+`pnpm lint` enforces all of this (`@platform/cli/eslint`); every message links to the docs.
+
+## Workflow
+
+1. `pnpm dev` → open `/__platform/harness/`; the harness shows context, palette, settings, widgets and failure toggles.
+2. Add a route file, the route tree regenerates. Restart-requiring changes (mfe.config.ts, dependencies) show a restart diagnostic.
+3. `pnpm lint && pnpm typecheck && pnpm test && pnpm validate` before committing. `pnpm build` prints the manifest summary.
+
+## Files you must not hand-edit
+
+`src/routeTree.gen.ts`, `.platform/**` (except committing `identity.json`), `dist/**`.

@@ -1,0 +1,59 @@
+{
+  "name": "mfe-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "React-only micro-frontend platform: TanStack Router MFEs and widgets, Vite builds, platform-managed Module Federation, Tecton UI.",
+  "scripts": {
+    "build": "pnpm -r --filter \"./internal/**\" --filter \"./packages/**\" run build",
+    "build:apps": "pnpm -r --filter \"./apps/**\" run build",
+    "build:all": "pnpm build && pnpm build:apps",
+    "dev": "pnpm --filter docs dev",
+    "dev:conformance": "node scripts/dev-conformance.mjs",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "eslint . && pnpm -r --filter \"./apps/conformance-react*\" --filter \"./apps/conformance-widget*\" run lint",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --project integration",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "schemas:build": "pnpm --filter @platform-internal/core run schemas:build",
+    "docs:generate": "pnpm --filter docs run docs:generate",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@playwright/test": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "catalog:",
+    "vite": "catalog:",
+    "@platform-internal/core": "workspace:*",
+    "@platform-internal/conformance": "workspace:*"
+  },
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss",
+      "@tailwindcss/oxide",
+      "unrs-resolver"
+    ]
+  },
+  "type": "module"
+}

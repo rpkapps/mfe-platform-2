@@ -1,0 +1,68 @@
+{
+  "name": "@platform/vite",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Vite plugin that turns an ordinary TanStack Router project into a platform remote: route tree, code splitting, manifest, capability inference, shared dependencies, CSS scoping, Tecton, Module Federation and local overrides.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist/config.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@babel/parser": "catalog:",
+    "@babel/traverse": "catalog:",
+    "@babel/types": "catalog:",
+    "@module-federation/vite": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/router-plugin": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "magic-string": "catalog:",
+    "picocolors": "catalog:",
+    "postcss": "catalog:",
+    "postcss-selector-parser": "catalog:",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "vite": "^8.0.0",
+    "@tanstack/react-router": "^1.170.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "vite": "catalog:",
+    "@types/babel__traverse": "catalog:",
+    "@types/node": "catalog:",
+    "@tanstack/react-router": "catalog:",
+    "tailwindcss": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "@platform-internal/core": "workspace:*"
+  }
+}

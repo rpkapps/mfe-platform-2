@@ -1,0 +1,281 @@
+/* Docs-site stylesheet. The design system itself lives in @tecton/react/globals.css
+   (CLI-managed; Tecton is applied there through the shadcn CSS variables only).
+   The docs chrome mirrors the shadcn/ui docs site (apps/v4 in shadcn-ui/ui).
+
+   Rules for this file, so docs styling can never leak into the rendered
+   examples (which must look exactly like they do in an application):
+   - Every rule lives in `@layer base` / `@layer components` or is a
+     `@utility`. Tailwind's `utilities` layer comes later, so a component's own
+     utility classes always win over anything declared here.
+   - Prose styling is the shadcn `typeset` system (typeset.css). It only
+     applies inside `.typeset` and skips every `[data-not-typeset]` subtree;
+     component previews, sources, callouts and docs widgets carry that
+     attribute.
+   - No rule targets bare element selectors outside `.typeset`. */
+@import "@tecton/react/globals.css";
+@import "./typeset.css";
+
+@source "../../content/**/*.mdx";
+@source "../**/*.{ts,tsx}";
+
+/* Docs-only tokens (the shadcn site defines the same set): surfaces for
+   callouts and code blocks, and text selection. They derive from the Tecton
+   theme so both modes follow globals.css. */
+@theme inline {
+  --breakpoint-3xl: 1600px;
+  --color-surface: var(--surface);
+  --color-surface-foreground: var(--surface-foreground);
+  --color-code: var(--code);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-highlight: var(--code-highlight);
+  --color-code-number: var(--code-number);
+  --color-selection: var(--selection);
+  --color-selection-foreground: var(--selection-foreground);
+}
+
+:root {
+  --surface: var(--card);
+  --surface-foreground: var(--card-foreground);
+  --code: var(--card);
+  --code-foreground: var(--card-foreground);
+  --code-highlight: var(--accent);
+  --code-number: var(--muted-foreground);
+  --selection: var(--primary);
+  --selection-foreground: var(--primary-foreground);
+}
+
+@layer base {
+  /* Anchor jumps clear the sticky header; typeset's scroll-margin adds air. */
+  html {
+    scroll-padding-top: var(--header-height);
+  }
+  ::selection {
+    @apply bg-selection text-selection-foreground;
+  }
+  html {
+    @apply overscroll-y-none;
+  }
+  body {
+    position: relative;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+  [data-slot="layout"] {
+    @apply overscroll-none;
+  }
+}
+
+@utility border-grid {
+  @apply border-border/50 dark:border-border;
+}
+
+@utility container-wrapper {
+  @apply mx-auto w-full px-2;
+}
+
+@utility container {
+  @apply 3xl:max-w-screen-2xl mx-auto max-w-[1400px] px-4 lg:px-8;
+}
+
+@utility border-ghost {
+  @apply after:border-border relative after:absolute after:inset-0 after:border after:mix-blend-darken dark:after:mix-blend-lighten;
+}
+
+@utility step {
+  counter-increment: step;
+
+  &:before {
+    @apply border-background bg-muted mr-2 inline-flex size-6 items-center justify-center rounded-full text-center -indent-px font-mono text-sm font-medium md:absolute md:mt-[-4px] md:ml-[-50px] md:size-9 md:border-4;
+    content: counter(step);
+  }
+}
+
+@utility extend-touch-target {
+  @media (pointer: coarse) {
+    @apply relative touch-manipulation after:absolute after:-inset-2;
+  }
+}
+
+@layer components {
+  /* Tecton typography: headings are weight 500 (Figtree Medium), not 600. */
+  .typeset :where(h1, h2, h3, h4) {
+    font-weight: 500;
+  }
+  .typeset :where(strong, b) {
+    font-weight: 500;
+  }
+
+  /* Component links (asChild buttons, cards) keep their own affordances
+     inside typeset prose. */
+  .typeset a[data-slot] {
+    font-weight: inherit;
+    text-decoration-line: none;
+  }
+
+  .steps {
+    &:first-child {
+      @apply !mt-0;
+    }
+
+    &:first-child > h3:first-child {
+      @apply !mt-0;
+    }
+
+    > h3 {
+      @apply !mt-8;
+    }
+
+    > h3 + p {
+      @apply !mt-2;
+    }
+  }
+
+  /* Code blocks: MDX fences (fumadocs rehype-code) and <CodeBlock /> both
+     render <figure data-rehype-pretty-code-figure>. */
+  [data-rehype-pretty-code-figure] {
+    background-color: var(--color-code);
+    color: var(--color-code-foreground);
+    border-radius: var(--radius-2xl);
+    border-width: 0px;
+    border-color: var(--border);
+    margin-top: calc(var(--spacing) * 6);
+    overflow: hidden;
+    font-size: var(--text-sm);
+    outline: none;
+    position: relative;
+    @apply -mx-1 md:-mx-1;
+
+    &:has([data-rehype-pretty-code-title]) [data-slot="copy-button"] {
+      top: calc(var(--spacing) * 1.5) !important;
+    }
+  }
+
+  [data-rehype-pretty-code-figure] pre {
+    @apply no-scrollbar m-0 min-w-0 overflow-x-auto overflow-y-auto overscroll-x-contain overscroll-y-auto bg-transparent px-4 py-3.5 font-mono text-sm leading-relaxed outline-none has-data-highlighted-line:px-0 has-data-line-numbers:px-0;
+  }
+
+  [data-rehype-pretty-code-figure] code,
+  [data-rehype-pretty-code-figure] code span {
+    font-variant-ligatures: none;
+    font-feature-settings:
+      "liga" 0,
+      "calt" 0;
+  }
+
+  [data-rehype-pretty-code-figure] code {
+    display: grid;
+    background: transparent;
+    padding: 0;
+    font-size: inherit;
+    border-radius: 0;
+  }
+
+  [data-rehype-pretty-code-title] {
+    border-bottom: color-mix(in oklab, var(--border) 30%, transparent);
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+    padding-block: calc(var(--spacing) * 2.5);
+    padding-inline: calc(var(--spacing) * 4);
+    font-size: var(--text-sm);
+    font-family: var(--font-mono);
+    color: var(--color-code-foreground);
+  }
+
+  [data-line-numbers] {
+    display: grid;
+    min-width: 100%;
+    white-space: pre;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    counter-reset: line;
+    box-decoration-break: clone;
+  }
+
+  [data-line-numbers] [data-line]::before {
+    font-size: var(--text-sm);
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: calc(var(--spacing) * 16);
+    padding-right: calc(var(--spacing) * 6);
+    text-align: right;
+    color: var(--color-code-number);
+    background-color: var(--color-code);
+    position: sticky;
+    left: 0;
+  }
+
+  [data-line-numbers] [data-highlighted-line][data-line]::before {
+    background-color: var(--color-code-highlight);
+  }
+
+  [data-line] {
+    padding-top: calc(var(--spacing) * 0.25);
+    padding-bottom: calc(var(--spacing) * 0.25);
+    min-height: calc(var(--spacing) * 0.875);
+    width: 100%;
+    display: inline-block;
+  }
+
+  /* ```text trees use box-drawing characters; per-line padding breaks the
+     vertical connectors. */
+  [data-rehype-pretty-code-figure] pre[data-language="text"] code,
+  [data-rehype-pretty-code-figure] pre[data-language="plaintext"] code,
+  [data-rehype-pretty-code-figure] code[data-language="text"],
+  [data-rehype-pretty-code-figure] code[data-language="plaintext"] {
+    display: block !important;
+    white-space: pre;
+    line-height: 0.95;
+    font-variant-ligatures: none;
+  }
+  [data-rehype-pretty-code-figure] pre[data-language="text"] [data-line],
+  [data-rehype-pretty-code-figure] pre[data-language="plaintext"] [data-line],
+  [data-rehype-pretty-code-figure] code[data-language="text"] [data-line],
+  [data-rehype-pretty-code-figure] code[data-language="plaintext"] [data-line] {
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: unset;
+    line-height: 0.95;
+    display: block;
+  }
+
+  /* shiki dual-theme output (`themes: { light, dark }`, defaultColor: false) */
+  [data-line] span,
+  .shiki span {
+    color: var(--shiki-light);
+
+    @variant dark {
+      color: var(--shiki-dark) !important;
+    }
+  }
+  .shiki {
+    background-color: transparent !important;
+  }
+
+  [data-highlighted-line],
+  [data-highlighted-chars] {
+    position: relative;
+    background-color: var(--color-code-highlight);
+  }
+
+  [data-highlighted-line] {
+    &:after {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 2px;
+      height: 100%;
+      content: "";
+      background-color: color-mix(in oklab, var(--muted-foreground) 50%, transparent);
+    }
+  }
+
+  [data-highlighted-chars] {
+    border-radius: var(--radius-sm);
+    padding-inline: 0.3rem;
+    padding-block: 0.1rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+}

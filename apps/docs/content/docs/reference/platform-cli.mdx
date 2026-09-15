@@ -1,0 +1,108 @@
+---
+title: "@platform/cli"
+description: The platform command line and the shareable ESLint plugin and flat config.
+---
+
+## Commands
+
+```text
+platform create <name>       scaffold a new MFE project
+platform dev                 Vite dev server + local shell harness
+platform build               vite build + manifest validation and summary
+platform manifest            generate and print the platform manifest
+platform validate            project structure, identity, configuration, generated files and manifest
+platform lint [...files]     ESLint with the project's eslint.config (the platform shareable config)
+platform test [...filters]   Vitest (or Playwright with --e2e)
+```
+
+Global: `--cwd <dir>` runs as if started in `<dir>`; `--help`, `--version`. Failures are `PlatformError`s printed with owner, source, override, hint and docs URL; the exit code is non-zero.
+
+### `create`
+
+```bash
+pnpm dlx @platform/cli create my-mfe          # or npx @platform/cli create my-mfe
+```
+
+| Flag                                  | Default  | Effect                                                                                                                 |
+| ------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `--template <template>`               | `mfe`    | Template directory under the CLI's `templates/`                                                                        |
+| `--react <18\|19>`                    | `19`     | React major (dependency ranges, `@types/react`, `runtime.react` metadata)                                              |
+| `--tecton` / `--no-tecton`            | on       | Tecton UI (`@tecton/react`, `react-aria-components`, `lucide-react`, `cn`, `class-variance-authority`) or plain markup |
+| `--package-manager <pnpm\|npm\|yarn>` | `pnpm`   | Scripts in the next steps and the install command                                                                      |
+| `--install` / `--no-install`          | on       | Run the package manager after scaffolding                                                                              |
+| `--git` / `--no-git`                  | on       | `git init`                                                                                                             |
+| `--link-platform <monorepoRoot>`      | —        | Use a platform monorepo checkout instead of a registry (see below)                                                     |
+| `--force`                             | off      | Write into a non-empty directory                                                                                       |
+| `--dir <path>`                        | cwd      | Parent directory of the new project                                                                                    |
+| `--mfe-id <id>`                       | inferred | Override the `mfeId` inferred from the package name (`@acme/my-mfe` → `my-mfe`)                                        |
+| `--display-name <name>`               | inferred | Override the display name (title case of the id)                                                                       |
+
+`name` may be scoped (`@acme/asset-tracker`); the folder is the last segment. The scaffold is listed file by file in [Create an MFE](/docs/getting-started/create-mfe). With `--link-platform`, `@platform/react`, `@platform/vite`, `@platform/cli`, `@platform/host` and `@tecton/react` are packed with `pnpm pack` into `.platform/packs/*.tgz` and referenced as `file:./.platform/packs/<name>.tgz` dependencies, so they install exactly like published packages (without pnpm the package directories are linked with `file:` paths). Without it the platform packages use `^0.1.0` and Tecton the pinned git specifier.
+
+### `dev`
+
+| Flag                         | Default                                      |
+| ---------------------------- | -------------------------------------------- |
+| `--port <port>`              | Vite's default (5173); `strictPort` when set |
+| `--host [host]`              | Expose on the network, or a specific host    |
+| `--open`                     | Open the harness in the browser              |
+| `--harness` / `--no-harness` | Serve `/__platform/harness/` (on)            |
+
+Starts the project's own Vite dev server with its `vite.config.ts` (`mode: "development"`) and prints the harness URL (`<origin>/__platform/harness/`) and the dev manifest URL (`<origin>/platform-manifest.json`, usable as a manifest override in an SSR shell).
+
+### `build`
+
+`--out-dir <dir>` (default `dist`). Runs `vite build`, then validates `dist/platform-manifest.json` (the file name follows `manifest.fileName`) and prints a summary: mfeId, version and build id, protocol, entry, route prefix, routes, widgets, capabilities, shared versus bundled packages, runtime requirements, Tecton, CSS scoping, env keys and registration counts.
+
+### `manifest`
+
+| Flag            | Effect                                            |
+| --------------- | ------------------------------------------------- |
+| `--out <file>`  | Write the manifest to a file                      |
+| `--json`        | Print JSON only                                   |
+| `--mode <mode>` | `build` (default) or `dev` (adds the `dev` block) |
+
+Generates the manifest from static inference alone (no Vite build).
+
+### `validate`
+
+`--no-manifest` skips manifest generation. Checks: `package.json`, bootstrap (`src/mfe.tsx` default-exports `createMfe(...)`), routes, identity (`.platform/identity.json`), config (`mfe.config.*`), route prefix, route tree (`src/routeTree.gen.ts`), manifest and lint configuration. Findings carry a level, a check name, a code, a hint and a docs URL; the exit code is 1 when a check fails.
+
+### `lint`, `test`
+
+`platform lint [...files] [--fix]` runs ESLint with the project's `eslint.config.*` (the scaffold exports `platformConfig()`). `platform test [...filters] [--watch] [--coverage] [--e2e]` runs Vitest through `vitest/node` with the project's `vitest.config.ts`, or Playwright (`playwright test`, from the project's `@playwright/test` or `npx`) with `--e2e`.
+
+## `@platform/cli/eslint`
+
+```ts
+import plugin, {
+  platformConfig,
+  rules,
+  RECOMMENDED_RULES,
+  GENERATED_IGNORES,
+} from "@platform/cli/eslint"
+```
+
+| Export                                                                                                    | Description                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `platformConfig(options?)`                                                                                | Flat config array: generated-file ignores, `@eslint/js` recommended, typescript-eslint recommended (or type-checked), react-hooks, jsx-a11y, TanStack Router, browser + node globals, the platform rules, TypeScript conventions and test-file relaxations |
+| `plugin` (default export)                                                                                 | The ESLint plugin: `meta`, `rules`, `configs.recommended` (`@platform/*` rules at their recommended severities)                                                                                                                                            |
+| `rules`                                                                                                   | The 16 rule implementations keyed by name                                                                                                                                                                                                                  |
+| `RECOMMENDED_RULES`                                                                                       | `Record<"@platform/<rule>", Severity>`                                                                                                                                                                                                                     |
+| `GENERATED_IGNORES`                                                                                       | `**/routeTree.gen.ts`, `**/*.gen.ts(x)`, `**/.platform/**`, `**/dist/**`, `**/node_modules/**`, `**/platform-manifest.json`, `**/coverage/**`, `**/playwright-report/**`, `**/test-results/**`                                                             |
+| `PLUGIN_NAME`, `PLUGIN_VERSION`, `LINT_DOCS_URL`, `PlatformRuleName`, `Severity`, `PlatformConfigOptions` | Constants and types                                                                                                                                                                                                                                        |
+
+```ts
+platformConfig({
+  typed?: boolean, // recommendedTypeChecked + parserOptions.projectService (default false)
+  react?: boolean, // eslint-plugin-react-hooks (default true)
+  tanstackRouter?: boolean, // @tanstack/eslint-plugin-router (default true)
+  a11y?: boolean, // eslint-plugin-jsx-a11y (default true)
+  rules?: Record<string, Severity | [Severity, ...unknown[]]>, // applied last
+  ignores?: string[], // added to GENERATED_IGNORES
+  tsconfigRootDir?: string, // for typed linting (default process.cwd())
+  extends?: FlatConfig.ConfigArray, // extra entries appended before `rules`
+})
+```
+
+Every rule is documented in [Linting](/docs/linting).

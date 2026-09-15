@@ -1,0 +1,41 @@
+# __DISPLAY_NAME__
+
+A platform micro-frontend (`mfeId: __MFE_ID__`, React __REACT_MAJOR__{{#tecton}}, Tecton{{/tecton}}) scaffolded with
+`platform create`. It is built with Vite and TanStack Router, mounted by the shell under
+`__ROUTE_PREFIX__` in its own React root, and described by a generated manifest.
+
+## Commands
+
+| Command          | What it does                                                                         |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| `pnpm dev`       | Vite dev server + local shell harness at `http://localhost:5173/__platform/harness/` |
+| `pnpm build`     | Production build (`dist/`), manifest generation and validation                       |
+| `pnpm manifest`  | Print the generated manifest                                                         |
+| `pnpm validate`  | Structure, identity, configuration, generated files and manifest checks              |
+| `pnpm lint`      | ESLint with the platform shareable config (`@platform/cli/eslint`)                   |
+| `pnpm test`      | Vitest unit tests (`src/**/*.test.tsx`)                                              |
+| `pnpm test:e2e`  | Playwright against the harness (`e2e/`)                                              |
+| `pnpm typecheck` | `tsc --noEmit`                                                                       |
+
+## Layout
+
+```
+mfe.config.ts            manifest-affecting options (displayName, navigation, env…)
+src/mfe.tsx              the one bootstrap: createMfe({ routeTree, widgets, registrations })
+src/routes/              TanStack folder routes (prefix-relative); routeTree.gen.ts is generated
+src/widgets/             components exposed through createWidget (own React root each)
+src/lib/storage.ts       createPlatformStorage stores (namespaced, schema-backed)
+src/lib/api.ts           data access using the runtime env (API_BASE_URL)
+src/platform.d.ts        Register augmentation: typed env and feature flags
+src/__tests__/           unit tests with renderMfe from @platform/react/testing
+e2e/                     Playwright tests against the harness
+.platform/identity.json  persisted mfeId (commit it; never edit generated files)
+```
+
+## Running inside a shell
+
+Point a shell at the dev manifest: `http://localhost:5173/platform-manifest.json` as a manifest
+override (`?platform.override.__MFE_ID__=<url>` or the runtime configuration). The dev manifest
+carries `dev.hmr = true`; production builds never do.
+
+See `AGENTS.md` for the canonical patterns and `llm.txt` for the short reference.

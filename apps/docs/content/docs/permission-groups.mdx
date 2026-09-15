@@ -1,0 +1,57 @@
+---
+title: Permission groups
+description: Browser-visible permission groups for routing and UX. They never replace backend authorization.
+---
+
+<Callout variant="warning" title="Client-side only">
+  Permission groups in the browser decide what to show and where to route. Every backend service
+  must authorize each request on its own; a user can always read the group list from the network
+  tab.
+</Callout>
+
+## Reading groups
+
+```tsx
+import { usePermissions } from "@platform/react"
+
+function Actions() {
+  const { hasGroup, hasAnyGroup, hasAllGroups, groups } = usePermissions()
+  return (
+    <>
+      {hasGroup("assets:write") && <NewAssetButton />}
+      {hasAnyGroup(["reports:read", "admin"]) && <ReportsLink />}
+      {hasAllGroups(["assets:write", "assets:approve"]) && <ApproveButton />}
+    </>
+  )
+}
+```
+
+`groups` contains every group the host policy exposes; by default that is all of the user's groups. A host may restrict the list (`context.permissionGroups` filter), in which case a group that exists server-side may be absent here.
+
+## Preflight
+
+The shell performs a coarse check **before loading a remote** using the manifest's `permissionGroups` (from `mfe.config.ts` and route `staticData.permissionGroups`) when `policy.preflight` is on (the default). A user without a required group never downloads the remote: `MfeOutlet` renders the _denied_ state and the host records `preflight.denied` with the missing groups (`PERMISSION_DENIED`). The conformance failure lab's `restricted-remote` requires a `superadmin` group nobody has.
+
+Preflight is for efficiency and for a clean empty state; it does not replace guards.
+
+## Guards
+
+Route-specific and resource-specific rules live in native `beforeLoad` guards inside the MFE, where they can inspect params, loader data and context:
+
+```ts
+beforeLoad: ({ context, params }) => {
+  if (!context.platform.permissions.hasGroup(`site:${params.siteId}:read`)) {
+    throw redirect({ to: "/" })
+  }
+}
+```
+
+A denied guard stays inside the MFE root. See [Route guards](/docs/routing/route-guards).
+
+## Commands and settings
+
+`permissionGroups` on a command hides it from the palette and refuses `run()` for users without the groups. Settings groups have no permission filter of their own; gate the registering component instead.
+
+## Changes at runtime
+
+When the host updates `permissionGroups` (a role change without a reload), subscribers rerender, guards re-run through `revision` and preflight is re-evaluated on the next navigation. An MFE that is already mounted is not unmounted by a group change; its guards decide.

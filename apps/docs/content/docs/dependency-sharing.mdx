@@ -1,0 +1,66 @@
+---
+title: Dependency sharing
+description: Compatible packages are shared by version group. React 19 never satisfies a React 18 request; anything without a compatible provider uses the remote's bundled copy.
+---
+
+## Version groups
+
+Packages bound to a React instance share inside the scope of their React major; framework-neutral packages share in `default`.
+
+| Scope                 | Packages                                                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store` and, when opted in, `@platform/react` |
+| `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                 |
+
+Example: the shell uses React 19, MFE A and MFE B use React 18. The result is one React 19 instance for the shell (and React 19 remotes) and one shared React 18 instance for A and B. A React 18 request is never satisfied by React 19 because the scopes are distinct.
+
+## What is inferred
+
+`@platform/vite` reads `package.json` and requests sharing for the packages it depends on among: `react`, `react-dom`, `@tanstack/react-router`, `@tanstack/history`, `@platform/react`, `@tecton/react`, `zod`. Each request records the range from `package.json` (`requiredVersion`), the installed version (`version`, the bundled fallback), the scope, `singleton`, `shared`, the `reason` (`inferred`, `configured`, `pinned`, `disabled`, `source-package`, `per-remote`) and `pairedWith`.
+
+## The SDK
+
+`@platform/react` is bundled into every remote (`reason: per-remote`). The SDK binds the React contexts of the remote it is built into and, through `@platform/react/tecton`, the React Aria portal context of that remote's Tecton copy; a shared SDK resolved from another remote would portal overlays through a foreign context and they would land in `document.body` instead of the owner-tagged overlay root. A remote that only needs the SDK's neutral helpers may opt in with `shared: { "@platform/react": true }`; the subpath entries then share with it.
+
+React Aria (`react-aria-components`, `react-aria`) and `sonner` are not shared either: they are React-context libraries bundled with the Tecton copy of each remote.
+
+## The React pair
+
+`react` and `react-dom` are a coordinated pair: both resolve from the same provider or both bundle. Requesting different majors for the two fails the build with a warning.
+
+## Tecton
+
+`@tecton/react` ships TypeScript sources compiled by the consumer, so it is a **source package**: it is compiled into each remote and never shared as a built module. Its JavaScript, peer dependencies (`react-aria-components`, `lucide-react`…), CSS protocol and token set are validated separately through `manifest.tecton` (`version`, `cssProtocol`, `tokens`, `foundation`). Its peer packages are bundled with it, so every remote carries one consistent Tecton stack.
+
+## Overrides
+
+```ts title="mfe.config.ts"
+export default defineMfeConfig({
+  shared: {
+    "@tanstack/react-router": { version: "^1.170.0" }, // pin the requested range
+    "chart-lib": false, // bundle locally, never share
+    "big-table": { bundle: true }, // same as false
+    "@tanstack/history": { singleton: true }, // require one instance in the scope
+    "date-lib": { scope: "default" }, // add a package to sharing with an explicit scope
+  },
+  runtime: { react: "^18.3.0" }, // override the compatibility metadata
+})
+```
+
+`capabilities`, `shared` and `runtime` are also visible in the output of `pnpm manifest`.
+
+## Negotiation in the host
+
+For every request the host picks, inside the request's scope, the **already loaded** provider with the highest satisfying version, else the highest satisfying version among registered providers, else the remote's bundled copy. Paired packages are re-checked afterwards: if they would come from different providers, both bundle.
+
+## Incompatible fallback
+
+When no compatible provider exists — the shell only offers React 19 to a React 18 remote, or a range like `^2.0.0` that nobody serves — the remote uses its own bundled copy. This is a reported, normal outcome, not an error: `shared.resolved` lists each package with `outcome: "bundled"` and a reason such as `no provider in scope "react18" (available in react19@19.3.0); bundled copy used`. `DEPENDENCY_INCOMPATIBLE` is raised only when a `singleton` request cannot be met and bundling would create a second instance where one is required.
+
+Forcing an invalid singleton is never attempted.
+
+## Diagnostics
+
+- `shared.resolved` diagnostic per instance: name, scope, required range, outcome, chosen version and provider.
+- [Developer tools](/docs/developer-tools) show the React Flow graph of providers and requesters, and a table of shared versus bundled packages per MFE.
+- `manifest.shared[]` shows what a remote asked for; `host.remotes.sharedReport(mfeId)` shows what it got.

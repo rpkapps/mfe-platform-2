@@ -1,0 +1,77 @@
+{
+  "$id": "https://platform.docs.local/schemas/settings.json",
+  "title": "settings",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "managedBy": {
+      "default": "framework",
+      "type": "string",
+      "enum": [
+        "framework",
+        "mfe"
+      ]
+    },
+    "route": {
+      "type": "string"
+    },
+    "fields": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "boolean",
+              "text",
+              "number",
+              "select",
+              "multi-select",
+              "unknown"
+            ]
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "key"
+        ]
+      }
+    }
+  },
+  "required": [
+    "key",
+    "title"
+  ]
+}

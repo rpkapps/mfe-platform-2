@@ -1,0 +1,34 @@
+# __DISPLAY_NAME__ — platform MFE quick reference
+
+mfeId: __MFE_ID__ | route prefix: __ROUTE_PREFIX__ | React __REACT_MAJOR__{{#tecton}} | UI: @tecton/react{{/tecton}}
+Docs: https://platform.docs.local/docs (linting: /linting, routing: /routing, settings: /settings, commands: /commands, storage: /storage)
+
+## Files
+src/mfe.tsx              createMfe({ routeTree, widgets, registrations }) — the only bootstrap
+src/routes/__root.tsx    root layout, breadcrumb root, error + not-found boundaries
+src/routes/index.tsx     dashboard: usePlatform slice, useRegisterCommand, storage, telemetry
+src/routes/settings.tsx  useRegisterSettingsGroup with boolean/select/number/async-options fields
+src/routes/assets/index.tsx      list route with links
+src/routes/assets/$assetId.tsx   beforeLoad permission guard, loader breadcrumb, pending/error components
+src/widgets/asset-card.tsx       widget (createWidget in mfe.tsx), navigation + overlay example
+src/lib/storage.ts       createPlatformStorage stores
+src/lib/api.ts           data access using useRuntimeEnv().API_BASE_URL
+src/platform.d.ts        declare module "@platform/react" { interface Register { env; featureFlags } }
+mfe.config.ts            defineMfeConfig({ displayName, navigation, env, … })
+eslint.config.ts         export default platformConfig()
+
+## Commands
+pnpm dev | build | manifest | validate | lint | test | test:e2e | typecheck | format
+
+## API (from "@platform/react")
+createMfe, createWidget, usePlatform(selector?), useNavigation, useCapability, usePermissions, useTelemetry,
+useRuntimeEnv, useNotifications, useMfeInstance, useRegisterCommand, useRegisterSettingsGroup,
+useRegisterSettingsField, useRegisterHelp, useRegisterReleaseNotes, useBreadcrumb, usePlatformStorage,
+createPlatformStorage, CommandRegistration, SettingsRegistration, HelpRegistration, ReleaseNotesRegistration,
+MfeErrorBoundary, MfeLoading. Testing: createTestBridge, renderMfe from "@platform/react/testing".
+
+## Rules (enforced by pnpm lint)
+no raw localStorage/sessionStorage · no @module-federation imports · no window.__PLATFORM_CONFIG__ /
+import.meta.env.VITE_PLATFORM_* · no React values across roots · no edits to generated files ·
+local kebab-case ids and keys · defaultValue (never value) in settings · literal telemetry event names ·
+prefix-relative routes · no MFE-to-MFE imports · no secrets in env.

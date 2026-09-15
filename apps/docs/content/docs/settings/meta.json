@@ -1,0 +1,4 @@
+{
+  "title": "Settings",
+  "pages": ["index", "groups", "schemas", "async-options", "custom-pages"]
+}

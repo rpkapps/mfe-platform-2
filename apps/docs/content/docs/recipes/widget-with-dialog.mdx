@@ -1,0 +1,81 @@
+---
+title: Widget with a dialog
+description: A dashboard widget that opens an ordinary Tecton dialog. No overlay configuration, several instances at once.
+---
+
+```tsx title="src/widgets/asset-card.tsx"
+import { createWidget, useMfeInstance, useNotifications } from "@platform/react"
+import { Button } from "@tecton/react/components/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@tecton/react/components/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@tecton/react/components/dialog"
+import { z } from "zod"
+
+export const assetCard = createWidget({
+  id: "asset-card",
+  title: "Asset card",
+  propsSchema: z.object({ assetId: z.string() }),
+  component: AssetCardWidget,
+})
+
+function AssetCardWidget({ assetId }: { assetId: string }) {
+  const { instanceId } = useMfeInstance()
+  const { notify } = useNotifications()
+  return (
+    <Card data-instance={instanceId}>
+      <CardHeader>
+        <CardTitle>{assetId}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <DialogTrigger>
+          <Button size="sm">Acknowledge alarm</Button>
+          <Dialog>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Acknowledge alarm on {assetId}?</DialogTitle>
+                <DialogDescription>The alarm stays in the history.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button slot="close" variant="outline">
+                  Cancel
+                </Button>
+                <Button
+                  slot="close"
+                  onPress={() =>
+                    notify({ title: `Alarm on ${assetId} acknowledged`, kind: "success" })
+                  }
+                >
+                  Acknowledge
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </DialogTrigger>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+```tsx title="src/mfe.tsx"
+export default createMfe({ routeTree, widgets: { assetCard } })
+```
+
+```tsx title="apps/shell/src/routes/dashboard.tsx"
+<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "pump-42" }} />
+<WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId: "valve-7" }} />
+```
+
+What happens:
+
+- Each slot is an instance with its own React root and its own owner-tagged overlay root on `body`, so the dialog is never clipped by the dashboard grid and still gets the MFE's scoped styles and the shell theme.
+- Opening both dialogs stacks them in opening order ([Modal ordering](/docs/overlays/modal-ordering)).
+- `notify` renders a toast in the shell's notification host, outside the widget root.
+- Disposing a slot removes its overlay root and any open dialog.

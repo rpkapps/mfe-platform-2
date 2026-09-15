@@ -1,0 +1,58 @@
+---
+title: Settings groups
+description: Groups place, order and label an MFE's settings in the shell. Fields in a group can depend on each other.
+---
+
+## Placement
+
+```ts
+useRegisterSettingsGroup({
+  key: "notifications",
+  title: "Notifications",
+  group: "Asset tracker", // placement section in the settings host; defaults to the MFE display name
+  order: 20,
+  icon: "bell",
+  keywords: ["alerts", "email"],
+  fields: { … },
+})
+```
+
+The settings host groups by MFE (or by `group`), orders by `order` then title, and shows `icon` when the shell supports icons.
+
+## Several groups per MFE
+
+An MFE registers as many groups as it needs; each has its own local key. Keys are namespaced (`asset-tracker:notifications`), so two MFEs can both have a `display` group.
+
+## Dependencies between fields
+
+Predicates and option providers receive the current values of the group:
+
+```ts
+fields: {
+  autoRefresh: { defaultValue: false },
+  refreshSeconds: {
+    defaultValue: 30,
+    min: 5,
+    visibleWhen: (state) => state.autoRefresh === true,
+  },
+  site: {
+    defaultValue: "",
+    options: ({ state, signal, platform }) => fetchSites(platform.tenant?.id, { signal }),
+  },
+  area: {
+    defaultValue: "",
+    disabledWhen: (state) => !state.site,
+    options: ({ state, signal }) => fetchAreas(state.site as string, { signal }),
+  },
+}
+```
+
+Custom renderers see the same values as `controller.dependencies`.
+
+## Reading values
+
+`useRegisterSettingsGroup` returns nothing: the shell settings host owns the current values (validated, persisted in local storage, shared by every instance of the MFE). Custom renderers receive them through the controller (`controller.value`, `controller.dependencies`), predicates and option providers through `state`. There is no SDK hook that reads a framework-managed value back into MFE code today; keep runtime-relevant preferences in a [`createPlatformStorage`](/docs/storage) store, or own the page with `managedBy: "mfe"`.
+
+## Ordering and discoverability
+
+Groups declared with literal definitions in the source are listed in the manifest (`settings[]`) with their fields' keys, labels, kinds and keywords, so the palette can search them before the remote loads. The settings host itself renders live registrations: the shell mounts the owning remotes headlessly on its settings page ([Lifecycle](/docs/settings#lifecycle)).

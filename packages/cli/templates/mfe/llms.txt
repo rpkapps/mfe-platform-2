@@ -1,0 +1,27 @@
+# __DISPLAY_NAME__
+
+> Platform micro-frontend (`__MFE_ID__`): TanStack Router routes under `__ROUTE_PREFIX__`, widgets, commands, settings and storage through `@platform/react`.
+
+## Project
+- [README](README.md): commands and layout
+- [AGENTS.md](AGENTS.md): canonical patterns and rules for contributors and agents
+- [llm.txt](llm.txt): one-page API and file reference
+- [mfe.config.ts](mfe.config.ts): manifest-affecting configuration
+- [src/mfe.tsx](src/mfe.tsx): bootstrap
+
+## Platform documentation
+- [Architecture](https://platform.docs.local/docs/architecture)
+- [MFE bootstrap](https://platform.docs.local/docs/mfe-bootstrap)
+- [Routing and route prefixes](https://platform.docs.local/docs/routing)
+- [Platform context](https://platform.docs.local/docs/platform-context)
+- [Commands](https://platform.docs.local/docs/commands)
+- [Settings](https://platform.docs.local/docs/settings)
+- [Storage](https://platform.docs.local/docs/storage)
+- [Widgets](https://platform.docs.local/docs/widgets)
+- [Telemetry](https://platform.docs.local/docs/telemetry)
+- [Runtime configuration](https://platform.docs.local/docs/runtime-configuration)
+- [Manifests](https://platform.docs.local/docs/manifests)
+- [Local development](https://platform.docs.local/docs/local-development)
+- [Linting](https://platform.docs.local/docs/linting)
+- [Testing](https://platform.docs.local/docs/testing)
+- [Unsupported cases](https://platform.docs.local/docs/unsupported)

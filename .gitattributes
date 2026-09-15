@@ -1,0 +1,21 @@
+# The repository is checked out and verified on Windows as well as Linux, and
+# Prettier is configured with `endOfLine: "lf"`. Without this, Git's Windows
+# default (`core.autocrlf=true`) rewrites every text file to CRLF on checkout
+# and `pnpm format:check` fails on the whole tree.
+* text=auto eol=lf
+
+# Binary assets are never converted.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.eot binary
+*.pdf binary
+*.zip binary

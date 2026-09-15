@@ -1,0 +1,105 @@
+---
+title: Failure handling
+description: Every remote boundary has clear loading, error, unavailable and retry states. A failed remote, widget, command or settings field never crashes the shell.
+---
+
+## Principles
+
+- Failures carry a `PlatformError`: code, owner (`mfeId / widget / instance`), source (manifest URL, package, key), available override, hint and a docs link.
+- The boundary that owns a failure renders it; nothing above it changes.
+- Every boundary offers a retry when a retry can help.
+- Diagnostics record the failure with the same fields; telemetry receives a summary.
+
+## Boundaries
+
+### Manifest loading
+
+`MfeOutlet` and `WidgetSlot` show a loading state while the manifest is resolved and fetched. A fetch failure (`MANIFEST_FETCH_FAILED`) retries with cache busting according to the [retry policy](/docs/retries); after the last attempt the slot shows _unavailable_ with a _Retry_ button and the URL that failed. An unknown `mfeId` (`REMOTE_UNKNOWN`) and a disabled one (`REMOTE_DISABLED`) render dedicated states without retrying. An origin outside the allowed set (`MANIFEST_ORIGIN_DENIED`) is refused before fetching.
+
+### Manifest validation
+
+An invalid manifest (`MANIFEST_INVALID`) or an incompatible protocol (`PROTOCOL_INCOMPATIBLE`) renders the error state with the offending paths or versions. No retry: the artefact must change.
+
+### Remote loading
+
+The remote entry is loaded through the loader after negotiation. Network and evaluation errors (`REMOTE_LOAD_FAILED`) retry with cache busting, then render _unavailable_ with _Retry_. The remote's own chunks (routes) are loaded by its router; a failing chunk lands in the MFE's error component.
+
+### Dependency negotiation
+
+Negotiation never fails the load: packages without a compatible provider fall back to the bundled copy and are reported (`shared.resolved`). `DEPENDENCY_INCOMPATIBLE` appears only for an unsatisfiable `singleton` and renders as an error state for that remote.
+
+### Mounting
+
+`definition.mount()` runs inside a try/catch and a `MfeErrorBoundary` of its own React. A throw during mount (`MOUNT_FAILED`) is rendered by the outlet's error state with the message and _Retry_ (which retries the remote and mounts again); a render error after mounting is caught by the boundary inside the MFE root, which offers its own _Retry_. The shell tree is unaffected.
+
+### Widget mounting
+
+Each `WidgetSlot` is its own boundary: invalid props, an unknown widget (`WIDGET_UNKNOWN`) or a throw (`WIDGET_MOUNT_FAILED`) render the slot's error state; sibling widgets and the route MFE keep running.
+
+### Route loading and guards
+
+Inside the MFE, TanStack Router semantics apply: `pendingComponent`, `errorComponent`, `notFoundComponent`, redirects. Uncaught route errors reach `createMfe({ errorComponent })` and then the platform default, a plain fallback with _Retry_ (`router.invalidate()`). See [Route guards](/docs/routing/route-guards#where-failures-land).
+
+### Commands
+
+A rejected or throwing handler moves the command to `failed` (`COMMAND_FAILED`); the palette shows the message and the next invocation starts fresh. Cancellation through `AbortSignal` is reported as `cancelled`, not as a failure.
+
+### Settings rendering
+
+A custom renderer that throws is isolated to its field: the settings host shows an inline error with _Reset_; other fields render. Invalid stored values are recovered per field (`SETTINGS_VALUE_INVALID`).
+
+### Async options
+
+A rejected provider shows the field's error state with _Retry_; the stored value is preserved. See [Async options](/docs/settings/async-options).
+
+### Help and release notes
+
+A `content` surface that throws renders an error state for that entry only.
+
+### Telemetry
+
+A throwing adapter is caught per call (`TELEMETRY_FAILED`), events are dropped and the MFE continues.
+
+### Developer tools
+
+A failing devtools chunk or panel records `devtools: failed`; the toggle stays available.
+
+## States by surface
+
+| Surface                    | Loading                            | Error                                                                                | Unavailable                   | Retry                                         |
+| -------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------- | --------------------------------------------- |
+| `MfeOutlet`                | skeleton with the MFE display name | alert with code, hint, docs link; `denied` and `disabled` states have their own copy | _unavailable_ + URL           | re-resolve manifest, invalidate loader, mount |
+| `WidgetSlot`               | skeleton sized by the slot         | inline alert                                                                         | inline notice                 | remount the instance                          |
+| Command                    | running spinner                    | failed row with message                                                              | hidden when permission denied | next invocation                               |
+| Settings field             | control skeleton                   | validation message                                                                   | stale selection notice        | reset / retry options                         |
+| Help / release notes entry | skeleton                           | entry error                                                                          | —                             | reopen                                        |
+| Breadcrumb entry           | skeleton                           | —                                                                                    | muted label                   | next loader run                               |
+
+## Customising the states
+
+```tsx
+<MfeOutlet
+  mfeId="asset-tracker"
+  routePrefix="/asset-tracker"
+  fallback={<AppSkeleton />}
+  errorFallback={(error, retry) => <ErrorPanel error={error} onRetry={retry} />}
+  onStateChange={(state) => track(state)} // "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled"
+/>
+```
+
+`outletStateFor(error)` maps a `PlatformError` to the state (`MANIFEST_FETCH_FAILED`, `REMOTE_LOAD_FAILED` → `unavailable`; `PERMISSION_DENIED` → `denied`; `REMOTE_DISABLED` → `disabled`), and `RemoteErrorState` / `LoadingState` are the default renderers. `WidgetSlot` takes the same `fallback` and `errorFallback`.
+
+Inside an MFE, `<MfeErrorBoundary fallback={…}>` and `<MfeLoading />` are the platform-styled boundary and skeleton for your own subtrees.
+
+## Reading a failure
+
+```text
+[platform:REMOTE_LOAD_FAILED] Could not load remote entry.
+  owner: asset-tracker / instance asset-tracker#1
+  source: https://remotes.example.com/asset-tracker/remoteEntry.js
+  override: ?platform.override.asset-tracker=<manifest url>
+  hint: Check that the remote entry is reachable and served with CORS headers; the host retries with cache busting.
+  docs: https://platform.docs.local/docs/failure-handling#remote-loading
+```
+
+Every code is listed in [Error codes](/docs/reference/generated/error-codes).

@@ -1,0 +1,64 @@
+---
+title: Guides
+description: Every platform feature has a guide. Start with routing and widgets, then work through isolation, shell integration, configuration and operations.
+---
+
+## Routing
+
+| Guide                                          | Covers                                                                                      |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [Folder routing](/docs/routing/folder-routing) | TanStack file routes, the generated route tree, automatic code splitting                    |
+| [Route guards](/docs/routing/route-guards)     | Native `beforeLoad`, redirects, route context, loader errors, pending and not-found states  |
+| [Shell history](/docs/routing/shell-history)   | The `ShellNavigation` contract and the private TanStack history adapter                     |
+| [Route prefixes](/docs/route-prefixes)         | Inferred and overridden prefixes, validation rules                                          |
+| [Breadcrumbs](/docs/routing/breadcrumbs)       | Static, dynamic and loader-derived labels, loading and unavailable states, custom renderers |
+
+## Remotes and isolation
+
+| Guide                                          | Covers                                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------------------------- |
+| [Widgets](/docs/widgets)                       | `createWidget`, props schemas, instances, overlays from widgets                   |
+| [React roots](/docs/isolation/react-roots)     | Why every remote has its own root and what cannot cross it                        |
+| [Dependency sharing](/docs/dependency-sharing) | Version groups, the React pair, Tecton, overrides, incompatible fallback          |
+| [Module Federation](/docs/module-federation)   | What the platform manages, what stays hidden, protocol compatibility              |
+| [CSS isolation](/docs/isolation/css-isolation) | Build-time selector scoping under the owner attribute                             |
+| [Manifests](/docs/manifests)                   | Every generated field, identity persistence, validation, `discoverable: false`    |
+| [Manifest overrides](/docs/manifest-overrides) | Precedence, query parameter, devtools, registry, cache busting, origin validation |
+| [Hidden MFEs](/docs/hidden-mfes)               | App Finder-hidden remotes that provide routes, widgets, commands or settings      |
+
+## Shell integration
+
+| Guide                                                       | Covers                                                                                                                                                              |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Commands](/docs/commands)                                  | `useRegisterCommand`, namespacing, shortcuts, async handlers, states                                                                                                |
+| [Command palette](/docs/command-palette)                    | What the shell searches and what it deliberately does not                                                                                                           |
+| [Settings](/docs/settings)                                  | Groups and fields, `managedBy` modes, [schemas](/docs/settings/schemas), [async options](/docs/settings/async-options), [custom pages](/docs/settings/custom-pages) |
+| [Storage](/docs/storage)                                    | `createPlatformStorage`, scopes, namespacing, migrations, cross-tab updates                                                                                         |
+| [Platform context](/docs/platform-context)                  | `usePlatform`, the context fields, capabilities                                                                                                                     |
+| [Permission groups](/docs/permission-groups)                | Client-side checks, preflight versus guards                                                                                                                         |
+| [Slice subscriptions](/docs/slice-subscriptions)            | `usePlatform(selector)` without unnecessary rerenders                                                                                                               |
+| [Telemetry](/docs/telemetry)                                | The provider-neutral interface, enrichment, adapters                                                                                                                |
+| [Help](/docs/help) and [Release notes](/docs/release-notes) | Registering documentation surfaces                                                                                                                                  |
+
+## Configuration
+
+| Guide                                                | Covers                                                                                                          |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [Runtime environment](/docs/runtime-environment)     | Typed `useRuntimeEnv()`, `Register` augmentation, the allow-list                                                |
+| [Runtime configuration](/docs/runtime-configuration) | The Docker entrypoint, `PLATFORM_*` variables, `/platform-config.json`, precedence                              |
+| [Overlays](/docs/overlays)                           | [Transparent overlays](/docs/overlays/transparent-overlays) and [modal ordering](/docs/overlays/modal-ordering) |
+| [Developer tools](/docs/developer-tools)             | The flag, the policy, lazy loading, the panels                                                                  |
+
+## Operations
+
+| Guide                                          | Covers                                                              |
+| ---------------------------------------------- | ------------------------------------------------------------------- |
+| [Failure handling](/docs/failure-handling)     | Every boundary and its loading, error, unavailable and retry states |
+| [Retries](/docs/retries)                       | Manifest and remote retry policies                                  |
+| [Local development](/docs/local-development)   | The harness, the SSR shell mode, HMR, restart diagnostics           |
+| [Linting](/docs/linting)                       | The shareable ESLint config and every platform rule                 |
+| [Testing](/docs/testing)                       | What the platform suite covers and what an MFE tests                |
+| [Troubleshooting](/docs/troubleshooting)       | Error codes and how to read a diagnostic                            |
+| [Migration patterns](/docs/migration-patterns) | From a single SPA, from iframes, from older MFE setups              |
+| [Unsupported cases](/docs/unsupported-cases)   | What the platform deliberately does not do                          |
+| [AI-friendly design](/docs/ai-friendly)        | `AGENTS.md`, `llm.txt`, `llms.txt`, schemas                         |

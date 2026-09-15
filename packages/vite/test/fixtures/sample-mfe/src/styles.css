@@ -1,0 +1,27 @@
+:root {
+  --sample-accent: rebeccapurple;
+}
+body {
+  margin: 0;
+}
+.sample-card {
+  color: var(--sample-accent);
+  animation: sample-fade 300ms ease-out;
+}
+@keyframes sample-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@font-face {
+  font-family: "Sample Sans";
+  src: url("sample.woff2");
+}
+@media (min-width: 640px) {
+  .sample-card {
+    padding: 1rem;
+  }
+}

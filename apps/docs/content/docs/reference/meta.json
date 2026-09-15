@@ -1,0 +1,14 @@
+{
+  "title": "Reference",
+  "pages": [
+    "index",
+    "platform-react",
+    "platform-vite",
+    "platform-cli",
+    "platform-host",
+    "manifest-schema",
+    "runtime-config-schema",
+    "diagnostics",
+    "generated"
+  ]
+}

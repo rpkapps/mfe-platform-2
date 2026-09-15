@@ -1,0 +1,66 @@
+---
+title: Settings schemas
+description: Validate settings with any Standard Schema library. Zod is first class. Migrate old values or reset them safely.
+---
+
+## Standard Schema
+
+`schema` accepts any object implementing the Standard Schema spec (Zod 4, Valibot, ArkType…). Validation is synchronous: async schemas are rejected with an explicit issue because platform validation runs on reads and commits and must not suspend.
+
+```ts
+import { z } from "zod"
+
+fields: {
+  email: { defaultValue: "", schema: z.string().email().or(z.literal("")) },
+  columns: {
+    defaultValue: ["name", "status"],
+    schema: z.array(z.enum(["name", "status", "site", "updatedAt"])).min(1),
+    options: COLUMN_OPTIONS,
+  },
+}
+```
+
+The default value must satisfy the schema; otherwise registration fails with `SETTINGS_INVALID`.
+
+## Validation on commit
+
+When a user changes a value, the controller validates it before persisting. Invalid input keeps the previous stored value, sets `controller.validation = { valid: false, message }` and shows the message next to the control. Nothing is written until the value is valid.
+
+## Migrations
+
+Bump `version` and provide `migrate` when the shape of a stored value changes:
+
+```ts
+density: {
+  defaultValue: "comfortable",
+  schema: z.enum(["comfortable", "compact"]),
+  version: 2,
+  // v1 stored booleans (compact: true/false)
+  migrate: (stored, version) => {
+    if (version === 1 && typeof stored === "boolean") return stored ? "compact" : "comfortable"
+    return undefined // reset to default
+  },
+}
+```
+
+`migrate` runs when the stored version differs from `version`, and also when a value with the current version fails the schema. Returning `undefined` resets the field. A migration that throws or returns an invalid value resets the field and reports the reason.
+
+## Invalid stored values
+
+| Situation                                         | Result                                                   |
+| ------------------------------------------------- | -------------------------------------------------------- |
+| Stored value valid                                | used (`origin: "stored"`)                                |
+| Version mismatch, migration returns a valid value | used (`origin: "migrated"`)                              |
+| Version mismatch, no migration                    | default, `validation.recovered = "default"`              |
+| Invalid value, no migration                       | default, `SETTINGS_VALUE_INVALID` reported for the field |
+| Migration throws                                  | default, message `migration failed: …`                   |
+
+Only the affected field is touched. The settings host shows a _Reset_ action that clears the stored envelope; the [developer tools](/docs/developer-tools) list `settings.invalid` diagnostics.
+
+## Reset
+
+`controller.reset()` and the settings host's _Reset_ action remove the stored envelope, so the next read yields `defaultValue`.
+
+## Serialisation
+
+Values are stored as JSON. For values that are not JSON-friendly, provide `serialize: { stringify, parse }`; the schema validates the parsed value.

@@ -1,0 +1,83 @@
+---
+title: Manifest overrides
+description: Point the shell at a different manifest URL per mfeId at runtime or in local development, without touching source code.
+---
+
+## Precedence
+
+For every `mfeId` the host resolves the manifest URL in this order:
+
+1. **Explicit local override**: `?platform.override.<mfeId>=<url>` on the page URL, or `localStorage["platform:manifest-overrides"]` (a JSON object `{ "<mfeId>": "<url>" }`, edited through the devtools).
+2. **Runtime configuration**: `mfes.<mfeId>.manifestUrl` from `/platform-config.json` or the inline document.
+3. **Registry**: the `registry` passed to `createPlatformHost`.
+4. **Generated default**: `<registry base>/<mfeId>/platform-manifest.json`.
+
+The chosen URL and its source (`query`, `override`, `runtime-config`, `registry`, `default`) are recorded in the `manifest.resolved` diagnostic and shown in the developer tools.
+
+## Query parameter
+
+```text
+https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
+```
+
+The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("asset-tracker", null)`, from the harness _Remotes_ page, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
+
+## Developer tools
+
+The _Overview_ tab lists every known `mfeId` with the effective URL and its source; the harness _Remotes_ page adds an override editor. Setting an override invalidates the loader cache for that remote.
+
+## Registry
+
+```ts title="apps/shell/src/lib/registry.ts"
+export const registry = [
+  {
+    mfeId: "asset-tracker",
+    manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json",
+    displayName: "Asset Tracker",
+  },
+  {
+    mfeId: "legacy-reports",
+    manifestUrl: "https://legacy.example.com/reports/platform-manifest.json",
+    displayName: "Legacy Reports",
+  },
+  {
+    mfeId: "widget-a",
+    manifestUrl: "/mfes/widget-a/platform-manifest.json",
+    displayName: "Widget Library A",
+    discoverable: false,
+  },
+  { mfeId: "old-remote", manifestUrl: "…", enabled: false },
+]
+
+const host = createPlatformHost({
+  runtimeConfig,
+  registry,
+  navigation,
+  policy: { allowedOrigins: ["https://legacy.example.com"] },
+})
+```
+
+A `RegistryEntry` is `{ mfeId, manifestUrl?, displayName?, enabled?, preload?, routePrefix?, discoverable? }`; without `manifestUrl` the default is `/mfes/<mfeId>/platform-manifest.json` (`defaultManifestUrl` option). `host.remotes.register(entry)` adds or refreshes an entry at runtime (the harness does this for every connected manifest). Requesting an `mfeId` that is in neither the registry nor the runtime configuration fails with `REMOTE_UNKNOWN`.
+
+## Cache busting
+
+Manifests are fetched with `cache: "no-store"` semantics bounded by `cache.manifestMaxAgeSeconds` (default 60) and re-fetched with a `?t=<timestamp>` parameter on retry (`cache.bustOnRetry`). Dev manifests (`dev.hmr = true`) are never cached. The loader's own module cache is invalidated when the manifest URL or `dev.configHash` changes.
+
+## Retry
+
+`retry.attempts` (default 2) and `retry.backoffMs` (default 500, exponential) apply to manifest fetches and remote entry loads. Each attempt emits `manifest.retry` / `remote.failed` with the attempt number. See [Retries](/docs/retries).
+
+## Origin validation
+
+Before fetching, the host checks the manifest URL's origin, and after loading it checks `remote.baseUrl`, against the allowed set:
+
+- the shell's own origin,
+- `allowedOrigins` from the runtime configuration (global and per MFE) and from `policy.allowedOrigins`,
+- `remote.allowedOrigins` declared in the manifest (for asset origins only, once the manifest itself came from an allowed origin),
+- `localhost` / `127.0.0.1` in non-production environments.
+
+Anything else fails with `MANIFEST_ORIGIN_DENIED` naming the origin. Add it to `allowedOrigins` (`PLATFORM_ALLOWED_ORIGINS` or `PLATFORM_MFE_<ID>_ALLOWED_ORIGINS`) or serve the manifest from the shell origin.
+
+## Preload
+
+`remote.preload` in the manifest (`none` | `entry` | `eager`) and `mfes.<mfeId>.preload` in the runtime configuration control what happens before the MFE is needed: `entry` fetches the remote entry when the MFE is discoverable, `eager` also evaluates the definition so static registrations (commands, help) are live immediately. `loadPolicy` in the manifest is the remote's default; the runtime configuration wins.

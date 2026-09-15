@@ -1,0 +1,53 @@
+---
+title: Route prefixes
+description: Each MFE owns a route subtree under a prefix inferred from its mfeId and overridable for legacy or custom URLs.
+---
+
+## Default
+
+The prefix is `/${mfeId}`: the `asset-tracker` MFE is mounted under `/asset-tracker`, and its route `/assets/$assetId` is reachable at `/asset-tracker/assets/pump-42`.
+
+## Override
+
+```ts title="mfe.config.ts"
+import { defineMfeConfig } from "@platform/vite/config"
+
+export default defineMfeConfig({ routePrefix: "/legacy/reports" })
+```
+
+The prefix is written to the manifest (`routePrefix`) and used by the shell to mount the remote and by the SDK as the router `basepath`. Route files keep their relative paths; nothing else changes.
+
+## Rules
+
+A prefix:
+
+- starts with `/`,
+- contains one or more lowercase segments (`a-z`, `0-9`, `-`, `_`, `.`),
+- has no trailing slash,
+- may be `/` only for a shell-level remote that owns the whole tree (rare).
+
+Invalid prefixes fail the build with `ROUTE_PREFIX_INVALID` and are rejected by manifest validation in the host.
+
+```text
+/asset-tracker        ✓
+/legacy/reports       ✓
+/Assets               ✗ uppercase
+/assets/              ✗ trailing slash
+assets                ✗ missing leading slash
+```
+
+## Matching in the shell
+
+`host.remotes.matchRoute(pathname)` and `mfeRouteHelpers({ host }).matchMfeForPath(pathname)` pick the **longest** registered prefix (from loaded manifests, then registry entries); widget libraries never match. Nested prefixes (`/reports` and `/reports/legacy`) therefore resolve to the more specific remote, but choose distinct top-level segments per MFE to keep URLs readable.
+
+## Inside the MFE
+
+`useMfeInstance().routePrefix` and `useNavigation().routePrefix` expose the effective prefix. `navigateWithin(path)` prepends it; `navigate(href)` does not.
+
+```tsx
+const { routePrefix } = useMfeInstance() // "/legacy/reports"
+```
+
+## Widget-only remotes
+
+Widget libraries (`kind: "widget-library"`) have no route tree and no prefix. `routePrefix` is `undefined` in their bridge.

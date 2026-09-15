@@ -1,0 +1,127 @@
+---
+title: Telemetry
+description: A small, provider-neutral telemetry interface. The shell supplies the adapter; the SDK enriches every call and never imports a vendor.
+---
+
+## Interface
+
+```ts
+interface Telemetry {
+  track(event: string, attributes?: TelemetryAttributes): void
+  error(error: unknown, attributes?: TelemetryAttributes): void
+  span(name: string, attributes?: TelemetryAttributes): TelemetrySpan
+  child(context: TelemetryContext): Telemetry
+  readonly context: TelemetryContext
+}
+
+interface TelemetrySpan {
+  end(attributes?: TelemetryAttributes): void
+  fail(error: unknown, attributes?: TelemetryAttributes): void
+  child(name: string, attributes?: TelemetryAttributes): TelemetrySpan
+}
+```
+
+Attributes are flat records of strings, numbers, booleans or null.
+
+## Using it
+
+```tsx
+import { useTelemetry } from "@platform/react"
+
+function ExportButton() {
+  const telemetry = useTelemetry()
+  const onPress = async () => {
+    const span = telemetry.span("export-report", { format: "csv" })
+    try {
+      await exportReport()
+      telemetry.track("report.exported", { format: "csv" })
+      span.end({ rows: 1200 })
+    } catch (error) {
+      span.fail(error)
+      telemetry.error(error, { action: "export" })
+    }
+  }
+  return <Button onPress={onPress}>Export</Button>
+}
+```
+
+In loaders and guards use `context.platform.telemetry`; in command handlers use `platform.telemetry`. See the [span-in-loader recipe](/docs/recipes/telemetry-span-in-loader).
+
+## Enrichment
+
+The SDK derives a child telemetry per mount and per surface, so every call carries:
+
+| Attribute                                 | Source                                 |
+| ----------------------------------------- | -------------------------------------- |
+| `mfeId`, `instanceId`, `widgetId`         | mount                                  |
+| `route`                                   | current route id (route MFEs)          |
+| `command`                                 | qualified id inside command handlers   |
+| `boundary`                                | which error boundary reported an error |
+| `environment`, `release`, `remoteRelease` | runtime configuration and manifest     |
+| `sessionId`, `userId`                     | context (when the host exposes them)   |
+| shared dependency summary                 | on mount events                        |
+
+`telemetry.child({ feature: "bulk-edit" })` adds attributes for a subtree.
+
+## Adapters
+
+The host implements `TelemetryAdapter`:
+
+```ts
+interface TelemetryAdapter {
+  track(event: string, attributes: TelemetryAttributes): void
+  error(error: unknown, attributes: TelemetryAttributes): void
+  spanStart?(
+    name: string,
+    attributes: TelemetryAttributes
+  ): { end(attrs): void; fail(error, attrs): void } | void
+}
+```
+
+Built-in helpers: `createConsoleTelemetryAdapter()` for local development, `createMemoryTelemetryAdapter()` for tests and the devtools event stream, `composeTelemetryAdapters(...adapters)` to fan out (vendor + memory). Without `spanStart`, spans are emitted as `span:<name>` events with `span.duration_ms`.
+
+## FARO recipe
+
+The SDK never imports Grafana Faro. A shell that uses it writes the adapter:
+
+```ts title="apps/shell/src/telemetry.ts"
+import { faro } from "@grafana/faro-web-sdk"
+import type { TelemetryAdapter } from "@platform/host"
+
+export const faroAdapter: TelemetryAdapter = {
+  track: (event, attributes) => faro.api.pushEvent(event, stringify(attributes)),
+  error: (error, attributes) =>
+    faro.api.pushError(toError(error), { context: stringify(attributes) }),
+  spanStart: (name, attributes) => {
+    const span = faro.api.getOTEL()?.trace.getTracer("platform").startSpan(name, { attributes })
+    return {
+      end: (attrs) => {
+        span?.setAttributes(attrs)
+        span?.end()
+      },
+      fail: (error, attrs) => {
+        span?.recordException(toError(error))
+        span?.setAttributes(attrs)
+        span?.end()
+      },
+    }
+  },
+}
+
+const stringify = (a: TelemetryAttributes) =>
+  Object.fromEntries(Object.entries(a).map(([k, v]) => [k, String(v)]))
+```
+
+Pass it to `createPlatformHost({ telemetry: faroAdapter })`. The console and memory adapters (`createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`) and `composeTelemetryAdapters` are exported by `@platform/host`, so a shell can fan out to Faro and to the in-memory stream the developer tools read; `host.telemetryEvents()` returns the events recorded by the host.
+
+## One failure, one event
+
+A failure travels several channels on its way out: the call site that catches it reports it with its `boundary`, it is emitted as a diagnostic (which the bus forwards to telemetry), and the span it failed inside reports it too. The adapter sees it once. De-duplication is by error identity over the whole telemetry tree — a remote's bridge telemetry is a child of the shell's — so the same instance reported from three places is one event, while two attempts that each throw their own error stay two events.
+
+The event that survives is the first one, and it carries the error that was thrown: its class, its `code`, its `hint` and docs link, its `cause` and the stack from the throw site. Diagnostics that carry a failure pass the live error alongside the serialised form (`errorInstance`), so the forward does not have to reconstruct one; only an event that crossed a boundary already serialised — a remote's diagnostics, a replayed snapshot — is rebuilt, and then the code, hint and docs link are still recovered from `ERROR_CODES`.
+
+Diagnostics are unaffected: every event is still recorded, so the developer tools and `host.diagnostics.list()` show each step of a failure even though telemetry reports it once.
+
+## Failure isolation
+
+Telemetry is optional: without an adapter every call is a no-op. With an adapter, every call is wrapped; an adapter that throws never breaks an MFE. The error is reported once per operation as `TELEMETRY_FAILED` (a `telemetry.failed` diagnostic and a console warning), the event is dropped, and the MFE keeps running. An unavailable telemetry provider never prevents an MFE from starting.

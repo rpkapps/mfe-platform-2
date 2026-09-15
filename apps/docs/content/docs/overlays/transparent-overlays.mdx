@@ -1,0 +1,48 @@
+---
+title: Transparent overlays
+description: The Tecton portal provider adapter gives every MFE an owner-tagged, body-level overlay root, so scoped styles and theme tokens apply to dialogs that escape the MFE container.
+---
+
+## The problem
+
+CSS is scoped under `[data-mfe="asset-tracker"]` and the MFE root is a `div` somewhere in the shell layout. A dialog rendered inside that `div` would be clipped by `overflow`, stacking contexts and transforms of the layout. A dialog portalled to `document.body` escapes the layout but also escapes the scoped styles.
+
+## The adapter
+
+`withTecton(definition)` (from `@platform/react/tecton`, applied automatically by the generated entry when Tecton is enabled) adds an enhancer that wraps every root of the MFE in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with the per-mount container from `useOverlayContainer()`:
+
+```tsx
+// what withTecton does
+function TectonPortal({ children }) {
+  const container = useOverlayContainer() // created lazily by the shell overlay manager, disposed with the mount
+  return <PortalProvider container={container}>{children}</PortalProvider>
+}
+```
+
+Non-Tecton MFEs use the same hook directly: `createPortal(<Modal />, useOverlayContainer())` takes part in the global modal ordering (the React 18 fixtures do this).
+
+React Aria components (`Dialog`, `Popover`, `Menu`, `Tooltip`, `ComboBox` listbox, `Select` popover, Tecton `Command` dialogs) read the portal container from that provider. Because the root element carries `data-mfe`, `data-platform-instance` and the theme class, scoped selectors, custom properties and dark-mode tokens match inside it exactly as inside the MFE container.
+
+## Theme sync
+
+The `dark` class of the MFE root and of its overlay root follows `resolvedTheme` from the platform context (kept in step by the mount scope, independently of `withTecton`), so a shell theme switch restyles open dialogs immediately.
+
+## Widgets
+
+Each widget instance gets its own root (`data-platform-widget="asset-card"`), so two instances of the same widget can open overlays independently and are disposed independently.
+
+## Contained mode
+
+For embedded previews or storybook-like surfaces, ask the manager for a root inside the owner container:
+
+```ts
+bridge.overlays.createRoot({ owner, contained: true, container: myElement })
+```
+
+Overlays then render inside the container (positioned relative to it) and still get the owner attribute.
+
+## What is not done
+
+- No `document.body` patching, no global `createPortal` wrapper, no monkeypatched Tecton components.
+- No Shadow DOM.
+- No overlay configuration in MFE code.

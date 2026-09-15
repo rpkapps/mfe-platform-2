@@ -1,0 +1,65 @@
+---
+title: Local development
+description: Run an MFE alone in the local shell harness, or through a real SSR shell with a manifest override. Both give HMR, a realistic context and every shell surface.
+---
+
+## Mode 1: the harness
+
+```bash
+pnpm dev
+```
+
+`platform dev` starts the Vite dev server for the remote (default port 5173) and serves the **local shell harness** at `/__platform/harness/`. The harness is a self-contained shell (`@platform/host/harness`, built by `@platform/host` into `dist/harness/` and served by the `@platform/vite` dev plugin) that connects to `/platform-manifest.json` (or the URLs in `?manifest=`) with:
+
+- a realistic context: a user with permission groups, tenant, project, job, locale, theme, feature flags,
+- **Remotes**: every connected remote with its manifest URL, an `HMR` badge for dev manifests, retry, and an editor for the allow-listed runtime env of each remote (applied through the runtime configuration),
+- **Widgets playground**: mount any widget of the remote, several instances at once, with editable props,
+- **Settings**, **Help** and **Release notes** pages backed by the real `SettingsHost`, `HelpSlot` and `ReleaseNotesSlot`,
+- the command palette, breadcrumbs, notifications, overlays through the real overlay manager and the developer tools (policy `always`),
+- **Failure lab**: manifest 404, dropped capabilities, denied permission groups, incompatible shared dependencies and unavailable remotes, switchable at runtime.
+
+The harness is a normal `createPlatformHost` user (`hostKind: "harness"`, environment `local`, manifest cache off, one retry), so what works there works in the shell. When `@platform/host` is not installed, the dev server shows a fallback page with the dev manifest instead; `harness.enabled: false` in `mfe.config.ts` (or `platform dev --no-harness`) turns the endpoint off.
+
+## Mode 2: an SSR shell with an override
+
+Run your organisation's shell locally (or use a staging shell) and point it at your dev server:
+
+```text
+https://shell.local:4100/asset-tracker?platform.override.asset-tracker=http://localhost:5173/platform-manifest.json
+```
+
+The override is kept in `localStorage["platform:manifest-overrides"]` ([Manifest overrides](/docs/manifest-overrides)). The dev manifest carries `dev.hmr = true`, `dev.origin`, `dev.refreshPreamble` and `dev.configHash`; the host imports the preamble before loading so React Refresh is installed for the remote's React instance, then loads the remote through the normal loader. Shell state (route, context, palette) is preserved while the remote updates. See the [staging recipe](/docs/recipes/local-override-against-staging).
+
+The monorepo's conformance shell runs both modes: `pnpm dev:conformance` starts the shell on 4110 and every fixture remote in development mode.
+
+## HMR
+
+- Component edits hot-swap inside the remote's React root; the shell and other remotes do not re-render (the E2E suite edits a React 19 route and a React 18 widget and checks that the shell counter and the other roots keep their state).
+- React 18 and React 19 refresh runtimes are installed per React instance (`/@platform/refresh-preamble`) and never mixed.
+- Widget instances refresh independently; state held in the shell (slot props, open panels) survives.
+- The dev manifest is never cached by the host (`dev.hmr = true`).
+- Route files hot-update against the remote's **own** router: `@platform/vite` rewrites the router plugin's HMR glue from `window.__TSR_ROUTER__` (the shell's router, whose root route is also `__root__`) to a per-remote registry the SDK maintains while the MFE is mounted.
+- A development server runs on **its own copies** of the shared packages: `@platform/vite` registers them in a private share scope (`react19:dev:<mfeId>`), so the remote's pre-bundled dependencies, its components and its refresh runtime all use one React instance. Sharing with the shell is negotiated by production builds only; the shared-dependency report of a dev remote says so (`development server: own copy`).
+
+## Restart diagnostics
+
+Some inputs are read once at startup: `mfe.config.ts` (and its imports), `package.json` (shared dependency requests, federation configuration) and the generated route tree. When one of them changes while `platform dev` runs:
+
+1. the dev server re-resolves the configuration; when the config hash differs it sets `dev.restartRequired: true` and `dev.restartReason` (`A manifest-affecting input changed (mfe.config.ts)`, `The generated route tree changed (src/routeTree.gen.ts)`) on the dev manifest,
+2. `platform dev` logs the `DEV_RESTART_REQUIRED` diagnostic and sends a `platform:restart-required` event over the Vite websocket,
+3. the host and the harness show the **restart required** state instead of a stale or partially updated remote.
+
+Restart the dev server; the diagnostic clears when the new manifest loads.
+
+## HMR-capable versus production artefacts
+
+Only manifests produced by a development server carry a `dev` block. Production artefacts have none and are **never** shown as HMR-capable, even when served from `localhost` (`vite preview`). The harness _Remotes_ page shows an `HMR` badge only for dev manifests; an artefact next to a dev server of the same `mfeId` is a common source of "my change does not show" confusion, and the page shows which one is loaded and from which URL.
+
+## Ports
+
+| App                                                       | Port                                                        |
+| --------------------------------------------------------- | ----------------------------------------------------------- |
+| Harness (inside the remote's dev server)                  | the remote's port (5173 by default), `/__platform/harness/` |
+| Conformance shell (production build / dev)                | 4100 / 4110                                                 |
+| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite    |
+| Unavailable-remote fixture                                | 4999 (nothing listens)                                      |

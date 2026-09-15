@@ -1,0 +1,47 @@
+---
+title: Command palette
+description: The shell owns the palette UI and its search index. MFEs contribute commands and metadata; business data is out of scope.
+---
+
+## What the shell searches
+
+| Source                     | Entries                                                                            | Available before loading the remote?                                                    |
+| -------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [Commands](/docs/commands) | label, description, keywords, group, shortcut                                      | static ones (`registrations.commands`, manifest) yes; hook-registered ones once mounted |
+| MFE navigation metadata    | `navigation.title`, `keywords` from the manifest and route `staticData.navigation` | yes                                                                                     |
+| Settings groups and fields | titles, labels, keywords ([Settings](/docs/settings))                              | groups yes (manifest); fields for framework-managed groups                              |
+| Help entries               | title, description, keywords                                                       | static ones yes                                                                         |
+| Release notes              | version, title, keywords                                                           | static ones yes                                                                         |
+| Breadcrumbs                | current trail entries, when the host enables it                                    | active MFE only                                                                         |
+
+Permission groups filter results: a command or route the user cannot use is not shown.
+
+## Rendering
+
+```tsx title="apps/shell/src/routes/__root.tsx"
+import { CommandPalette } from "@platform/host/react"
+
+;<CommandPalette
+  hotkey="mod+k"
+  placeholder="Search commands, pages, settings…"
+  settingsPath="/settings"
+  helpPath="/help"
+  releaseNotesPath="/release-notes"
+/>
+```
+
+Props: `hotkey` (default `mod+k`; `null` disables the shortcut), `placeholder`, `open` / `onOpenChange` for a controlled dialog, `settingsPath` (setting results navigate to `<settingsPath>?group=<key>&field=<key>`), `helpPath`, `releaseNotesPath` and `limit`. The component is a Tecton command dialog over the host search index, grouped by source (`command`, `navigate`, `setting`, `help`, `release-note`, `breadcrumb`), with running, failed and done badges for async commands. Shortcuts are dispatched by the single keyboard listener `PlatformProvider` installs.
+
+## Programmatic access
+
+```ts
+await host.commands.run("asset-tracker:slow-sync", { source: "api" }) // { qualifiedId, outcome, durationMs, error? }
+host.commands.abort("asset-tracker:slow-sync")
+host.commands.running() // qualified ids
+host.registries.commands.list() // RegisteredCommand[]
+host.registries.commands.conflicts() // { shortcut, holder, rejected }[]
+```
+
+## Not business data
+
+The first release does not search business entities (assets, reports, users). Commands may implement their own pickers after being invoked (a "Go to asset…" command that opens a Tecton `Combobox`), but the palette index stays limited to the sources above. This keeps the index static, permission-aware and fast, and avoids leaking data through metadata. General business-data search is listed under [Unsupported cases](/docs/unsupported-cases).

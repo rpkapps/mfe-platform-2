@@ -1,0 +1,47 @@
+---
+title: Unsupported cases
+description: What the platform deliberately does not do, and what to use instead.
+---
+
+## Untrusted third-party remotes
+
+Remotes run in the shell's origin with full DOM and network access. Isolation of React roots, CSS and storage keys is an engineering boundary, not a security boundary. **Untrusted code requires an iframe** with its own origin and a `postMessage` protocol. The platform loads only remotes from allowed origins that your organisation controls.
+
+## React elements and hooks across roots
+
+Every MFE and widget renders in its own React root. React elements, components, hooks, contexts and refs cannot cross roots, even when React is shared. Cross-root surfaces are metadata plus `mount/dispose`; the SDK wraps components for you where a surface is expected (widgets, help content, settings renderers). See [React roots](/docs/isolation/react-roots).
+
+## Secrets in runtime configuration
+
+Runtime configuration is delivered to the browser. It must never contain secrets; the entrypoint refuses sensitive-looking variable names and nothing else guards against a secret placed under an innocent name. Keep credentials on the server and exchange them for scoped, short-lived tokens through your API.
+
+## Client-side groups are not authorization
+
+Permission groups in the browser gate routes and UI. They are visible and editable by the user. Every backend service authorizes each request independently. See [Permission groups](/docs/permission-groups).
+
+## Automatic field-level search for custom settings pages
+
+`managedBy: "mfe"` pages are opaque to the shell. Fields inside them are searchable only when declared as metadata in `fields` (or when the page also registers framework-managed groups). An arbitrary component cannot be indexed. See [Custom settings pages](/docs/settings/custom-pages).
+
+## Raw browser storage
+
+`window.localStorage` and `window.sessionStorage` are outside the platform settings and storage contract: no namespacing, no validation, no diagnostics, no cross-tab semantics, no devtools visibility. Use [`createPlatformStorage`](/docs/storage); the lint rule reports raw access. The platform does not patch browser storage to catch it at runtime.
+
+## Direct MFE-to-MFE imports
+
+An MFE cannot `import` from another MFE, at build time or at runtime. Share code through a published package (versioned, negotiated like any dependency) or expose behaviour through platform contracts: widgets, commands, routes, the context. Cross-MFE imports would couple deployments and defeat isolation.
+
+## Business-data search in the command palette
+
+The palette searches commands, navigation metadata, settings, help, release notes and breadcrumbs. It does not index business entities. Commands can open their own pickers after invocation. See [Command palette](/docs/command-palette).
+
+## Bypassing platform APIs
+
+Registration, storage, telemetry and context must go through the platform APIs (`@platform/react`). Reaching into `window`, the shell's DOM, another root's React or the loader internals is unsupported and flagged by the lint rules where statically detectable.
+
+## Other non-goals
+
+- No Shadow DOM mode for remotes (Tecton overlays, fonts and theming need the light DOM).
+- No second router abstraction: MFEs use TanStack Router; shells may use anything that can implement `ShellNavigation`.
+- No server-side rendering of MFEs: only the shell is server-rendered; loaders and guards run on the client after mount.
+- No automatic data migration when an `mfeId` is renamed.

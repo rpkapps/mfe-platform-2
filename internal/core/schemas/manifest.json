@@ -1,0 +1,800 @@
+{
+  "$id": "https://platform.docs.local/schemas/manifest.json",
+  "title": "manifest",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "type": "number",
+      "const": 1
+    },
+    "protocolVersion": {
+      "default": "1.0",
+      "type": "string"
+    },
+    "mfeId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "kind": {
+      "default": "mfe",
+      "type": "string",
+      "enum": [
+        "mfe",
+        "widget-library"
+      ]
+    },
+    "version": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "buildId": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        },
+        "builtAt": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "version"
+      ]
+    },
+    "entry": {
+      "type": "object",
+      "properties": {
+        "loader": {
+          "type": "string",
+          "const": "module-federation"
+        },
+        "name": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "expose": {
+          "default": "./mfe",
+          "type": "string"
+        },
+        "type": {
+          "default": "module",
+          "type": "string",
+          "enum": [
+            "module",
+            "var"
+          ]
+        },
+        "loaderManifest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "loader",
+        "name",
+        "file"
+      ]
+    },
+    "remote": {
+      "default": {
+        "baseUrl": "./",
+        "preload": "none"
+      },
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "default": "./",
+          "type": "string"
+        },
+        "allowedOrigins": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "preload": {
+          "default": "none",
+          "type": "string",
+          "enum": [
+            "none",
+            "entry",
+            "eager"
+          ]
+        }
+      }
+    },
+    "routePrefix": {
+      "type": "string"
+    },
+    "routes": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "fullPath": {
+            "type": "string"
+          },
+          "file": {
+            "type": "string"
+          },
+          "guarded": {
+            "default": false,
+            "type": "boolean"
+          },
+          "breadcrumb": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "dynamic": {
+                    "type": "boolean"
+                  },
+                  "hidden": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            ]
+          },
+          "navigation": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "keywords": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "icon": {
+                "type": "string"
+              },
+              "order": {
+                "type": "number"
+              },
+              "hidden": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "title"
+            ]
+          },
+          "permissionGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "path",
+          "fullPath",
+          "file"
+        ]
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "category": {
+          "type": "string"
+        },
+        "order": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "title"
+      ]
+    },
+    "discoverable": {
+      "default": true,
+      "type": "boolean"
+    },
+    "enabled": {
+      "default": true,
+      "type": "boolean"
+    },
+    "loadPolicy": {
+      "default": "lazy",
+      "type": "string",
+      "enum": [
+        "lazy",
+        "preload",
+        "eager"
+      ]
+    },
+    "permissionGroups": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capabilities": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "navigation",
+          "context",
+          "storage.local",
+          "storage.session",
+          "telemetry",
+          "commands",
+          "settings",
+          "help",
+          "release-notes",
+          "breadcrumbs",
+          "overlays",
+          "notifications",
+          "runtime-env",
+          "widgets"
+        ]
+      }
+    },
+    "commands": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "shortcut": {
+            "type": "string"
+          },
+          "permissionGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "route": {
+            "type": "string"
+          },
+          "static": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      }
+    },
+    "settings": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "managedBy": {
+            "default": "framework",
+            "type": "string",
+            "enum": [
+              "framework",
+              "mfe"
+            ]
+          },
+          "route": {
+            "type": "string"
+          },
+          "fields": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "boolean",
+                    "text",
+                    "number",
+                    "select",
+                    "multi-select",
+                    "unknown"
+                  ]
+                },
+                "keywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "key"
+              ]
+            }
+          }
+        },
+        "required": [
+          "key",
+          "title"
+        ]
+      }
+    },
+    "help": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "href": {
+            "type": "string"
+          },
+          "route": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ]
+      }
+    },
+    "releaseNotes": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          },
+          "version": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "href": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "version",
+          "title"
+        ]
+      }
+    },
+    "widgets": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "propsSchema": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "permissionGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    },
+    "breadcrumbs": {
+      "default": {
+        "renderer": "shell"
+      },
+      "type": "object",
+      "properties": {
+        "rootLabel": {
+          "type": "string"
+        },
+        "renderer": {
+          "default": "shell",
+          "type": "string",
+          "enum": [
+            "shell",
+            "mfe"
+          ]
+        }
+      }
+    },
+    "shared": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "requiredVersion": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "singleton": {
+            "default": false,
+            "type": "boolean"
+          },
+          "shared": {
+            "default": true,
+            "type": "boolean"
+          },
+          "reason": {
+            "default": "inferred",
+            "type": "string",
+            "enum": [
+              "inferred",
+              "configured",
+              "source-package",
+              "per-remote",
+              "disabled",
+              "pinned"
+            ]
+          },
+          "pairedWith": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "requiredVersion",
+          "scope"
+        ]
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "properties": {
+        "react": {
+          "type": "object",
+          "properties": {
+            "requiredVersion": {
+              "type": "string"
+            },
+            "major": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "builtWith": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "requiredVersion",
+            "major"
+          ]
+        },
+        "reactDom": {
+          "type": "object",
+          "properties": {
+            "requiredVersion": {
+              "type": "string"
+            },
+            "major": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "builtWith": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "requiredVersion",
+            "major"
+          ]
+        },
+        "tanstackRouter": {
+          "type": "object",
+          "properties": {
+            "requiredVersion": {
+              "type": "string"
+            },
+            "builtWith": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "requiredVersion"
+          ]
+        },
+        "platformReact": {
+          "type": "object",
+          "properties": {
+            "requiredVersion": {
+              "type": "string"
+            },
+            "builtWith": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "requiredVersion"
+          ]
+        }
+      },
+      "required": [
+        "react"
+      ]
+    },
+    "tecton": {
+      "default": {
+        "enabled": false,
+        "foundation": "shell"
+      },
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": "string"
+        },
+        "cssProtocol": {
+          "type": "string"
+        },
+        "tokens": {
+          "type": "string"
+        },
+        "foundation": {
+          "default": "shell",
+          "type": "string",
+          "enum": [
+            "shell",
+            "bundled"
+          ]
+        }
+      },
+      "required": [
+        "enabled"
+      ]
+    },
+    "css": {
+      "default": {
+        "ownerAttribute": "data-mfe",
+        "scoped": true,
+        "assets": []
+      },
+      "type": "object",
+      "properties": {
+        "ownerAttribute": {
+          "default": "data-mfe",
+          "type": "string"
+        },
+        "scoped": {
+          "default": true,
+          "type": "boolean"
+        },
+        "assets": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "env": {
+      "default": {
+        "keys": {}
+      },
+      "type": "object",
+      "properties": {
+        "keys": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "description": {
+                "type": "string"
+              },
+              "public": {
+                "default": true,
+                "type": "boolean",
+                "const": true
+              },
+              "default": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "dev": {
+      "type": "object",
+      "properties": {
+        "hmr": {
+          "type": "boolean"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "refreshPreamble": {
+          "type": "string"
+        },
+        "configHash": {
+          "type": "string"
+        },
+        "restartRequired": {
+          "type": "boolean"
+        },
+        "restartReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "hmr"
+      ]
+    }
+  },
+  "required": [
+    "mfeId",
+    "version",
+    "release",
+    "entry",
+    "runtime"
+  ]
+}

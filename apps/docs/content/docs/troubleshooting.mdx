@@ -1,0 +1,77 @@
+---
+title: Troubleshooting
+description: How to read a platform diagnostic and where each error code leads.
+---
+
+## Reading a diagnostic
+
+```text
+[platform:MANIFEST_ORIGIN_DENIED] Manifest origin https://cdn.other.com is not allowed.
+  owner: asset-tracker
+  source: https://cdn.other.com/asset-tracker/platform-manifest.json
+  override: PLATFORM_ALLOWED_ORIGINS or mfes.asset-tracker.allowedOrigins
+  hint: Add the origin to `allowedOrigins` in the host configuration or use a same-origin manifest URL.
+  docs: https://platform.docs.local/docs/manifest-overrides#origin-validation
+```
+
+1. **code**: stable identifier, listed below.
+2. **owner**: which MFE, widget or instance the failure belongs to.
+3. **source**: the artefact that caused it (URL, package, key).
+4. **override**: the switch an operator or developer can use right now.
+5. **hint** and **docs**: what to do and where to read.
+
+The same fields appear in the boundary UI, the developer tools _Events_ panel, `PlatformError.toJSON()` and telemetry.
+
+## Error codes
+
+The full list with hints is generated from the source of truth: [Error codes](/docs/reference/generated/error-codes).
+
+| Code                          | Read                                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `MANIFEST_FETCH_FAILED`       | [Failure handling → manifest loading](/docs/failure-handling#manifest-loading), [Retries](/docs/retries) |
+| `MANIFEST_INVALID`            | [Manifests → validation](/docs/manifests#validation)                                                     |
+| `MANIFEST_ORIGIN_DENIED`      | [Manifest overrides → origin validation](/docs/manifest-overrides#origin-validation)                     |
+| `PROTOCOL_INCOMPATIBLE`       | [Module Federation → protocol compatibility](/docs/module-federation#protocol-compatibility)             |
+| `REMOTE_LOAD_FAILED`          | [Failure handling → remote loading](/docs/failure-handling#remote-loading)                               |
+| `REMOTE_DISABLED`             | [Runtime configuration → per-MFE enablement](/docs/runtime-configuration#per-mfe-enablement)             |
+| `REMOTE_UNKNOWN`              | [Manifest overrides → registry](/docs/manifest-overrides#registry)                                       |
+| `DEPENDENCY_INCOMPATIBLE`     | [Dependency sharing → incompatible fallback](/docs/dependency-sharing#incompatible-fallback)             |
+| `MOUNT_FAILED`                | [Failure handling → mounting](/docs/failure-handling#mounting)                                           |
+| `WIDGET_UNKNOWN`              | [Widgets → registration](/docs/widgets#registration)                                                     |
+| `WIDGET_MOUNT_FAILED`         | [Widgets → failure isolation](/docs/widgets#failure-isolation)                                           |
+| `PERMISSION_DENIED`           | [Permission groups → preflight](/docs/permission-groups#preflight)                                       |
+| `CAPABILITY_UNAVAILABLE`      | [Platform context → capabilities](/docs/platform-context#capabilities)                                   |
+| `SHORTCUT_CONFLICT`           | [Commands → shortcut conflicts](/docs/commands#shortcut-conflicts)                                       |
+| `COMMAND_INVALID`             | [Commands → definition](/docs/commands#definition)                                                       |
+| `COMMAND_FAILED`              | [Commands → failure states](/docs/commands#failure-states)                                               |
+| `SETTINGS_INVALID`            | [Settings → definition](/docs/settings#definition)                                                       |
+| `SETTINGS_VALUE_INVALID`      | [Settings → invalid stored values](/docs/settings#invalid-stored-values)                                 |
+| `STORAGE_INVALID`             | [Storage → malformed data](/docs/storage#malformed-data)                                                 |
+| `STORAGE_UNAVAILABLE`         | [Storage → unavailable](/docs/storage#unavailable)                                                       |
+| `RUNTIME_CONFIG_INVALID`      | [Runtime configuration → validation](/docs/runtime-configuration#validation)                             |
+| `RUNTIME_CONFIG_FETCH_FAILED` | [Runtime configuration → loading](/docs/runtime-configuration#loading)                                   |
+| `ROUTE_PREFIX_INVALID`        | [Route prefixes](/docs/route-prefixes)                                                                   |
+| `MFE_ID_INVALID`              | [Manifests → MFE id](/docs/manifests#mfe-id)                                                             |
+| `DEV_RESTART_REQUIRED`        | [Local development → restart diagnostics](/docs/local-development#restart-diagnostics)                   |
+| `TELEMETRY_FAILED`            | [Telemetry → failure isolation](/docs/telemetry#failure-isolation)                                       |
+| `DEVTOOLS_UNAVAILABLE`        | [Developer tools → enabling](/docs/developer-tools#enabling)                                             |
+| `OVERLAY_FAILED`              | [Overlays](/docs/overlays)                                                                               |
+| `INTERNAL`                    | this page; the diagnostic carries the original error                                                     |
+
+## Common situations
+
+**The remote loads in the harness but not in the shell.** Check the devtools _Overview_ tab: is the effective URL the one you expect, and what is its source? A stale `localStorage["platform:manifest-overrides"]` entry from a previous session is the usual cause.
+
+**My change does not appear.** The loaded remote may be a production artefact (`vite preview`) rather than the dev server; only dev manifests carry a `dev` block and the harness `HMR` badge. Or a restart is required (`DEV_RESTART_REQUIRED`).
+
+**A dialog is unstyled or clipped.** The overlay root is missing the owner attribute (`OVERLAY_FAILED`) or the remote was built with `css.scope: false`. Inspect `[data-platform-overlay-root]` elements on `body`.
+
+**Two React copies.** `shared.resolved` in the devtools shows `bundled` for `react` with the reason (wrong scope, unsatisfied range). This is expected for a React 18 remote in a React 19 shell without another React 18 provider.
+
+**A command's shortcut does nothing.** Look for `shortcut.conflict` in the events: the first registration keeps the shortcut.
+
+**Storage resets on every load.** `storage.invalid` in the events shows the schema issue; add a `migrate` or bump `version`.
+
+## Reporting
+
+Copy the diagnostic from the devtools _Events_ panel (it is `PlatformError.toJSON()` plus context) and attach the manifest URL and the shared-dependency report. Every platform test fixture can be reproduced with `pnpm dev:conformance`.

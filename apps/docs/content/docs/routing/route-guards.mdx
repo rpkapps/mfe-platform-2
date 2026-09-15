@@ -1,0 +1,124 @@
+---
+title: Route guards
+description: Use native TanStack Router guards with a typed platform context. The platform does not add a second guard system.
+---
+
+<Callout title="One guard system">
+  `beforeLoad`, `redirect`, `notFound`, loader errors, pending and error components are TanStack
+  Router's own. The platform injects `context.platform` and makes sure a guard failure stays
+  inside the MFE.
+</Callout>
+
+## `context.platform`
+
+Every route receives the platform context through TanStack's router context. Declare it once on the root route:
+
+```tsx title="src/routes/__root.tsx"
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
+import type { MfeRouterContext } from "@platform/react"
+
+export const Route = createRootRouteWithContext<MfeRouterContext>()({
+  component: () => <Outlet />,
+})
+```
+
+`context.platform` exposes:
+
+| Field                                          | Type                                         |
+| ---------------------------------------------- | -------------------------------------------- |
+| `user`                                         | `PlatformUser \| null`                       |
+| `permissionGroups`                             | `string[]`                                   |
+| `permissions`                                  | `{ hasGroup, hasAnyGroup, hasAllGroups }`    |
+| `tenant`, `project`, `job`                     | context objects or `null`                    |
+| `locale`, `timezone`, `theme`, `resolvedTheme` | strings                                      |
+| `featureFlags`                                 | typed through `Register.featureFlags`        |
+| `capabilities`                                 | approved `CapabilityId[]`                    |
+| `runtime`                                      | `{ environment, env, shared }` (typed `env`) |
+| `telemetry`                                    | enriched `Telemetry`                         |
+| `navigation`                                   | `PlatformNavigation`                         |
+| `mfeId`, `instanceId`                          | identity                                     |
+| `revision`                                     | increments on every context change           |
+| `getState()`, `subscribe()`                    | escape hatches                               |
+
+## Permission checks
+
+```tsx title="src/routes/assets/$assetId.tsx"
+import { createFileRoute, redirect } from "@tanstack/react-router"
+
+export const Route = createFileRoute("/assets/$assetId")({
+  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["assets:read"] },
+  beforeLoad: ({ context, params }) => {
+    if (!context.platform.permissions.hasGroup("assets:read")) {
+      throw redirect({ to: "/", search: { denied: params.assetId } })
+    }
+    if (params.assetId === "restricted" && !context.platform.permissions.hasGroup("admin")) {
+      throw new Error(
+        "Only admins may open the restricted asset (guard error stays inside the MFE)."
+      )
+    }
+  },
+})
+```
+
+This is the `asset-tracker` fixture. The E2E suite switches the shell user to one without `assets:read` while `/asset-tracker/assets/pump-42` is open and sees the redirect to `/asset-tracker?denied=pump-42` — no remount, the shell untouched — and, for a viewer opening `restricted`, the guard error rendered by the route's `errorComponent`.
+
+`staticData.permissionGroups` is optional and only feeds the manifest: the shell can [preflight](/docs/permission-groups#preflight) the remote before loading it, and the palette hides routes the user cannot open. The `beforeLoad` check is the one that decides.
+
+## Redirects across MFEs
+
+`redirect({ to })` targets a path inside the MFE. To leave the MFE, use the platform navigation, which takes an absolute shell href:
+
+```ts
+beforeLoad: ({ context }) => {
+  if (!context.platform.tenant) {
+    context.platform.navigation.navigate("/select-tenant")
+    throw new Error("tenant required")
+  }
+}
+```
+
+## Loaders and errors
+
+Loaders run on the client after the MFE mounts (only the shell is server-rendered). A thrown error lands in the nearest `errorComponent`:
+
+```tsx
+export const Route = createFileRoute("/assets/$assetId")({
+  loader: async ({ params, context }) => {
+    const asset = await fetchAsset(params.assetId)
+    if (!asset) throw notFound()
+    return asset
+  },
+  pendingComponent: () => <Skeleton className="h-32" />,
+  errorComponent: ({ error, reset }) => <AssetError error={error} onRetry={reset} />,
+  notFoundComponent: () => <p>No such asset.</p>,
+  component: AssetPage,
+})
+```
+
+Routes without their own components fall back to the ones passed to `createMfe({ errorComponent, pendingComponent, notFoundComponent })`, and finally to the platform defaults (`DefaultRouteErrorComponent`, which retries with `router.invalidate()`, `DefaultPendingComponent`, `DefaultNotFoundComponent`): plain, Tecton-free markup with the `PlatformError` hint and docs link when available. Render errors that escape the router reach the `MfeErrorBoundary` at the MFE root, which reports them to telemetry and diagnostics and offers _Retry_.
+
+## Reacting to context changes
+
+Context changes (a new project, a changed permission group) bump `context.platform.revision`. `createMfeRouter` subscribes to the context store and calls `router.invalidate()`, so:
+
+- loaders that read the context re-run,
+- `beforeLoad` guards run again and can redirect,
+- the MFE root is preserved — nothing remounts.
+
+Use `revision` in a loader's dependencies when you cache by hand:
+
+```ts
+loader: ({ context }) => queryClient.ensureQueryData(assetsQuery(context.platform.project?.id))
+```
+
+## Where failures land
+
+| Failure                                                          | Handled by                                                                          |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Manifest missing, invalid, protocol mismatch, remote unreachable | Shell boundary around `MfeOutlet` ([Failure handling](/docs/failure-handling))      |
+| Manifest permission preflight denied                             | Shell (`PERMISSION_DENIED`), remote not loaded                                      |
+| `beforeLoad` redirect or throw                                   | MFE router, inside the MFE root                                                     |
+| Loader error, `notFound()`                                       | Nearest MFE `errorComponent` / `notFoundComponent`                                  |
+| Render error in a route component                                | MFE `errorComponent`, then `createMfe({ errorComponent })`, then `MfeErrorBoundary` |
+
+A failing guard never unmounts the MFE or touches the shell. Client-side checks are for routing and UX only; backend services remain authoritative.

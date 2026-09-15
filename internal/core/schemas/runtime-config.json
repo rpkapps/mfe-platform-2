@@ -1,0 +1,184 @@
+{
+  "$id": "https://platform.docs.local/schemas/runtime-config.json",
+  "title": "runtime-config",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "default": 1,
+      "type": "number",
+      "const": 1
+    },
+    "generatedAt": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "environment": {
+      "default": "production",
+      "type": "string"
+    },
+    "release": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string"
+        },
+        "buildId": {
+          "type": "string"
+        },
+        "commit": {
+          "type": "string"
+        }
+      }
+    },
+    "shared": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    },
+    "mfes": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "manifestUrl": {
+            "type": "string"
+          },
+          "env": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean"
+              ]
+            }
+          },
+          "preload": {
+            "type": "string",
+            "enum": [
+              "none",
+              "entry",
+              "eager"
+            ]
+          },
+          "allowedOrigins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "devtools": {
+      "default": {
+        "policy": "flag",
+        "environments": [
+          "development",
+          "local",
+          "test",
+          "staging"
+        ]
+      },
+      "type": "object",
+      "properties": {
+        "policy": {
+          "default": "flag",
+          "type": "string",
+          "enum": [
+            "flag",
+            "always",
+            "never"
+          ]
+        },
+        "environments": {
+          "default": [
+            "development",
+            "local",
+            "test",
+            "staging"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cache": {
+      "default": {
+        "manifestMaxAgeSeconds": 60,
+        "bustOnRetry": true
+      },
+      "type": "object",
+      "properties": {
+        "manifestMaxAgeSeconds": {
+          "default": 60,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "bustOnRetry": {
+          "default": true,
+          "type": "boolean"
+        }
+      }
+    },
+    "retry": {
+      "default": {
+        "attempts": 2,
+        "backoffMs": 500
+      },
+      "type": "object",
+      "properties": {
+        "attempts": {
+          "default": 2,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "backoffMs": {
+          "default": 500,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "allowedOrigins": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

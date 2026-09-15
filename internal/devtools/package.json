@@ -1,0 +1,57 @@
+{
+  "name": "@platform-internal/devtools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lazy-loaded developer tools UI (React 19 + React Flow) rendered by the host on demand.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@platform-internal/core": "workspace:*",
+    "@platform-internal/diagnostics": "workspace:*",
+    "@xyflow/react": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@tecton/react": "*",
+    "react-aria-components": "^1.21.0",
+    "lucide-react": "*",
+    "cn": "*"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "@tecton/react": "catalog:",
+    "react-aria-components": "catalog:",
+    "lucide-react": "catalog:",
+    "cn": "catalog:",
+    "class-variance-authority": "catalog:",
+    "jsdom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:"
+  }
+}

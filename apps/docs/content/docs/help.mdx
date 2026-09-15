@@ -1,0 +1,67 @@
+---
+title: Help
+description: Register help entries that the shell lists in its help slot and searches from the palette.
+---
+
+## Register
+
+```tsx
+import { useRegisterHelp } from "@platform/react"
+
+function AssetHelp() {
+  useRegisterHelp([
+    {
+      id: "getting-started",
+      title: "Getting started with assets",
+      description: "Create, tag and monitor assets",
+      keywords: ["assets", "tutorial"],
+      href: "https://help.example.com/assets", // external link
+    },
+    {
+      id: "shortcuts",
+      title: "Keyboard shortcuts",
+      route: "/help/shortcuts", // MFE-relative route
+    },
+    {
+      id: "glossary",
+      title: "Glossary",
+      content: Glossary, // ordinary component rendered by the MFE inside the help slot
+      order: 10,
+    },
+  ])
+  return null
+}
+```
+
+`<HelpRegistration definition={…} />` is the declarative form.
+
+## Kinds of entries
+
+| Field     | Behaviour                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------- |
+| `href`    | opens the URL                                                                                                   |
+| `route`   | navigates to the MFE route                                                                                      |
+| `content` | the component is wrapped into a mountable surface and rendered by the MFE's React inside the shell's `HelpSlot` |
+
+Ids are local and namespaced (`asset-tracker:glossary`). Invalid ids or missing titles throw `COMMAND_INVALID` at registration.
+
+## Static entries
+
+Link and route entries can be declared statically so they are searchable before the remote loads:
+
+```tsx title="src/mfe.tsx"
+export default createMfe({
+  routeTree,
+  registrations: { help: [{ id: "getting-started", title: "Getting started", href: "…" }] },
+})
+```
+
+## Rendering
+
+```tsx title="apps/shell"
+import { HelpSlot } from "@platform/host/react"
+
+;<HelpSlot mfeId={activeMfeId} /> // or without mfeId for every remote
+```
+
+A `content` surface that throws is isolated: the slot shows an error state for that entry, the others render, and the failure is reported with the owner.

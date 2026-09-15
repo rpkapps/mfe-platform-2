@@ -1,0 +1,89 @@
+---
+title: Breadcrumbs
+description: Breadcrumbs come from ordinary TanStack route metadata. The shell renders them; MFEs only publish labels, links and states.
+---
+
+## Static labels
+
+```tsx
+export const Route = createFileRoute("/assets/")({
+  staticData: { breadcrumb: "Assets" },
+})
+```
+
+## Dynamic labels
+
+A function receives the route match (params, loader data, search) and returns the label; mark it `dynamic` so the manifest records that it changes per navigation. A function that throws makes the entry `unavailable`:
+
+```tsx
+export const Route = createFileRoute("/assets/$assetId")({
+  staticData: {
+    breadcrumb: { label: (match) => `Asset ${match.params.assetId}`, dynamic: true },
+  },
+})
+```
+
+## Loader-derived labels
+
+Return the label from the loader. A `breadcrumb` key of the loader data is picked up automatically; `fromLoader` names another key. While the loader is pending the entry is in the `loading` state (with the static `label` as placeholder, if any); if the loader fails the entry becomes `unavailable`:
+
+```tsx
+export const Route = createFileRoute("/assets/$assetId")({
+  staticData: { breadcrumb: { fromLoader: "breadcrumb" } },
+  loader: async ({ params }) => {
+    const asset = await loadAsset(params.assetId)
+    return { asset, breadcrumb: asset.name }
+  },
+})
+```
+
+This is what the `asset-tracker` and `legacy-reports` fixtures do; the E2E suite expects `Asset Tracker › Assets › Pump 42` at `/asset-tracker/assets/pump-42`.
+
+## Manual override
+
+For labels that depend on component state, `useBreadcrumb` overrides the current route's entry (`label`, `href`, `state`, `hidden`, or a plain string); pass `null` to fall back to the static data:
+
+```tsx
+import { useBreadcrumb } from "@platform/react"
+
+function AssetPage() {
+  const { asset } = Route.useLoaderData()
+  useBreadcrumb(asset.nickname ? { label: asset.nickname } : null)
+  return null
+}
+```
+
+## Links, hidden entries and the MFE root
+
+- Every entry links to its route's location (params and search included) as a shell href; the last entry is rendered as text.
+- `hidden: true` keeps an entry out of the bar but in accessible announcements.
+- Routes without `breadcrumb` static data (and without a `breadcrumb` loader key or override) contribute no entry.
+- The MFE root entry (kind `mfe-root`) uses the root route's `staticData.breadcrumb` (`createRootRouteWithContext<MfeRouterContext>()({ staticData: { breadcrumb: "Asset Tracker" } })`), then `createMfe({ displayName })`, then the `mfeId`. It links to the route prefix.
+- Shell entries (`kind: "shell"`) come first and are set by the host with `host.breadcrumbs.setShell(entries)`.
+
+## States
+
+| State         | Rendered as                | Announced as            |
+| ------------- | -------------------------- | ----------------------- |
+| `ready`       | label (link when not last) | `Pump 42`               |
+| `loading`     | skeleton                   | `… (loading)`           |
+| `unavailable` | muted label                | `Pump 42 (unavailable)` |
+
+## Rendering in the shell
+
+```tsx
+import { Breadcrumbs } from "@platform/host/react"
+
+;<Breadcrumbs maxItems={5} announcePrefix="Location" />
+```
+
+`<Breadcrumbs>` accepts `maxItems` (the first entry and the last ones are kept, the middle collapses), `renderer(entries)` for a custom look, `className` and `announcePrefix`. The full trail is announced through a polite live region whenever it changes. The manifest carries `breadcrumbs: { renderer: "shell" }`; an MFE-rendered bar (`renderer: "mfe"`) is part of the schema but has no configuration key in `mfe.config.ts` yet, so the shell renderer is the only supported one today.
+
+## How it flows
+
+1. `createMfeRouter` renders a `BreadcrumbPublisher` inside the router (`InnerWrap`), subscribed to the route matches and the `useBreadcrumb` overrides.
+2. For each match with breadcrumb metadata it builds a `BreadcrumbEntry` (`key`, `label`, `href`, `state`, `kind`, `hidden`) — plain data — and publishes the trail to `bridge.breadcrumbs` with the owner (`mfeId`, `instanceId`) whenever it changes.
+3. The shell shows the active route MFE's trail after its own entries and clears it on dispose.
+4. **Headless mounts publish nothing**: when the shell mounts an MFE with `<MfeOutlet headless />` (settings owners), its registrations stay live but the breadcrumb bar is untouched, and the mount is never made the active trail.
+
+Widgets do not publish breadcrumbs.

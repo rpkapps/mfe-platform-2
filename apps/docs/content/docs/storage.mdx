@@ -1,0 +1,134 @@
+---
+title: Storage
+description: Schema-backed, namespaced local and session storage with typed get, set, reset, migrations, malformed-data handling and cross-tab updates.
+---
+
+## Create a store
+
+```ts title="src/lib/storage.ts"
+import { createPlatformStorage } from "@platform/react"
+import { z } from "zod"
+
+export const dashboardStorage = createPlatformStorage({
+  scope: "local", // or "session"
+  key: "dashboard",
+  schema: z.object({
+    columns: z.array(z.string()),
+    density: z.enum(["compact", "comfortable"]),
+  }),
+  defaults: { columns: ["name", "status"], density: "comfortable" },
+  version: 2,
+  // v1 stored a bare array of columns; invalid data without a migration resets to defaults.
+  migrate: (stored) =>
+    Array.isArray(stored)
+      ? { columns: stored as string[], density: "comfortable" as const }
+      : undefined,
+})
+
+export const sessionNotes = createPlatformStorage({
+  scope: "session",
+  key: "notes",
+  schema: z.string(),
+  defaults: "",
+})
+```
+
+The definition is plain data; it is bound to a mount lazily when first used, so it knows its `mfeId` (and `instanceId` for `instanceScoped: true` stores).
+
+## Use it
+
+```tsx
+function ColumnPicker() {
+  const columns = dashboardStorage.use((state) => state.columns) // selector subscription
+  const addColumn = () =>
+    dashboardStorage.setKey("columns", (current) => [...current, `col${current.length + 1}`])
+  return (
+    <ColumnMenu columns={columns} onAdd={addColumn} onReset={() => dashboardStorage.reset()} />
+  )
+}
+```
+
+| API                             | Description                                                                                      |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `use(selector?, equals?)`       | React subscription; rerenders only when the selected slice changes (shallow equality by default) |
+| `get()`                         | Current validated value                                                                          |
+| `set(value \| updater)`         | Replace the value (validated before writing; `STORAGE_INVALID` is thrown and nothing is written) |
+| `setKey(key, value \| updater)` | Update one key of an object value                                                                |
+| `reset()`                       | Remove the stored value; readers see `defaults`                                                  |
+| `subscribe(listener)`           | Non-React subscription (`listener(value)`)                                                       |
+| `bind({ bridge })`              | The underlying `StorageStore` for a specific mount or bridge (tests, code outside a mount)       |
+| `options`                       | The definition                                                                                   |
+
+`get`, `set`, `setKey`, `reset` and `subscribe` resolve the store of the **current mount** — call them from components, effects, handlers and loaders of the mounted MFE. Outside a mount they throw `INTERNAL` (use `bind`). `usePlatformStorage(store, selector?)` is the hook form; `useStorageDiagnostics()` lists the validation problems recorded for this mount.
+
+## Scopes
+
+- `local`: survives the browser session; updates propagate across tabs.
+- `session`: per tab; no cross-tab updates.
+
+The shell decides the persistence implementation (`StorageBackend`): browser storage today, anything later. MFE code never sees the difference.
+
+## Namespacing
+
+Keys are stored as `platform:<mfeId>[:<instanceId>]:<scope>:<key>`:
+
+```text
+platform:asset-tracker:local:dashboard
+platform:asset-tracker:session:notes
+platform:widget-b:widget-b#3:session:counter   (instanceScoped: true — one value per widget instance)
+```
+
+Two MFEs with a `dashboard` store never collide; two widget instances with an instance-scoped store each get their own value (the `counter-widget` fixture).
+
+## Validation
+
+- **Reads** validate the stored envelope against `schema`; an invalid value follows the [malformed data](#malformed-data) rules.
+- **Writes** validate first; an invalid value throws `STORAGE_INVALID` synchronously and nothing is written.
+
+Any Standard Schema works; Zod is first class.
+
+## Migrations
+
+`migrate(stored, version)` runs when the stored envelope's `v` differs from `version` (default `1`), and also when a value with the current version fails the schema. Return the repaired value, or `undefined` to reset to `defaults`:
+
+```ts
+createPlatformStorage({
+  scope: "local",
+  key: "prefs",
+  schema: z.object({ format: z.enum(["csv", "xlsx"]), lastReport: z.string().nullable() }),
+  defaults: { format: "csv", lastReport: null },
+  version: 3,
+  migrate: (stored, version) => {
+    if (version === 2 && stored && typeof stored === "object" && "fmt" in stored) {
+      return { format: (stored as { fmt: "csv" | "xlsx" }).fmt, lastReport: null }
+    }
+    return undefined // reset
+  },
+})
+```
+
+Values are stored as `{ v, data, updatedAt }` envelopes.
+
+## Malformed data
+
+| Stored                                    | Result         | Diagnostic (`STORAGE_INVALID`) |
+| ----------------------------------------- | -------------- | ------------------------------ |
+| Not JSON, not an envelope                 | defaults       | `recovered: "defaults"`        |
+| Version mismatch, migration succeeds      | migrated value | none                           |
+| Version mismatch, no or failing migration | defaults       | `recovered: "defaults"`        |
+| Schema failure, migration repairs it      | migrated value | `recovered: "migrated"`        |
+| Schema failure otherwise                  | defaults       | `recovered: "defaults"`        |
+
+The store keeps working with defaults, `useStorageDiagnostics()` exposes the problem to the MFE, and the host records a `storage.invalid` event with the namespaced key. Nothing crashes: the E2E suite writes `{broken` into `platform:asset-tracker:local:dashboard`, reloads and sees the defaults.
+
+## Unavailable
+
+When a storage area is blocked (private mode, quota, enterprise policy), a failing write raises `STORAGE_UNAVAILABLE` with the namespaced key as source; reads fall back to `defaults`.
+
+## Same-tab and cross-tab updates
+
+Every write notifies subscribers in the same tab through the backend. For `local` stores the backend also listens to the browser's `storage` event, so other tabs update: the E2E suite adds a column in one tab and sees it in another, then resets. See the [cross-tab recipe](/docs/recipes/cross-tab-storage).
+
+## Never raw browser storage
+
+MFE code must not read or write `window.localStorage` or `window.sessionStorage` for platform-managed data: it bypasses namespacing, validation and diagnostics, and it is invisible to the shell. The [`@platform/no-raw-browser-storage`](/docs/linting#no-raw-browser-storage) lint rule reports such access. Nothing on `window` is monkeypatched to achieve this.

@@ -1,0 +1,12 @@
+@import "tailwindcss";
+@import "@tecton/react/globals.css";
+@import "@platform/host/styles.css";
+@source "./";
+@source "../../../packages/host/src/**/*.tsx";
+
+/* Shell-only chrome tweaks; MFE styles never reach here (they are scoped). */
+@layer components {
+  [data-platform-outlet] {
+    min-height: 16rem;
+  }
+}

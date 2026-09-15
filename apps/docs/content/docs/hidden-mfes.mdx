@@ -1,0 +1,47 @@
+---
+title: Hidden MFEs
+description: Remotes with discoverable false stay out of the App Finder while remaining full platform citizens.
+---
+
+## When to hide a remote
+
+- **Widget libraries** that only provide widgets for dashboards.
+- **Utility remotes** that contribute commands, settings or help but have no landing page.
+- **Deep-link-only routes** such as `/print/$documentId`, reachable from other MFEs but not meant to be browsed.
+- **Legacy or staged applications** that should load on their URL but not advertise themselves yet.
+
+## Configure
+
+```ts title="mfe.config.ts"
+import { defineMfeConfig } from "@platform/vite/config"
+
+export default defineMfeConfig({
+  discoverable: false,
+  navigation: { title: "Print service", keywords: ["print", "pdf"] }, // optional: used by the palette
+})
+```
+
+Widget libraries (no route tree) are hidden by default.
+
+## What still works
+
+| Feature                                    | Hidden remote                                        |
+| ------------------------------------------ | ---------------------------------------------------- |
+| Routes under the prefix                    | ✓ deep-linkable, guarded, breadcrumbed               |
+| Widgets                                    | ✓ mountable from any slot                            |
+| Commands                                   | ✓ listed in the palette (static ones before loading) |
+| Settings                                   | ✓ groups appear in the settings host                 |
+| Help and release notes                     | ✓                                                    |
+| Runtime configuration and environment      | ✓                                                    |
+| Preloading (`preload: "entry" \| "eager"`) | ✓                                                    |
+| App Finder entry                           | ✗                                                    |
+
+The App Finder consumes only `discoverable: true` entries; nothing else in the host filters on the flag.
+
+## Loading hidden remotes
+
+A hidden remote loads when a URL under its prefix is visited, when a `WidgetSlot` asks for one of its widgets, when the shell mounts it headlessly, or at startup when `preload` says so (`registry.preload`, or `mfes.<id>.preload` in the runtime configuration: `entry` fetches the entry, `eager` also evaluates the definition). Commands, help and release notes declared statically through `createMfe({ registrations })` are listed by the palette from the manifest without loading the remote; commands with handlers need a mount (visible or headless). See the [hidden utility MFE recipe](/docs/recipes/hidden-utility-mfe).
+
+## Diagnostics
+
+Hidden remotes appear in the developer tools like any other remote, with a _hidden_ badge.

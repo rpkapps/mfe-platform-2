@@ -1,0 +1,100 @@
+---
+title: Platform context
+description: Everything the shell knows about the session, typed, delivered through usePlatform, selectors and the TanStack router context.
+---
+
+## `usePlatform()`
+
+```tsx
+import { usePlatform } from "@platform/react"
+
+function Header() {
+  const platform = usePlatform()
+  return (
+    <span>
+      {platform.user?.displayName} · {platform.project?.name} · {platform.resolvedTheme}
+    </span>
+  )
+}
+```
+
+Reading the whole context rerenders on every change. Prefer a [selector](/docs/slice-subscriptions) for anything that renders often.
+
+## Fields
+
+| Field                              | Type                                                          | Notes                                             |
+| ---------------------------------- | ------------------------------------------------------------- | ------------------------------------------------- |
+| `user`                             | `{ id, displayName, email?, avatarUrl?, sessionId? } \| null` |                                                   |
+| `permissionGroups`                 | `string[]`                                                    | all groups the host policy exposes to the browser |
+| `permissions`                      | `{ hasGroup, hasAnyGroup, hasAllGroups }`                     | helpers over `permissionGroups`                   |
+| `tenant`, `project`, `job`         | `{ id, name?, status? } \| null`                              |                                                   |
+| `locale`, `timezone`               | `string`                                                      | `en-US`, `Europe/Oslo`                            |
+| `theme`, `resolvedTheme`           | `"light" \| "dark" \| "system"`, `"light" \| "dark"`          |                                                   |
+| `featureFlags`                     | typed via `Register.featureFlags`                             |                                                   |
+| `capabilities`                     | `CapabilityId[]`                                              | approved for this remote                          |
+| `runtime`                          | `{ environment, env, shared }`                                | `env` typed via `Register.env`                    |
+| `release`                          | `{ version?, buildId?, commit? }`                             | shell release                                     |
+| `remoteRelease`                    | `{ version, buildId?, commit? }`                              | this remote's release                             |
+| `environment`                      | `string`                                                      | `production`, `staging`, `local`…                 |
+| `mfeId`, `instanceId`, `widgetId?` | identity of the mount                                         |                                                   |
+| `navigation`                       | `PlatformNavigation`                                          |                                                   |
+| `telemetry`                        | `Telemetry`                                                   | enriched                                          |
+| `revision`                         | `number`                                                      | increments on every change                        |
+
+Everything is plain data or plain functions: no React values, so it can cross the root boundary.
+
+## The same context everywhere
+
+| Surface                  | Access                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Components               | `usePlatform()`, `usePlatform(selector)`, `usePermissions()`, `useCapability(id)`, `useRuntimeEnv()`, `useTelemetry()`, `useNavigation()` |
+| Route guards and loaders | `context.platform` ([Route guards](/docs/routing/route-guards))                                                                           |
+| Command handlers         | `platform` in the handler context                                                                                                         |
+| Async option providers   | `platform` in the provider context                                                                                                        |
+| Tests                    | `createTestBridge({ user, permissionGroups, env, capabilities, context })`, then `bridge.setContext(partial)`                             |
+
+## Changes
+
+The host owns a context store; each MFE root subscribes through its own React instance. A change:
+
+- updates subscribers (only those whose slice changed),
+- bumps `revision`, which invalidates TanStack loaders and re-runs guards,
+- preserves every MFE root — no remount.
+
+## Capabilities
+
+Capabilities are the features a host grants a remote. The Vite plugin infers the request from SDK usage; the host approves by policy and exposes the approved set in the context, so MFEs can feature-detect:
+
+```tsx
+import { useCapability } from "@platform/react"
+
+function Toolbar() {
+  const canNotify = useCapability("notifications")
+  return canNotify ? <NotifyButton /> : null
+}
+```
+
+Calling an API whose capability was not approved fails with `CAPABILITY_UNAVAILABLE`, isolated by the nearest error boundary. To avoid it, feature-detect with `useCapability` or `usePlatform((p) => p.capabilities)`, or request the capability explicitly with `capabilities: { add: ["notifications"] }` in `mfe.config.ts`. The `@platform/valid-capability-usage` lint rule reports SDK calls whose capability `mfe.config.ts` removes.
+
+| Capability                                       | Granted for                                                                    |
+| ------------------------------------------------ | ------------------------------------------------------------------------------ |
+| `context`, `navigation`, `telemetry`, `overlays` | always (implicit)                                                              |
+| `storage.local`, `storage.session`               | `createPlatformStorage` with the scope                                         |
+| `commands`                                       | `useRegisterCommand`, `CommandRegistration`                                    |
+| `settings`                                       | `useRegisterSettingsGroup`, `useRegisterSettingsField`, `SettingsRegistration` |
+| `help`, `release-notes`                          | the corresponding registration APIs                                            |
+| `breadcrumbs`                                    | `useBreadcrumb`                                                                |
+| `notifications`                                  | `useNotifications`                                                             |
+| `runtime-env`                                    | `useRuntimeEnv`                                                                |
+| `widgets`                                        | `createWidget`                                                                 |
+
+The full list with descriptions is generated in the [capabilities reference](/docs/reference/generated/capabilities).
+
+## Notifications
+
+```tsx
+const { notify } = useNotifications()
+notify({ title: "Asset saved", kind: "success" })
+```
+
+Toasts render in the shell's `NotificationHost` (Tecton `Toaster`), outside every MFE root: the shell passes `notifications: createSonnerNotificationPort()` to `createPlatformHost`. Without a notification port `notify` is a no-op that records a warning diagnostic.

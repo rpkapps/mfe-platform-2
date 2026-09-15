@@ -1,0 +1,76 @@
+{
+  "name": "@platform/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "platform create | dev | build | manifest | validate | lint | test, plus the shareable ESLint plugin and flat config (@platform/cli/eslint).",
+  "bin": {
+    "platform": "./bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./eslint": {
+      "types": "./dist/eslint.d.ts",
+      "default": "./dist/eslint.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "bin.js",
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "build:templates": "node ./scripts/sync-templates.mjs"
+  },
+  "dependencies": {
+    "cac": "catalog:",
+    "picocolors": "catalog:",
+    "@eslint/js": "catalog:",
+    "typescript-eslint": "catalog:",
+    "@typescript-eslint/utils": "catalog:",
+    "eslint-plugin-react-hooks": "catalog:",
+    "eslint-plugin-jsx-a11y": "catalog:",
+    "@tanstack/eslint-plugin-router": "catalog:",
+    "globals": "catalog:",
+    "zod": "catalog:",
+    "jiti": "^2.7.0",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0",
+    "vite": "^8.0.0",
+    "vitest": "^5.0.0",
+    "@platform/vite": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    },
+    "@platform/vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@platform/vite": "workspace:*",
+    "tsdown": "catalog:",
+    "vitest": "catalog:",
+    "eslint": "catalog:",
+    "@typescript-eslint/rule-tester": "catalog:",
+    "@types/node": "catalog:",
+    "vite": "catalog:",
+    "@platform-internal/core": "workspace:*"
+  }
+}

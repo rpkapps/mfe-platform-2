@@ -1,0 +1,60 @@
+---
+title: Custom settings pages
+description: With managedBy mfe the MFE renders a whole settings page on one of its routes. The shell only lists, places, loads and guards it.
+---
+
+## Register the page
+
+```ts title="src/lib/settings.ts"
+useRegisterSettingsGroup({
+  key: "advanced",
+  title: "Advanced asset settings",
+  managedBy: "mfe",
+  route: "/settings/custom", // MFE-relative
+  keywords: ["advanced", "custom"],
+  fields: {}, // optional: metadata for search only
+})
+```
+
+```tsx title="src/routes/settings/custom.tsx"
+import { sessionNotes } from "@/lib/storage"
+
+export const Route = createFileRoute("/settings/custom")({
+  staticData: { breadcrumb: "Advanced" },
+  component: CustomSettingsPage,
+})
+
+/** A fully MFE-managed settings page: it owns state, persistence and validation. */
+function CustomSettingsPage() {
+  const notes = sessionNotes.use()
+  return <textarea value={notes} onChange={(event) => sessionNotes.set(event.target.value)} />
+}
+```
+
+The settings host lists _Advanced asset settings_ under the MFE's section as a link to `/asset-tracker/settings/custom`. The route renders inside the MFE root with its guards, loaders and error boundaries (this is the `asset-tracker` conformance MFE; the E2E suite checks that the page persists to `platform:asset-tracker:session:notes`).
+
+## Ownership
+
+| Concern                                       | Owner                                                                         |
+| --------------------------------------------- | ----------------------------------------------------------------------------- |
+| Page rendering, layout, controls              | MFE                                                                           |
+| State and persistence                         | MFE (use [`createPlatformStorage`](/docs/storage), never raw browser storage) |
+| Validation and migrations                     | MFE                                                                           |
+| Discovery, placement, loading, error boundary | Shell                                                                         |
+| Field-level search                            | optional; only fields declared in `fields` are indexed                        |
+
+## Search metadata
+
+Because the page is opaque to the shell, the palette can only search what you declare. List keys, labels and keywords in `fields` without renderers to make individual settings findable; the shell links each result to the page.
+
+```ts
+fields: {
+  webhookUrl: { defaultValue: "", label: "Webhook URL", keywords: ["hook", "callback"] },
+}
+```
+
+Arbitrary custom components cannot provide automatic field-level search without this metadata; see [Unsupported cases](/docs/unsupported-cases).
+
+## Combining both modes
+
+An MFE can have framework-managed groups for simple values and one MFE-managed page for complex flows. Keep them separate groups.

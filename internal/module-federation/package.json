@@ -1,0 +1,36 @@
+{
+  "name": "@platform-internal/module-federation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Module Federation 2 loader for the platform host: runtime instance, version-group share scopes, remote registration, retry and cache policy.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@platform-internal/core": "workspace:*",
+    "@module-federation/runtime": "catalog:"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "jsdom": "catalog:"
+  }
+}
