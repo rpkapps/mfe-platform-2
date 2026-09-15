@@ -15,7 +15,9 @@ export const Route = createFileRoute("/assets/$assetId")({
       throw redirect({ to: "/", search: { denied: params.assetId } })
     }
     if (params.assetId === "restricted" && !context.platform.permissions.hasGroup("admin")) {
-      throw new Error("Only admins may open the restricted asset (guard error stays inside the MFE).")
+      throw new Error(
+        "Only admins may open the restricted asset (guard error stays inside the MFE)."
+      )
     }
   },
   loader: async ({ params, context, abortController }) => {
@@ -29,9 +31,9 @@ export const Route = createFileRoute("/assets/$assetId")({
       throw error
     }
   },
-  pendingComponent: () => <p className="text-sm text-muted-foreground">Loading asset…</p>,
+  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading asset…</p>,
   errorComponent: ({ error }: { error: unknown }) => (
-    <p role="alert" data-testid={ids.guardMessage} className="text-sm text-destructive">
+    <p role="alert" data-testid={ids.guardMessage} className="text-destructive text-sm">
       {error instanceof Error ? error.message : String(error)}
     </p>
   ),
@@ -45,7 +47,7 @@ function AssetDetail() {
       <h2 data-testid={ids.assetTitle} className="text-lg font-medium">
         {asset.name}
       </h2>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         {asset.site} · <Badge appearance="outline">{asset.status}</Badge>
       </p>
     </div>

@@ -164,7 +164,9 @@ export function usePlatformStorage<TValue, TSlice>(
 
 /** Storage validation problems recorded for this mount (malformed data, failed migrations). */
 /** The store of `storage` bound to the calling component's mount (stable per mount). */
-export function useStorageStore<TValue>(storage: PlatformStorage<TValue>): StorageStore<TValue> {
+export function useStorageStore<TValue>(
+  storage: PlatformStorage<TValue>
+): StorageStore<TValue> {
   const scope = useMountScope("useStorageStore")
   return resolveStorageStore(storage.options, scope)
 }

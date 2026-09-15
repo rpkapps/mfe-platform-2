@@ -113,6 +113,73 @@ const noopSleep = (ms: number) => new Promise<void>((resolve) => setTimeout(reso
  * The shell-side runtime. Framework-free: React bindings live in
  * `@platform/host/react`, the TanStack bridge in `@platform/host/tanstack`.
  */
+interface SharedWork<T> {
+  /** The shared task; settles once for every caller. */
+  promise: Promise<T>
+  /** True once every caller gave up and the underlying work was aborted. */
+  readonly aborted: boolean
+  /** Wait for the task on behalf of one caller; its signal only detaches that caller. */
+  join(signal?: AbortSignal): Promise<T>
+}
+
+/**
+ * One in-flight task shared by every concurrent caller. Each caller waits with its
+ * own signal: aborting it rejects that caller alone, and the underlying work is
+ * aborted only when every caller has aborted (a caller without a signal keeps it
+ * alive). Without this, the first caller's abort (a component unmounting while
+ * another mounts the same remote) would fail the load for everyone.
+ */
+function shareWork<T>(run: (signal: AbortSignal) => Promise<T>): SharedWork<T> {
+  const controller = new AbortController()
+  let waiting = 0
+  let keepAlive = false
+  const promise = run(controller.signal)
+  // Rejections are observed through `join`; an unobserved shared promise must not
+  // surface as an unhandled rejection.
+  promise.catch(() => undefined)
+  const abortReason = (signal: AbortSignal) =>
+    new PlatformError({
+      code: "REMOTE_LOAD_FAILED",
+      message: "The load was aborted by the caller.",
+      cause: signal.reason,
+      details: { aborted: true },
+    })
+  return {
+    promise,
+    get aborted() {
+      return controller.signal.aborted
+    },
+    join(signal) {
+      if (!signal) {
+        keepAlive = true
+        return promise
+      }
+      if (signal.aborted) return Promise.reject(abortReason(signal))
+      waiting += 1
+      return new Promise<T>((resolve, reject) => {
+        const onAbort = () => {
+          waiting -= 1
+          if (waiting === 0 && !keepAlive) controller.abort()
+          reject(abortReason(signal))
+        }
+        signal.addEventListener("abort", onAbort, { once: true })
+        promise.then(
+          (value) => {
+            signal.removeEventListener("abort", onAbort)
+            waiting -= 1
+            resolve(value)
+          },
+          (error: unknown) => {
+            signal.removeEventListener("abort", onAbort)
+            waiting -= 1
+            reject(error)
+          }
+        )
+      })
+    },
+  }
+}
+
 export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
   const kind = options.hostKind ?? "shell"
   const configStore = createStore<RuntimeConfig>(options.runtimeConfig)
@@ -267,8 +334,8 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
   const instances = createStore<Record<string, InstanceRecord>>({})
   const definitions = new Map<string, RemoteDefinition>()
   const staticRegistrations = new Map<string, () => void>()
-  const loading = new Map<string, Promise<RemoteDefinition>>()
-  const manifestLoading = new Map<string, Promise<MfeManifest>>()
+  const loading = new Map<string, SharedWork<RemoteDefinition>>()
+  const manifestLoading = new Map<string, SharedWork<MfeManifest>>()
   const mounted = new Map<
     string,
     { dispose(reason?: "navigation" | "dispose" | "error" | "hmr"): void }
@@ -574,8 +641,9 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
     const record = ensureRecord(mfeId)
     if (record.manifest && !loadOptions.force) return record.manifest
     const pending = manifestLoading.get(mfeId)
-    if (pending && !loadOptions.force) return pending
-    const task = (async () => {
+    if (pending && !pending.aborted && !loadOptions.force)
+      return pending.join(loadOptions.signal)
+    const work = shareWork(async (signal) => {
       if (!fetchImpl)
         throw new PlatformError({
           code: "MANIFEST_FETCH_FAILED",
@@ -624,7 +692,7 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         backoffMs: config.retry.backoffMs,
         bustOnRetry: config.cache.bustOnRetry,
         noStore,
-        signal: loadOptions.signal,
+        signal,
         diagnostics,
         sleep,
       })
@@ -697,11 +765,16 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
           mfeId,
         })
       return manifest
-    })()
-    manifestLoading.set(mfeId, task)
-    try {
-      return await task
-    } catch (error) {
+    })
+    manifestLoading.set(mfeId, work)
+    // The record reflects the shared task, never one caller's abort: a caller that
+    // gives up (a component unmounting) must not fail the load for the others.
+    work.promise.catch((error: unknown) => {
+      // Every caller gave up: nothing failed, the next caller starts afresh.
+      if (work.aborted) {
+        if (manifestLoading.get(mfeId) === work) updateRecord(mfeId, { state: "idle" })
+        return
+      }
       const platformError = toPlatformError(error, {
         code: "MANIFEST_FETCH_FAILED",
         owner: { mfeId },
@@ -711,9 +784,13 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         error: platformError,
         attempts: (records.getState()[mfeId]?.attempts ?? 0) + 1,
       })
-      throw platformError
+    })
+    try {
+      return await work.join(loadOptions.signal)
+    } catch (error) {
+      throw toPlatformError(error, { code: "MANIFEST_FETCH_FAILED", owner: { mfeId } })
     } finally {
-      if (manifestLoading.get(mfeId) === task) manifestLoading.delete(mfeId)
+      if (manifestLoading.get(mfeId) === work) manifestLoading.delete(mfeId)
     }
   }
 
@@ -773,9 +850,9 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
       return cached
     }
     const pending = loading.get(mfeId)
-    if (pending) return pending
-    const task = (async () => {
-      const manifest = await loadManifest(mfeId, { signal: loadOptions.signal })
+    if (pending && !pending.aborted) return pending.join(loadOptions.signal)
+    const work = shareWork(async (signal) => {
+      const manifest = await loadManifest(mfeId, { signal })
       assertLoadable(mfeId, manifest)
       const record = records.getState()[mfeId]!
       updateRecord(mfeId, { state: "loading", error: undefined })
@@ -784,9 +861,14 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         dev: manifest.dev !== undefined,
       })
       const [definition] = await Promise.all([
-        loader.load(manifest, { manifestUrl: record.manifestUrl!, signal: loadOptions.signal }),
+        loader.load(manifest, { manifestUrl: record.manifestUrl!, signal }),
         ensureRemoteStylesheets(manifest, record.manifestUrl!).catch((error: unknown) => {
-          diagnostics.emit({ type: "log", mfeId, message: "stylesheet load failed", detail: describeCause(error) })
+          diagnostics.emit({
+            type: "log",
+            mfeId,
+            message: "stylesheet load failed",
+            detail: describeCause(error),
+          })
           return []
         }),
       ])
@@ -828,11 +910,13 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         dev: manifest.dev !== undefined,
       })
       return definition
-    })()
-    loading.set(mfeId, task)
-    try {
-      return await task
-    } catch (error) {
+    })
+    loading.set(mfeId, work)
+    work.promise.catch((error: unknown) => {
+      if (work.aborted) {
+        if (loading.get(mfeId) === work) updateRecord(mfeId, { state: "idle" })
+        return
+      }
       const platformError = toPlatformError(error, {
         code: "REMOTE_LOAD_FAILED",
         owner: { mfeId },
@@ -848,9 +932,13 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
           error: platformError.toJSON(),
           mfeId,
         })
-      throw platformError
+    })
+    try {
+      return await work.join(loadOptions.signal)
+    } catch (error) {
+      throw toPlatformError(error, { code: "REMOTE_LOAD_FAILED", owner: { mfeId } })
     } finally {
-      if (loading.get(mfeId) === task) loading.delete(mfeId)
+      if (loading.get(mfeId) === work) loading.delete(mfeId)
     }
   }
 
@@ -1034,6 +1122,16 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         code: "MOUNT_FAILED",
         owner: { mfeId, instanceId },
       })
+      if (platformError.details?.aborted) {
+        // The caller gave up (its container unmounted): nothing failed.
+        updateInstance(instanceId, { state: "disposed" })
+        sink.emit({
+          type: "log",
+          level: "debug",
+          message: `mount of ${mfeId} aborted by the caller`,
+        })
+        throw platformError
+      }
       updateInstance(instanceId, { state: stateForError(platformError), error: platformError })
       sink.emit({ type: "mount.failed", error: platformError.toJSON() })
       telemetry.error(platformError, { mfeId, instanceId, boundary: "mount" })
@@ -1167,6 +1265,15 @@ export function createPlatformHost(options: PlatformHostOptions): PlatformHost {
         code: "WIDGET_MOUNT_FAILED",
         owner: { mfeId, instanceId, widgetId },
       })
+      if (platformError.details?.aborted) {
+        updateInstance(instanceId, { state: "disposed" })
+        sink.emit({
+          type: "log",
+          level: "debug",
+          message: `mount of widget ${widgetId} of ${mfeId} aborted by the caller`,
+        })
+        throw platformError
+      }
       updateInstance(instanceId, { state: stateForError(platformError), error: platformError })
       sink.emit({ type: "widget.failed", error: platformError.toJSON() })
       telemetry.error(platformError, { mfeId, instanceId, widgetId, boundary: "widget" })

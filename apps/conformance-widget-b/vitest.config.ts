@@ -5,5 +5,11 @@ import { platform } from "@platform/vite"
 
 export default defineConfig({
   plugins: [platform()],
-  test: { name: "widget-b", environment: "jsdom", include: ["src/**/*.test.{ts,tsx}"], setupFiles: ["./src/__tests__/setup.ts"], css: false },
+  test: {
+    name: "widget-b",
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["./src/__tests__/setup.ts"],
+    css: false,
+  },
 })

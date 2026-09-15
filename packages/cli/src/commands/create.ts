@@ -107,7 +107,10 @@ export function packPackage(packageDir: string, destination: string): string | n
   return existsSync(file) ? file : null
 }
 
-export function dependencySpecs(linkPlatform: string | undefined, targetDir?: string): DependencySpecs {
+export function dependencySpecs(
+  linkPlatform: string | undefined,
+  targetDir?: string
+): DependencySpecs {
   if (!linkPlatform) {
     return {
       platformReact: PLATFORM_VERSION_RANGE,

@@ -42,8 +42,7 @@ export async function readManifest(
     )
     if (typeof mod.generateManifest === "function") {
       const generated = (await mod.generateManifest({ root, mode })) as
-        | { manifest?: unknown }
-        | unknown
+        { manifest?: unknown } | unknown
       // The generator returns { manifest, input, config, routes, analysis, warnings }.
       const manifest =
         generated && typeof generated === "object" && "manifest" in generated

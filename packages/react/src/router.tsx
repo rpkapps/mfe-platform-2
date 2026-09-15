@@ -11,6 +11,13 @@ import { createShellHistory, normalizeShellHref, type ShellHistory } from "./his
 import { createMountScope, type MountScope } from "./scope"
 import type { MfeRouterContext } from "./types"
 
+const GLOBAL_ROUTER_KEY = "__TSR_ROUTER__"
+/** Live MFE routers by `mfeId`: the route-level HMR glue of a remote (rewritten by `@platform/vite`) looks here. */
+const ROUTER_REGISTRY_KEY = "__PLATFORM_TSR_ROUTERS__"
+type GlobalRouterScope = Record<typeof GLOBAL_ROUTER_KEY, unknown> &
+  Record<typeof ROUTER_REGISTRY_KEY, Record<string, AnyRouter> | undefined>
+const routerOwners = new WeakMap<AnyRouter, string>()
+
 export interface CreateMfeRouterOptions extends Record<string, unknown> {
   routeTree: AnyRoute
   bridge: HostBridge
@@ -44,6 +51,14 @@ export function createMfeRouter(options: CreateMfeRouterOptions): AnyRouter {
     const inner = createElement(Fragment, null, createElement(BreadcrumbPublisher), children)
     return userInnerWrap ? userInnerWrap({ children: inner }) : inner
   }
+  // TanStack Router publishes every client-side router on `self.__TSR_ROUTER__`,
+  // where TanStack Start (`getRouterInstance`) and the router devtools look for
+  // *the* application router. That slot belongs to the shell: an MFE router
+  // created there must leave it exactly as it was, or the shell would start
+  // rendering the remote's route tree inside its own React tree.
+  const globalScope =
+    typeof self !== "undefined" ? (self as unknown as GlobalRouterScope) : undefined
+  const shellRouter = globalScope?.[GLOBAL_ROUTER_KEY]
   const router = createRouter({
     defaultPreload: "intent",
     defaultErrorComponent: DefaultRouteErrorComponent,
@@ -56,6 +71,16 @@ export function createMfeRouter(options: CreateMfeRouterOptions): AnyRouter {
     context,
     InnerWrap: InnerWrap as never,
   } as never) as AnyRouter
+  if (globalScope && globalScope[GLOBAL_ROUTER_KEY] === router) {
+    if (shellRouter === undefined) delete globalScope[GLOBAL_ROUTER_KEY]
+    else globalScope[GLOBAL_ROUTER_KEY] = shellRouter
+  }
+  if (globalScope) {
+    // Route files of this remote hot-update against the latest router of the MFE.
+    const registry = (globalScope[ROUTER_REGISTRY_KEY] ??= {})
+    registry[bridge.mfeId] = router
+    routerOwners.set(router, bridge.mfeId)
+  }
 
   const cleanups = createDisposer()
   cleanups.add(() => history.dispose())
@@ -107,4 +132,10 @@ export function disposeMfeRouter(router: AnyRouter): void {
   if (!cleanups) return
   routerCleanups.delete(router)
   cleanups.dispose()
+  const owner = routerOwners.get(router)
+  const registry =
+    typeof self !== "undefined"
+      ? (self as unknown as GlobalRouterScope)[ROUTER_REGISTRY_KEY]
+      : undefined
+  if (owner !== undefined && registry?.[owner] === router) delete registry[owner]
 }

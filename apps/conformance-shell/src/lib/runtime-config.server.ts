@@ -20,15 +20,22 @@ const KNOWN_MFES = [
 
 /**
  * Server-only: reads the runtime configuration document written by the host
- * entrypoint at container start (`PLATFORM_CONFIG_PATH`), or, in development,
- * derives it from the same PLATFORM_* variables on every request.
+ * entrypoint at container start (`PLATFORM_CONFIG_PATH`, or the document next
+ * to the built client), or, in development, derives it from the same
+ * PLATFORM_* variables on every request. The dev server never reads a build
+ * artefact: a stale `dist/` from an earlier production run would otherwise
+ * silently point the shell at production remotes.
  */
 export async function readRuntimeConfig(): Promise<{ config: RuntimeConfig; source: string }> {
-  const candidates = [
-    process.env.PLATFORM_CONFIG_PATH,
-    join(process.cwd(), "dist", "client", "platform-config.json"),
-    join(process.cwd(), "public", "platform-config.json"),
-  ].filter(Boolean) as string[]
+  const explicit = process.env.PLATFORM_CONFIG_PATH
+  const candidates = explicit
+    ? [explicit]
+    : import.meta.env.DEV
+      ? []
+      : [
+          join(process.cwd(), "dist", "client", "platform-config.json"),
+          join(process.cwd(), "public", "platform-config.json"),
+        ]
   for (const candidate of candidates) {
     try {
       const raw = await readFile(candidate, "utf8")

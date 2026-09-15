@@ -24,7 +24,13 @@ export function useAssetTrackerSettings() {
         ],
       },
       showOffline: { defaultValue: true, description: "Include offline assets in lists" },
-      pageSize: { defaultValue: 25, schema: z.number().int().min(5).max(200), min: 5, max: 200, step: 5 },
+      pageSize: {
+        defaultValue: 25,
+        schema: z.number().int().min(5).max(200),
+        min: 5,
+        max: 200,
+        step: 5,
+      },
       region: {
         defaultValue: "north",
         label: "Default region",
@@ -54,5 +60,12 @@ export function useAssetTrackerSettings() {
     },
   })
   // MFE-managed group: the shell only discovers and links; the MFE renders the page.
-  useRegisterSettingsGroup({ key: "advanced", title: "Advanced asset settings", managedBy: "mfe", route: "/settings/custom", keywords: ["advanced", "custom"], fields: {} })
+  useRegisterSettingsGroup({
+    key: "advanced",
+    title: "Advanced asset settings",
+    managedBy: "mfe",
+    route: "/settings/custom",
+    keywords: ["advanced", "custom"],
+    fields: {},
+  })
 }

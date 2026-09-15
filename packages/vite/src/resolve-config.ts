@@ -57,6 +57,8 @@ export interface ResolvedRuntime {
 /** Fully resolved plugin configuration: plugin option → mfe.config → inference → default, per key. */
 export interface ResolvedPlatformConfig {
   root: string
+  /** Vite command the configuration was resolved for (`serve` = development server). */
+  command: "build" | "serve"
   mfeId: string
   mfeIdSource: MfeIdSource
   federationName: string
@@ -297,6 +299,7 @@ export async function resolvePlatformConfig(
     tectonVersion: installed[TECTON_PACKAGE],
     tailwind,
     react: options.react ?? {},
+    command: input.command ?? "build",
     routesDirectory,
     routeTreeFile: join(root, DEFAULT_ROUTE_TREE),
     entry,
@@ -318,15 +321,33 @@ export async function resolvePlatformConfig(
   }
 }
 
+/**
+ * Share scope a development server registers its shared packages in: private
+ * to that remote, so the dev server always runs on its own copies.
+ *
+ * In development every dependency is served by the remote's Vite server —
+ * pre-bundled by its optimizer or transformed on the fly — and pre-bundled
+ * modules (`@tanstack/react-router`, React Aria…) import the optimizer's React
+ * directly. Taking React from the shell while those modules keep the remote's
+ * copy would split one tree over two React instances ("Invalid hook call").
+ * A private scope keeps the remote self-contained: one React instance, one
+ * refresh runtime, and the production build negotiates sharing as before.
+ * The manifest keeps the production scopes; `dev.hmr` marks the difference.
+ */
+export function devShareScope(scope: string, mfeId: string): string {
+  return `${scope}:dev:${mfeId}`
+}
+
 /** Module Federation configuration derived from the resolved config (before the `federation` escape hatch). */
 export function buildFederationConfig(config: ResolvedPlatformConfig): ModuleFederationOptions {
   const shared: NonNullable<Exclude<ModuleFederationOptions["shared"], string[]>> = {}
+  const development = config.command === "serve"
   for (const request of config.shared.requests) {
     if (!request.shared) continue
     shared[request.name] = {
       singleton: request.singleton,
       requiredVersion: request.requiredVersion,
-      shareScope: request.scope,
+      shareScope: development ? devShareScope(request.scope, config.mfeId) : request.scope,
       version: request.version,
     }
   }

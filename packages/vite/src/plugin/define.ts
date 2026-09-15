@@ -1,6 +1,7 @@
 import type { Plugin } from "vite"
 
 import type { PlatformContext } from "./context"
+import { tectonOptimizeIncludes } from "./optimize"
 
 export const MFE_ID_DEFINE = "__PLATFORM_MFE_ID__"
 export const ROUTE_PREFIX_DEFINE = "__PLATFORM_ROUTE_PREFIX__"
@@ -30,10 +31,19 @@ export const DEDUPED_PACKAGES = [
 export function platformDefinePlugin(context: PlatformContext): Plugin {
   return {
     name: "platform:define",
-    config() {
+    config(userConfig) {
       const config = context.config()
       return {
-        resolve: { dedupe: DEDUPED_PACKAGES },
+        resolve: {
+          dedupe: DEDUPED_PACKAGES,
+          // `@/*` style paths from tsconfig.json resolve in dev, build and the dependency
+          // scanner alike; without it the scanner fails and pre-bundling is skipped, which
+          // leaves CommonJS dependencies unusable in development.
+          tsconfigPaths: userConfig.resolve?.tsconfigPaths ?? true,
+        },
+        // Tecton's sources are served as-is in development; the packages they import
+        // are pre-bundled explicitly (see `tectonOptimizeIncludes`).
+        optimizeDeps: config.tecton ? { include: tectonOptimizeIncludes(config.root) } : {},
         define: {
           [MFE_ID_DEFINE]: JSON.stringify(config.mfeId),
           [ROUTE_PREFIX_DEFINE]: JSON.stringify(config.routePrefix),

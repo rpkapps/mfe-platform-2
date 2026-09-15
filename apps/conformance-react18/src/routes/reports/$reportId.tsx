@@ -7,7 +7,10 @@ export const Route = createFileRoute("/reports/$reportId")({
   staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["reports:read"] },
   beforeLoad: ({ context, params }) => {
     if (!context.platform.permissions.hasGroup("reports:read")) throw redirect({ to: "/" })
-    if (params.reportId === "quarterly-emissions" && !context.platform.permissions.hasGroup("reports:export")) {
+    if (
+      params.reportId === "quarterly-emissions" &&
+      !context.platform.permissions.hasGroup("reports:export")
+    ) {
       throw new Error("reports:export is required for emissions reports")
     }
   },

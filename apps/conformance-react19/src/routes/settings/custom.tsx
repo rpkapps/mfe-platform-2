@@ -20,8 +20,13 @@ function CustomSettingsPage() {
       <label className="text-sm font-medium" htmlFor="asset-notes">
         Session notes (session storage, MFE-managed)
       </label>
-      <textarea id="asset-notes" className="min-h-20 rounded-md border border-input bg-background p-2 text-sm" value={notes} onChange={(event) => sessionNotes.set(event.target.value)} />
-      <p data-testid={ids.customSettingsValue} className="text-xs text-muted-foreground">
+      <textarea
+        id="asset-notes"
+        className="border-input bg-background min-h-20 rounded-md border p-2 text-sm"
+        value={notes}
+        onChange={(event) => sessionNotes.set(event.target.value)}
+      />
+      <p data-testid={ids.customSettingsValue} className="text-muted-foreground text-xs">
         {notes.length} characters
       </p>
       <Button size="sm" variant="outline" onPress={() => sessionNotes.reset()}>

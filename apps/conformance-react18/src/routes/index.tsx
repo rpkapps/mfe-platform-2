@@ -18,32 +18,60 @@ function ReportsHome() {
   const [open, setOpen] = React.useState(false)
   const format = reportPrefs.use((state) => state.format)
 
-  useRegisterCommand({ id: "increment-report-counter", label: "Increment report counter", group: "Legacy Reports", shortcut: "mod+shift+r", handler: () => setCount((value) => value + 1) })
+  useRegisterCommand({
+    id: "increment-report-counter",
+    label: "Increment report counter",
+    group: "Legacy Reports",
+    shortcut: "mod+shift+r",
+    handler: () => setCount((value) => value + 1),
+  })
 
   return (
     <div className="flex flex-col gap-3">
       <ul className="legacy-card list-disc pl-5">
         {REPORTS.map((report) => (
           <li key={report.id}>
-            <Link to="/reports/$reportId" params={{ reportId: report.id }} className="hover:underline">
+            <Link
+              to="/reports/$reportId"
+              params={{ reportId: report.id }}
+              className="hover:underline"
+            >
               {report.title}
             </Link>
           </li>
         ))}
       </ul>
       <div className="flex items-center gap-2">
-        <button type="button" data-testid={ids.counter} className="rounded bg-amber-700 px-2 py-1 text-white" onClick={() => setCount((value) => value + 1)}>
+        <button
+          type="button"
+          data-testid={ids.counter}
+          className="rounded bg-amber-700 px-2 py-1 text-white"
+          onClick={() => setCount((value) => value + 1)}
+        >
           Counter {count}
         </button>
-        <button type="button" data-testid={ids.openModal} className="rounded border border-amber-700 px-2 py-1" onClick={() => setOpen(true)}>
+        <button
+          type="button"
+          data-testid={ids.openModal}
+          className="rounded border border-amber-700 px-2 py-1"
+          onClick={() => setOpen(true)}
+        >
           Open modal
         </button>
         <span data-testid={ids.storageValue}>format: {format}</span>
-        <button type="button" className="underline" onClick={() => reportPrefs.setKey("format", (current) => (current === "csv" ? "xlsx" : "csv"))}>
+        <button
+          type="button"
+          className="underline"
+          onClick={() =>
+            reportPrefs.setKey("format", (current) => (current === "csv" ? "xlsx" : "csv"))
+          }
+        >
           toggle format
         </button>
       </div>
-      {open && <PlainModal testId={ids.modal} title="Legacy modal" onClose={() => setOpen(false)} />}
+      {open && (
+        <PlainModal testId={ids.modal} title="Legacy modal" onClose={() => setOpen(false)} />
+      )}
       <p data-testid={ids.hmrLabel} className="text-xs text-slate-500">
         HMR_LABEL_V1
       </p>

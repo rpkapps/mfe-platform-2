@@ -19,9 +19,34 @@ export default createMfe({
     }),
   },
   registrations: {
-    commands: [{ id: "go-to-assets", label: "Go to assets", description: "Open the asset list", group: "Navigate", keywords: ["equipment", "list"], route: "/assets" }],
-    help: [{ id: "getting-started", title: "Asset Tracker: getting started", description: "How to find and inspect assets", keywords: ["assets", "help"], route: "/" }],
-    releaseNotes: [{ id: "v1-0-0", version: "1.0.0", title: "Asset Tracker 1.0", date: "2026-09-01", summary: "First conformance release." }],
+    commands: [
+      {
+        id: "go-to-assets",
+        label: "Go to assets",
+        description: "Open the asset list",
+        group: "Navigate",
+        keywords: ["equipment", "list"],
+        route: "/assets",
+      },
+    ],
+    help: [
+      {
+        id: "getting-started",
+        title: "Asset Tracker: getting started",
+        description: "How to find and inspect assets",
+        keywords: ["assets", "help"],
+        route: "/",
+      },
+    ],
+    releaseNotes: [
+      {
+        id: "v1-0-0",
+        version: "1.0.0",
+        title: "Asset Tracker 1.0",
+        date: "2026-09-01",
+        summary: "First conformance release.",
+      },
+    ],
   },
 })
 

@@ -68,6 +68,32 @@ describe("createMfe", () => {
     container.remove()
   })
 
+  it("leaves the shell's global TanStack router untouched", async () => {
+    // TanStack Router publishes every client router on `self.__TSR_ROUTER__`; TanStack
+    // Start resolves *the* application router there. An MFE router must not take over.
+    const scope = globalThis as unknown as Record<string, unknown>
+    const shellRouter = { name: "shell-router" }
+    scope.__TSR_ROUTER__ = shellRouter
+    const { routeTree } = routeTreeOf([{ path: "/", component: Home }])
+    const definition = createMfe({ mfeId: "asset-tracker", routeTree })
+    const bridge = bridgeFor({ mfeId: "asset-tracker" })
+    const { handle, container } = await mountMfe(definition, bridge)
+    expect(container.textContent).toContain("Home")
+    expect(scope.__TSR_ROUTER__).toBe(shellRouter)
+    // Route-level HMR of the remote targets the platform registry instead.
+    const registry = scope.__PLATFORM_TSR_ROUTERS__ as Record<string, unknown>
+    expect(registry["asset-tracker"]).toBeDefined()
+    expect(registry["asset-tracker"]).not.toBe(shellRouter)
+    await disposeAsync(handle)
+    expect(registry["asset-tracker"]).toBeUndefined()
+    container.remove()
+    delete scope.__TSR_ROUTER__
+    const second = await mountMfe(definition, bridgeFor({ mfeId: "asset-tracker" }))
+    expect(scope.__TSR_ROUTER__).toBeUndefined()
+    await disposeAsync(second.handle)
+    second.container.remove()
+  })
+
   it("throws MOUNT_FAILED without a route tree and renders nothing", () => {
     const definition = createMfe({ mfeId: "widgets-only" })
     const bridge = bridgeFor({ mfeId: "widgets-only" })

@@ -10,8 +10,14 @@ import type { Plugin, PluginOption } from "vite"
 import { createPlatformContext } from "./plugin/context"
 import { platformCorePlugin } from "./plugin/core"
 import { platformCssPlugin } from "./plugin/css"
-import { platformDefinePlugin, DEDUPED_PACKAGES, MFE_ID_DEFINE, ROUTE_PREFIX_DEFINE } from "./plugin/define"
+import {
+  platformDefinePlugin,
+  DEDUPED_PACKAGES,
+  MFE_ID_DEFINE,
+  ROUTE_PREFIX_DEFINE,
+} from "./plugin/define"
 import { platformDevPlugin } from "./plugin/dev"
+import { platformRouterHmrPlugin } from "./plugin/router-hmr"
 import type { PlatformPluginOptions } from "./options"
 import { DEFAULT_ROUTE_TREE } from "./resolve-config"
 
@@ -84,6 +90,7 @@ export { loadMfeConfig, findMfeConfigFile, type LoadedMfeConfig } from "./load-c
 export { renderEntry, writeGeneratedEntry, GENERATED_BANNER } from "./entry"
 export { computeConfigHash, configFingerprint } from "./plugin/context"
 export { MFE_ID_DEFINE, ROUTE_PREFIX_DEFINE }
+export { rewriteRouterHmrGlue, ROUTER_REGISTRY_KEY } from "./plugin/router-hmr"
 export {
   renderRefreshPreamble,
   injectHarnessConfig,
@@ -153,7 +160,10 @@ export function platform(options: PlatformPluginOptions = {}): PluginOption[] {
         const context = createPlatformContext(root, options, command)
         const config = await context.resolve()
         return {
-          resolve: { dedupe: DEDUPED_PACKAGES },
+          resolve: {
+            dedupe: DEDUPED_PACKAGES,
+            tsconfigPaths: userConfig.resolve?.tsconfigPaths ?? true,
+          },
           define: {
             [MFE_ID_DEFINE]: JSON.stringify(config.mfeId),
             [ROUTE_PREFIX_DEFINE]: JSON.stringify(config.routePrefix),
@@ -182,6 +192,7 @@ export function platform(options: PlatformPluginOptions = {}): PluginOption[] {
       }
       composed.push(...reactPlugins())
       composed.push(
+        platformRouterHmrPlugin(context),
         platformDefinePlugin(context),
         platformCssPlugin(context),
         platformCorePlugin(context),

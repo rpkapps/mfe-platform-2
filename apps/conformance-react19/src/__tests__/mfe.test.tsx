@@ -7,11 +7,19 @@ import definition from "../mfe"
 
 describe("asset-tracker", () => {
   it("mounts the dashboard in an isolated root and registers its commands", async () => {
-    const bridge = createTestBridge({ mfeId: "asset-tracker", routePrefix: "/asset-tracker", user: { id: USERS.admin.id, displayName: USERS.admin.displayName }, permissionGroups: USERS.admin.groups, env: { API_BASE_URL: "https://api", PAGE_SIZE: 10 } })
+    const bridge = createTestBridge({
+      mfeId: "asset-tracker",
+      routePrefix: "/asset-tracker",
+      user: { id: USERS.admin.id, displayName: USERS.admin.displayName },
+      permissionGroups: USERS.admin.groups,
+      env: { API_BASE_URL: "https://api", PAGE_SIZE: 10 },
+    })
     const mounted = renderMfe(definition, { bridge, path: "/asset-tracker" })
     await within(mounted.container).findByTestId(TEST_IDS.assetTracker.userName)
     expect(mounted.container.querySelector('[data-mfe="asset-tracker"]')).not.toBeNull()
-    expect(bridge.registries.commands.list().map((command) => command.definition.id)).toEqual(expect.arrayContaining(["increment-counter", "slow-sync", "open-dashboard-help"]))
+    expect(bridge.registries.commands.list().map((command) => command.definition.id)).toEqual(
+      expect.arrayContaining(["increment-counter", "slow-sync", "open-dashboard-help"])
+    )
     mounted.dispose()
     expect(bridge.registries.commands.list()).toEqual([])
   })

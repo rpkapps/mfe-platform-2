@@ -20,8 +20,13 @@ export async function ensureRemoteStylesheets(
     manifest.css.assets.map((asset) => {
       const href = resolveRemoteUrl(base, asset)
       loaded.push(href)
-      const existing = doc.head.querySelector<HTMLLinkElement>(`link[${ATTRIBUTE}="${CSS.escape(href)}"]`)
-      if (existing) return existing.dataset.platformCssState === "loading" ? waitFor(existing) : Promise.resolve()
+      const existing = doc.head.querySelector<HTMLLinkElement>(
+        `link[${ATTRIBUTE}="${CSS.escape(href)}"]`
+      )
+      if (existing)
+        return existing.dataset.platformCssState === "loading"
+          ? waitFor(existing)
+          : Promise.resolve()
       const link = doc.createElement("link")
       link.rel = "stylesheet"
       link.href = href

@@ -9,8 +9,14 @@ export function ReportSummary({ reportId }: { reportId: string }) {
   return (
     <div data-testid={TEST_IDS.widgets.reportSummary} className="legacy-card text-sm">
       <p className="font-medium">{report?.title ?? reportId}</p>
-      <p className="text-xs">for {user} · React {React.version}</p>
-      <button type="button" className="underline" onClick={() => navigation.navigate(`/legacy/reports/reports/${reportId}`)}>
+      <p className="text-xs">
+        for {user} · React {React.version}
+      </p>
+      <button
+        type="button"
+        className="underline"
+        onClick={() => navigation.navigate(`/legacy/reports/reports/${reportId}`)}
+      >
         Open report
       </button>
       <p data-testid={TEST_IDS.widgets.hmrLabel} className="text-xs">

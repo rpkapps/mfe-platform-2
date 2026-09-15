@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { createMemoryStorageBackend, PlatformError } from "@platform-internal/core"
 
 import { settingsStorageKey } from "../src/bridge"
@@ -41,6 +41,77 @@ describe("createPlatformHost — loading", () => {
     // Second load is cached.
     await host.remotes.load("asset-tracker")
     expect((host.loader as ReturnType<typeof fakeLoader>).loads).toBe(1)
+  })
+
+  it("shares one in-flight load; a caller's abort detaches only that caller", async () => {
+    let release!: () => void
+    const gate = new Promise<void>((resolve) => (release = resolve))
+    const fetchSignals: (AbortSignal | undefined)[] = []
+    const fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+      fetchSignals.push(init?.signal ?? undefined)
+      await gate
+      return new Response(JSON.stringify(manifest()), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })
+    })
+    const host = createTestHost({
+      fetch: fetch as unknown as typeof globalThis.fetch,
+      loader: fakeLoader({ "asset-tracker": definition() }),
+    })
+    const first = new AbortController()
+    const second = new AbortController()
+    const a = host.remotes.load("asset-tracker", { signal: first.signal })
+    const b = host.remotes.load("asset-tracker", { signal: second.signal })
+    a.catch(() => undefined)
+    first.abort()
+    await expect(a).rejects.toMatchObject({ code: "REMOTE_LOAD_FAILED" })
+    // The shared fetch keeps running for the second caller.
+    expect(fetchSignals[0]?.aborted).toBe(false)
+    expect(host.remotes.get("asset-tracker")?.error).toBeUndefined()
+    release()
+    await expect(b).resolves.toBeDefined()
+    expect(host.remotes.get("asset-tracker")).toMatchObject({ loaded: true, state: "idle" })
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it("aborts the shared load once every caller has aborted", async () => {
+    const fetchSignals: (AbortSignal | undefined)[] = []
+    const fetch = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+        fetchSignals.push(init?.signal ?? undefined)
+        await new Promise<void>((resolve) =>
+          init?.signal?.addEventListener("abort", () => resolve())
+        )
+        throw new PlatformError({ code: "MANIFEST_FETCH_FAILED", message: "aborted" })
+      }
+    )
+    const host = createTestHost({
+      fetch: fetch as unknown as typeof globalThis.fetch,
+      loader: fakeLoader({ "asset-tracker": definition() }),
+    })
+    const first = new AbortController()
+    const second = new AbortController()
+    const a = host.remotes.load("asset-tracker", { signal: first.signal })
+    const b = host.remotes.load("asset-tracker", { signal: second.signal })
+    first.abort()
+    await expect(a).rejects.toBeDefined()
+    expect(fetchSignals[0]?.aborted).toBe(false)
+    second.abort()
+    await expect(b).rejects.toBeDefined()
+    expect(fetchSignals[0]?.aborted).toBe(true)
+    // Nothing failed from the host's point of view; the next caller starts afresh.
+    expect(host.remotes.get("asset-tracker")?.error).toBeUndefined()
+    expect(host.diagnostics.list({ type: "manifest.failed" })).toHaveLength(0)
+    fetch.mockImplementation(
+      async () =>
+        new Response(JSON.stringify(manifest()), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+    )
+    await expect(host.remotes.load("asset-tracker")).resolves.toBeDefined()
+    expect(host.remotes.get("asset-tracker")).toMatchObject({ loaded: true, state: "idle" })
   })
 
   it("fails with the right codes: unknown, origin denied, invalid, protocol, disabled, preflight, restart required", async () => {

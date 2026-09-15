@@ -31,6 +31,22 @@ export function buildSharedReport(options: {
   shareScopeMap?: FederationShareScopeMap
 }): SharedReportRow[] {
   const rows = new Map<string, SharedReportRow>()
+  // A development server registers its shared packages in a private scope and runs
+  // on its own copies (see `devShareScope` in @platform/vite): nothing to negotiate.
+  if (options.manifest.dev) {
+    return options.manifest.shared
+      .filter((request) => request.shared)
+      .map((request) => ({
+        name: request.name,
+        version: request.version,
+        scope: request.scope,
+        outcome: "bundled" as const,
+        reason: "development server: own copy (shared only in production builds)",
+        requiredVersion: request.requiredVersion,
+        group: request.scope,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name))
+  }
   const toRow = (resolution: ShareResolution): SharedReportRow => ({
     name: resolution.name,
     version: resolution.version,

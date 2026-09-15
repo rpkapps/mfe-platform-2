@@ -10,5 +10,10 @@ export default defineConfig({
   server: { port: 4110, strictPort: true },
   preview: { host: "127.0.0.1" },
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
+  // `@platform/host` is a workspace link here (source, not pre-bundled), so its
+  // Tecton portal adapter reaches `react-aria` from inside node_modules where
+  // Vite's dev optimizer does not discover it. An installed `@platform/host` is
+  // pre-bundled together with its dependencies and needs no such entry.
+  optimizeDeps: { include: ["@tecton/react > react-aria"] },
   plugins: [tailwindcss(), tanstackStart(), viteReact()],
 })

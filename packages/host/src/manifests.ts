@@ -249,6 +249,15 @@ export async function fetchManifest(
       }
       return { manifest: result.manifest, url, attempts: attempt }
     } catch (error) {
+      // A caller giving up is not a failed attempt: no diagnostic, no retry.
+      if (options.signal?.aborted)
+        throw new PlatformError({
+          code: "MANIFEST_FETCH_FAILED",
+          message: `Loading the manifest of ${options.mfeId} was aborted.`,
+          owner: { mfeId: options.mfeId },
+          source: url,
+          details: { aborted: true },
+        })
       const platformError =
         error instanceof PlatformError
           ? error

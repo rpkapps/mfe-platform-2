@@ -175,6 +175,12 @@ export default defineMfeConfig({ routePrefix: "/from-config", description: "conf
       "@tanstack/react-router": { shareScope: "react19" },
     })
     expect(federation.shared).not.toHaveProperty("zod")
+    // A development server registers its shared packages in a private scope.
+    const development = buildFederationConfig({ ...config, command: "serve" })
+    expect(development.shared).toMatchObject({
+      react: { shareScope: "react19:dev:sample-mfe", requiredVersion: "^19.0.0" },
+      "@tanstack/react-router": { shareScope: "react19:dev:sample-mfe" },
+    })
     const custom = await resolvePlatformConfig({
       root: sample,
       persistIdentity: false,

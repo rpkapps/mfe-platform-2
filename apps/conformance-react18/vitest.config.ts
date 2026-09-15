@@ -5,6 +5,12 @@ import { platform } from "@platform/vite"
 
 export default defineConfig({
   plugins: [platform()],
-  test: { name: "legacy-reports", environment: "jsdom", include: ["src/**/*.test.{ts,tsx}"], setupFiles: ["./src/__tests__/setup.ts"], css: false },
+  test: {
+    name: "legacy-reports",
+    environment: "jsdom",
+    include: ["src/**/*.test.{ts,tsx}"],
+    setupFiles: ["./src/__tests__/setup.ts"],
+    css: false,
+  },
   resolve: { alias: { "@": new URL("./src", import.meta.url).pathname } },
 })

@@ -672,8 +672,8 @@ Support typed storage APIs such as:
 
 ```ts
 createPlatformStorage({
-  scope: 'local',
-  key: 'dashboard',
+  scope: "local",
+  key: "dashboard",
   schema,
   defaults,
 })
@@ -746,7 +746,7 @@ MFE developers should be able to use ordinary Tecton components and normal Tailw
 Implement build-time CSS selector scoping for generated Tailwind/Tecton CSS. Scope generated selectors beneath an owner attribute such as:
 
 ```html
-<div data-mfe="asset-tracker">
+<div data-mfe="asset-tracker"></div>
 ```
 
 The build must scope:
