@@ -1,9 +1,16 @@
 import * as React from "react"
 import type { AnyRouter } from "@tanstack/react-router"
-import { createPlatformHost, loadRuntimeConfig, type PlatformHost } from "@platform/host"
+import {
+  composeTelemetryAdapters,
+  createConsoleTelemetryAdapter,
+  createMemoryTelemetryAdapter,
+  createPlatformHost,
+  loadRuntimeConfig,
+  type PlatformHost,
+  type RuntimeConfig,
+} from "@platform/host"
 import { createTanStackShellNavigation } from "@platform/host/tanstack"
 import { PlatformProvider, createSonnerNotificationPort } from "@platform/host/react"
-import { composeTelemetryAdapters, createConsoleTelemetryAdapter, createMemoryTelemetryAdapter, type RuntimeConfig } from "@platform-internal/core"
 import { FEATURE_FLAGS, PROJECTS, TENANT, USERS, JOBS } from "@platform-internal/conformance"
 
 import { registry } from "./registry"

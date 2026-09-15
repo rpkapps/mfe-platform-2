@@ -158,6 +158,6 @@ Reads only `PLATFORM_*` variables, refuses sensitive-looking names, validates th
 
 `@platform/host/styles.css` contains the host component styles (outlet states, palette, settings host, breadcrumbs, harness) built on the Tecton tokens; import it after `@tecton/react/globals.css`.
 
-## What the host does not re-export
+## Core helpers re-exported by the host
 
-Telemetry and navigation helpers (`createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`, `createBrowserNavigation`, `createMemoryNavigation`, `createMemoryStorageBackend`) live in the internal core package and are not part of the public `@platform/host` surface today; the conformance shell imports them from the workspace. A shell on TanStack Router uses `createTanStackShellNavigation`.
+Shells compose the host from adapters and backends that live in the platform core; `@platform/host` re-exports them so a shell outside this repository never depends on an internal package: `createConsoleTelemetryAdapter`, `createMemoryTelemetryAdapter`, `composeTelemetryAdapters`, `createTelemetry`, `createBrowserNavigation`, `createMemoryNavigation`, `createBrowserStorageBackend`, `createMemoryStorageBackend`, `createShellContextStore`, `createPermissionHelpers`, `PlatformError`, `ERROR_CODES`, `validateManifest`, `parseRuntimeConfig`, `generateRuntimeConfig`, and the types `Telemetry`, `TelemetryAdapter`, `ShellNavigation`, `StorageBackend`, `ShellContextState`, `MfeManifest`, `RuntimeConfig`, `HostBridge`, `RemoteDefinition`, `RemoteLoader`. A shell on TanStack Router uses `createTanStackShellNavigation` from `@platform/host/tanstack`.
