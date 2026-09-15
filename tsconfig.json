@@ -1,7 +1,10 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "types": ["node"]
+    "types": ["node"],
+    // The test harness imports the plain-JS helpers in `scripts/` directly, so
+    // their inferred types have to be available here.
+    "allowJs": true
   },
   "include": [
     "scripts/**/*",

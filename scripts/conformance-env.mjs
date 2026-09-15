@@ -1,6 +1,12 @@
 // Runtime configuration for the conformance shell, expressed as the
 // PLATFORM_* variables a Docker entrypoint would receive. Used by the E2E
 // global setup and by `pnpm dev:conformance`.
+/**
+ * @param {{ mode?: "production" | "development", ports?: Partial<Record<
+ *   "wellPlanner" | "productionReports" | "subsurfaceWidgets" | "fieldWidgets" | "unavailable",
+ *   number
+ * >> }} [options]
+ */
 export function conformanceEnv({ mode = "production", ports } = {}) {
   const p = {
     wellPlanner: 4201,

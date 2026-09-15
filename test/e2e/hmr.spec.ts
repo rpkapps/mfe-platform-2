@@ -140,7 +140,7 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   await page
     .getByTestId(ids.widgets.rigStatus)
     .nth(1)
-    .getByTestId(ids.widgets.rigStatusIncrement)
+    .getByTestId(ids.widgets.rigStatusAdvance)
     .click()
   edit(
     join(root, "apps/production-reports/src/widgets/report-summary.tsx"),
@@ -154,7 +154,7 @@ test("HMR updates React 19 and React 18 remotes while shell and remote state sur
   await expect(
     page.getByTestId(ids.widgets.rigStatus).nth(1).getByTestId(ids.widgets.rigStatusValue)
   ).toHaveText("2")
-  await expect(page.getByTestId(ids.widgets.kpiTile)).toHaveCount(2)
+  await expect(page.getByTestId(ids.widgets.productionKpi)).toHaveCount(2)
 })
 
 test("restart-requiring changes produce a clear diagnostic instead of a stale remote", async ({

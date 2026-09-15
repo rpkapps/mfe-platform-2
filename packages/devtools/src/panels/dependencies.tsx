@@ -122,9 +122,11 @@ export function DependenciesPanel({ snapshot }: DevtoolsPanelRenderProps) {
               onEdgesChange={onEdgesChange}
               nodeTypes={NODE_TYPES}
               fitView
-              // Without a max, `fitView` shrinks a wide graph until the labels
-              // are unreadable; panning is better than illegible.
-              fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
+              // `fitView` alone shrinks a wide graph to `minZoom` until the
+              // labels are unreadable. Clamped at both ends it opens legible
+              // and the user pans; zooming further out is still theirs to ask
+              // for with the controls.
+              fitViewOptions={{ padding: 0.15, minZoom: 0.6, maxZoom: 1 }}
               nodesConnectable={false}
               elementsSelectable
               proOptions={{ hideAttribution: true }}

@@ -9,7 +9,7 @@
     "build:all": "pnpm build && pnpm build:apps",
     "dev": "pnpm --filter docs dev",
     "dev:conformance": "node scripts/dev-conformance.mjs",
-    "typecheck": "pnpm -r run typecheck",
+    "typecheck": "tsc --noEmit -p tsconfig.json && pnpm -r run typecheck",
     "lint": "eslint . && pnpm -r --filter \"./apps/well-planner\" --filter \"./apps/production-reports\" --filter \"./apps/subsurface-widgets\" --filter \"./apps/field-widgets\" run lint",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",

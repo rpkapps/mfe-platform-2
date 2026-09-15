@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { enableDevtools, gotoShell, ids } from "./helpers"
+import { enableDevtools, gotoShell, ids, toggleTheme } from "./helpers"
 
 /**
  * A screenshot of every surface the shell owns. These assert almost nothing on
@@ -102,7 +102,17 @@ test("10 palette and light theme", async ({ page }) => {
   await input.fill("well")
   await expect(page.getByRole("menuitem").first()).toBeVisible()
   await page.screenshot({ path: `${OUT}/10a-palette.png` })
+  // react-aria's search field takes the first Escape to clear the query; the
+  // second one reaches the dialog.
   await page.keyboard.press("Escape")
-  await page.waitForTimeout(300)
-  await page.screenshot({ path: `${OUT}/10b-dark.png` })
+  await page.keyboard.press("Escape")
+  await expect(input).toBeHidden()
+  // The light theme is the half nobody looks at, which is exactly why it is
+  // worth a picture: a remote that hardcodes a dark ground shows up here.
+  await toggleTheme(page)
+  await page.keyboard.press("Escape")
+  await expect(page.locator("html.dark")).toHaveCount(0)
+  // Let the user menu finish its exit animation, or it ghosts over the page.
+  await page.waitForTimeout(400)
+  await page.screenshot({ path: `${OUT}/10b-light.png` })
 })
