@@ -3,6 +3,7 @@ import { MfeOutlet } from "@platform/host-react"
 import { mfeRouteHelpers } from "@platform/host-react/tanstack"
 import { TEST_IDS } from "@platform-internal/conformance"
 
+import { PageState } from "@/components"
 import { useShellHost } from "@/lib/platform"
 
 /**
@@ -20,9 +21,17 @@ function MfeRoute() {
   const match = mfeRouteHelpers({ host }).matchMfeForPath(pathname)
   if (!match) {
     return (
-      <main data-testid={TEST_IDS.shell.outletState} data-state="not-found" className="p-2">
-        <h1 className="text-xl font-medium">404</h1>
-        <p className="text-muted-foreground text-sm">No MFE owns {pathname}.</p>
+      <main data-testid={TEST_IDS.shell.outletState} data-state="not-found">
+        <PageState
+          code="404"
+          title="Nothing at this address"
+          description={
+            <>
+              No application owns <code className="font-mono">{pathname}</code>. It may have
+              moved, or the remote that served it is no longer registered.
+            </>
+          }
+        />
       </main>
     )
   }

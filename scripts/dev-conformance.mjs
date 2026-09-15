@@ -12,10 +12,10 @@ const shell = process.platform === "win32"
 const env = { ...process.env, ...conformanceEnv({ mode: "development" }) }
 
 const apps = [
-  ["@conformance/asset-tracker", "dev"],
-  ["@conformance/legacy-reports", "dev"],
-  ["@conformance/widget-a", "dev"],
-  ["@conformance/widget-b", "dev"],
+  ["@conformance/well-planner", "dev"],
+  ["@conformance/production-reports", "dev"],
+  ["@conformance/subsurface-widgets", "dev"],
+  ["@conformance/field-widgets", "dev"],
   ["conformance-shell", "dev"],
 ]
 

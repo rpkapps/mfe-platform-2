@@ -17,10 +17,10 @@ declare global {
 }
 
 const remotes: [string, number][] = [
-  ["apps/conformance-react19/dist", 4201],
-  ["apps/conformance-react18/dist", 4202],
-  ["apps/conformance-widget-a/dist", 4203],
-  ["apps/conformance-widget-b/dist", 4204],
+  ["apps/well-planner/dist", 4201],
+  ["apps/production-reports/dist", 4202],
+  ["apps/subsurface-widgets/dist", 4203],
+  ["apps/field-widgets/dist", 4204],
 ]
 
 export default async function globalSetup() {
@@ -53,7 +53,7 @@ export default async function globalSetup() {
       "--out",
       configPath,
       "--known",
-      "asset-tracker,legacy-reports,widget-a,widget-b,unavailable-remote,disabled-remote",
+      "well-planner,production-reports,subsurface-widgets,field-widgets,unavailable-remote,disabled-remote",
     ],
     { env, encoding: "utf8" }
   )

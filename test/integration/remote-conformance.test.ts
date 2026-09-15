@@ -9,32 +9,32 @@ import { checkRemoteConformance, MFE_IDS, ROUTE_PREFIXES } from "@platform-inter
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..")
 const apps = [
   {
-    dir: "apps/conformance-react19",
-    mfeId: MFE_IDS.assetTracker,
+    dir: "apps/well-planner",
+    mfeId: MFE_IDS.wellPlanner,
     react: 19,
-    prefix: ROUTE_PREFIXES.assetTracker,
+    prefix: ROUTE_PREFIXES.wellPlanner,
     tecton: true,
     kind: "mfe",
   },
   {
-    dir: "apps/conformance-react18",
-    mfeId: MFE_IDS.legacyReports,
+    dir: "apps/production-reports",
+    mfeId: MFE_IDS.productionReports,
     react: 18,
-    prefix: ROUTE_PREFIXES.legacyReports,
+    prefix: ROUTE_PREFIXES.productionReports,
     tecton: false,
     kind: "mfe",
   },
   {
-    dir: "apps/conformance-widget-a",
-    mfeId: MFE_IDS.widgetA,
+    dir: "apps/subsurface-widgets",
+    mfeId: MFE_IDS.subsurfaceWidgets,
     react: 19,
     prefix: undefined,
     tecton: true,
     kind: "widget-library",
   },
   {
-    dir: "apps/conformance-widget-b",
-    mfeId: MFE_IDS.widgetB,
+    dir: "apps/field-widgets",
+    mfeId: MFE_IDS.fieldWidgets,
     react: 18,
     prefix: undefined,
     tecton: false,
@@ -42,11 +42,17 @@ const apps = [
   },
 ]
 
-const built = apps.every((app) =>
-  existsSync(join(root, app.dir, "dist", "platform-manifest.json"))
+const missing = apps.filter(
+  (app) => !existsSync(join(root, app.dir, "dist", "platform-manifest.json"))
 )
 
-describe.skipIf(!built)("built conformance remotes", () => {
+describe("built conformance remotes", () => {
+  // A directory rename once made this whole file skip silently, so the absence
+  // of built remotes is a failure with a name, not a quiet pass.
+  it("every remote has been built", () => {
+    expect(missing.map((app) => app.dir)).toEqual([])
+  })
+
   for (const app of apps) {
     it(`${app.mfeId} passes the conformance checks`, () => {
       const dist = join(root, app.dir, "dist")
@@ -89,26 +95,26 @@ describe.skipIf(!built)("built conformance remotes", () => {
       expect(manifest.widgets.length).toBeGreaterThan(0)
     }
   })
-  it("asset-tracker declares its routes, guards, commands, settings, help, release notes and env", () => {
+  it("well-planner declares its routes, guards, commands, settings, help, release notes and env", () => {
     const manifest = JSON.parse(
-      readFileSync(join(root, "apps/conformance-react19/dist/platform-manifest.json"), "utf8")
+      readFileSync(join(root, "apps/well-planner/dist/platform-manifest.json"), "utf8")
     )
     expect(manifest.routes.map((route: { fullPath: string }) => route.fullPath)).toEqual(
       expect.arrayContaining([
-        "/asset-tracker",
-        "/asset-tracker/assets",
-        "/asset-tracker/assets/$assetId",
-        "/asset-tracker/settings",
-        "/asset-tracker/settings/custom",
+        "/well-planner",
+        "/well-planner/wells",
+        "/well-planner/wells/$wellId",
+        "/well-planner/settings",
+        "/well-planner/settings/custom",
       ])
     )
     const guarded = manifest.routes.find(
-      (route: { path: string }) => route.path === "/assets/$assetId"
+      (route: { path: string }) => route.path === "/wells/$wellId"
     )
     expect(guarded.guarded).toBe(true)
-    expect(guarded.permissionGroups).toEqual(["assets:read"])
+    expect(guarded.permissionGroups).toEqual(["wells:read"])
     expect(manifest.commands.map((command: { id: string }) => command.id)).toEqual(
-      expect.arrayContaining(["go-to-assets", "increment-counter"])
+      expect.arrayContaining(["go-to-wells", "increment-counter"])
     )
     expect(manifest.settings.map((group: { key: string }) => group.key)).toEqual(
       expect.arrayContaining(["display", "advanced"])

@@ -7,7 +7,9 @@ import {
   useSubscription,
 } from "@platform/host-react"
 
+import { Badge } from "@tecton/react/components/badge"
 import { Button, LinkButton } from "@tecton/react/components/button"
+import { Empty, EmptyDescription, EmptyTitle } from "@tecton/react/components/empty"
 
 function useSurfaceEntries<T>(select: () => T[]): T[] {
   useRegistryVersion(["help", "releaseNotes"])
@@ -41,9 +43,10 @@ export function HelpSlot({
   )
   if (entries.length === 0)
     return (
-      <p className={["platform-surface-empty", className].filter(Boolean).join(" ")}>
-        {emptyState}
-      </p>
+      <Empty className={className}>
+        <EmptyTitle>Nothing registered yet</EmptyTitle>
+        <EmptyDescription>{emptyState}</EmptyDescription>
+      </Empty>
     )
   return (
     <ul
@@ -70,9 +73,13 @@ export function HelpSlot({
             >
               <div className="platform-surface-entry-header">
                 <h3 className="platform-surface-entry-title">{entry.definition.title}</h3>
-                <span className="platform-surface-entry-owner">
+                <Badge
+                  variant="secondary"
+                  appearance="outline"
+                  className="platform-surface-entry-owner"
+                >
                   {entry.owner.displayName ?? entry.owner.mfeId}
-                </span>
+                </Badge>
               </div>
               {entry.definition.description ? (
                 <p className="platform-surface-entry-description">
@@ -135,9 +142,10 @@ export function ReleaseNotesSlot({
   )
   if (entries.length === 0)
     return (
-      <p className={["platform-surface-empty", className].filter(Boolean).join(" ")}>
-        {emptyState}
-      </p>
+      <Empty className={className}>
+        <EmptyTitle>Nothing registered yet</EmptyTitle>
+        <EmptyDescription>{emptyState}</EmptyDescription>
+      </Empty>
     )
   const sorted = [...entries].sort(
     (a, b) =>
@@ -163,10 +171,14 @@ export function ReleaseNotesSlot({
                 v{entry.definition.version}
               </code>
             </h3>
-            <span className="platform-surface-entry-owner">
+            <Badge
+              variant="secondary"
+              appearance="outline"
+              className="platform-surface-entry-owner"
+            >
               {entry.owner.displayName ?? entry.owner.mfeId}
               {entry.definition.date ? ` · ${entry.definition.date}` : ""}
-            </span>
+            </Badge>
           </div>
           {entry.definition.summary ? (
             <p className="platform-surface-entry-description">{entry.definition.summary}</p>

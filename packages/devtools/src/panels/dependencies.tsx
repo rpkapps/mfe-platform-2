@@ -1,50 +1,39 @@
-import { useMemo } from "react"
-import { Background, Controls, MiniMap, ReactFlow, type Edge, type Node } from "@xyflow/react"
+import { useEffect, useMemo } from "react"
+import {
+  Background,
+  BackgroundVariant,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  type Edge,
+  type Node,
+} from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 
-import { buildDependencyGraph, type DependencyNode } from "../graph"
+import { buildDependencyGraph } from "../graph"
 import type { DevtoolsPanelRenderProps } from "../registry"
 import { DataTable, Empty, Section } from "../ui"
+import { GraphNode, type GraphNodeData } from "./graph-node"
 
+/** Share scopes get a colour each; the node reads it from `data-scope-index`. */
 const SCOPE_COLORS = [
-  "var(--info-surface)",
-  "var(--success-surface)",
-  "var(--warning-surface)",
-  "var(--destructive-surface)",
-  "var(--muted)",
+  "var(--info)",
+  "var(--success)",
+  "var(--warning)",
+  "var(--destructive)",
+  "var(--muted-foreground)",
 ]
 
-function nodeStyle(
-  node: DependencyNode,
-  scopeIndex: Record<string, number>
-): React.CSSProperties {
-  const base: React.CSSProperties = {
-    fontSize: 12,
-    borderRadius: 6,
-    padding: "6px 10px",
-    border: "1px solid var(--border)",
-    background: "var(--card)",
-    color: "var(--card-foreground)",
-    width: 200,
-  }
-  if (node.kind === "shell")
-    return {
-      ...base,
-      background: "var(--primary)",
-      color: "var(--primary-foreground)",
-      borderColor: "var(--primary)",
-    }
-  if (node.kind === "remote") return { ...base, borderColor: "var(--ring)" }
-  if (node.kind === "instance") return { ...base, borderStyle: "dotted" }
-  if (node.kind === "bundled")
-    return {
-      ...base,
-      borderStyle: "dashed",
-      background: "var(--muted)",
-      color: "var(--muted-foreground)",
-    }
-  const color = SCOPE_COLORS[(scopeIndex[node.scope ?? ""] ?? 0) % SCOPE_COLORS.length]
-  return { ...base, background: color }
+const NODE_TYPES = { platform: GraphNode }
+
+const MINIMAP_NODE_COLOR = (node: Node) => {
+  const kind = (node.data as GraphNodeData).kind
+  if (kind === "shell") return "var(--primary)"
+  if (kind === "remote") return "var(--ring)"
+  if (kind === "bundled") return "var(--muted-foreground)"
+  return "var(--border)"
 }
 
 export function DependenciesPanel({ snapshot }: DevtoolsPanelRenderProps) {
@@ -53,18 +42,27 @@ export function DependenciesPanel({ snapshot }: DevtoolsPanelRenderProps) {
     () => Object.fromEntries(Object.keys(graph.scopes).map((scope, index) => [scope, index])),
     [graph]
   )
-  const nodes: Node[] = useMemo(
+  const computedNodes: Node[] = useMemo(
     () =>
       graph.nodes.map((node) => ({
         id: node.id,
+        type: "platform",
         position: node.position,
-        data: { label: node.detail ? `${node.label}\n${node.detail}` : node.label },
-        style: { ...nodeStyle(node, scopeIndex), whiteSpace: "pre-wrap" },
+        data: {
+          label: node.label,
+          detail: node.detail,
+          kind: node.kind,
+          scope: node.scope,
+          scopeIndex:
+            node.scope === undefined
+              ? undefined
+              : (scopeIndex[node.scope] ?? 0) % SCOPE_COLORS.length,
+        } satisfies GraphNodeData,
         draggable: true,
       })),
     [graph, scopeIndex]
   )
-  const edges: Edge[] = useMemo(
+  const computedEdges: Edge[] = useMemo(
     () =>
       graph.edges.map((edge) => ({
         id: edge.id,
@@ -84,6 +82,20 @@ export function DependenciesPanel({ snapshot }: DevtoolsPanelRenderProps) {
       })),
     [graph]
   )
+  // Held in state so dragging a node survives the snapshot refresh underneath it.
+  const [nodes, setNodes, onNodesChange] = useNodesState(computedNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(computedEdges)
+  useEffect(() => {
+    setNodes((current) => {
+      const moved = new Map(current.map((node) => [node.id, node.position]))
+      return computedNodes.map((node) => ({
+        ...node,
+        position: moved.get(node.id) ?? node.position,
+      }))
+    })
+  }, [computedNodes, setNodes])
+  useEffect(() => setEdges(computedEdges), [computedEdges, setEdges])
+
   const rows = Object.entries(snapshot.shared).flatMap(([mfeId, list]) =>
     list.map((row) => [
       mfeId,
@@ -106,15 +118,29 @@ export function DependenciesPanel({ snapshot }: DevtoolsPanelRenderProps) {
             <ReactFlow
               nodes={nodes}
               edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={NODE_TYPES}
               fitView
+              // Without a max, `fitView` shrinks a wide graph until the labels
+              // are unreadable; panning is better than illegible.
+              fitViewOptions={{ padding: 0.15, maxZoom: 1 }}
               nodesConnectable={false}
               elementsSelectable
               proOptions={{ hideAttribution: true }}
-              minZoom={0.2}
+              minZoom={0.3}
+              maxZoom={1.6}
             >
-              <Background />
+              <Background variant={BackgroundVariant.Dots} gap={18} size={1} />
               <Controls showInteractive={false} />
-              <MiniMap pannable zoomable />
+              <MiniMap
+                pannable
+                zoomable
+                bgColor="var(--muted)"
+                maskColor="color-mix(in oklch, var(--background) 72%, transparent)"
+                nodeColor={MINIMAP_NODE_COLOR}
+                nodeStrokeWidth={0}
+              />
             </ReactFlow>
           </div>
         )}

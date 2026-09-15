@@ -1,0 +1,17 @@
+{
+  // Base configuration for the example applications and the conformance shell.
+  //
+  // `@tecton/react` is consumed as source — its package exports point at
+  // `src/**/*.tsx`, not at built declarations — so `tsc` type-checks the
+  // library's own files as part of every application program, and
+  // `skipLibCheck` does not apply to them. `src/tecton/overflow.tsx` (pulled
+  // in by `PageHeader`, `Panel`, `ActionBar` and `ShellActions`) indexes
+  // arrays without guarding, which our stricter `noUncheckedIndexedAccess`
+  // rejects. The flag is therefore off for applications and on everywhere
+  // else: `internal/*` and `packages/*`, the code that actually ships, keep
+  // it. Remove this file once the upstream indexing is guarded.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": false
+  }
+}

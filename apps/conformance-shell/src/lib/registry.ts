@@ -3,25 +3,25 @@ import { MFE_IDS, PORTS, ROUTE_PREFIXES } from "@platform-internal/conformance"
 /** Host/platform registry: the defaults when neither an override nor the runtime configuration names a manifest URL. */
 export const registry = [
   {
-    mfeId: MFE_IDS.assetTracker,
-    manifestUrl: `http://127.0.0.1:${PORTS.assetTracker}/platform-manifest.json`,
-    displayName: "Asset Tracker",
+    mfeId: MFE_IDS.wellPlanner,
+    manifestUrl: `http://127.0.0.1:${PORTS.wellPlanner}/platform-manifest.json`,
+    displayName: "Well Planner",
   },
   {
-    mfeId: MFE_IDS.legacyReports,
-    manifestUrl: `http://127.0.0.1:${PORTS.legacyReports}/platform-manifest.json`,
-    displayName: "Legacy Reports",
-    routePrefix: ROUTE_PREFIXES.legacyReports,
+    mfeId: MFE_IDS.productionReports,
+    manifestUrl: `http://127.0.0.1:${PORTS.productionReports}/platform-manifest.json`,
+    displayName: "Production Reports",
+    routePrefix: ROUTE_PREFIXES.productionReports,
   },
   {
-    mfeId: MFE_IDS.widgetA,
-    manifestUrl: `http://127.0.0.1:${PORTS.widgetA}/platform-manifest.json`,
-    displayName: "Widget Library A",
+    mfeId: MFE_IDS.subsurfaceWidgets,
+    manifestUrl: `http://127.0.0.1:${PORTS.subsurfaceWidgets}/platform-manifest.json`,
+    displayName: "Subsurface Widgets",
   },
   {
-    mfeId: MFE_IDS.widgetB,
-    manifestUrl: `http://127.0.0.1:${PORTS.widgetB}/platform-manifest.json`,
-    displayName: "Widget Library B",
+    mfeId: MFE_IDS.fieldWidgets,
+    manifestUrl: `http://127.0.0.1:${PORTS.fieldWidgets}/platform-manifest.json`,
+    displayName: "Field Widgets",
   },
   {
     mfeId: MFE_IDS.broken,
@@ -45,7 +45,7 @@ export const registry = [
   },
   {
     mfeId: MFE_IDS.disabled,
-    manifestUrl: `http://127.0.0.1:${PORTS.assetTracker}/platform-manifest.json`,
+    manifestUrl: `http://127.0.0.1:${PORTS.wellPlanner}/platform-manifest.json`,
     displayName: "Disabled remote",
     enabled: false,
   },
