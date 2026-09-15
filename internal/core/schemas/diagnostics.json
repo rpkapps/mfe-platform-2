@@ -1,0 +1,42 @@
+{
+  "$id": "https://platform.docs.local/schemas/diagnostics.json",
+  "title": "diagnostics",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "number"
+    },
+    "at": {
+      "type": "number"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ]
+    },
+    "type": {
+      "type": "string"
+    },
+    "mfeId": {
+      "type": "string"
+    },
+    "instanceId": {
+      "type": "string"
+    },
+    "widgetId": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "at",
+    "level",
+    "type"
+  ],
+  "additionalProperties": {}
+}

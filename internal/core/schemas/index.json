@@ -1,0 +1,36 @@
+{
+  "schemas": [
+    {
+      "name": "manifest",
+      "file": "manifest.json"
+    },
+    {
+      "name": "runtime-config",
+      "file": "runtime-config.json"
+    },
+    {
+      "name": "capabilities",
+      "file": "capabilities.json"
+    },
+    {
+      "name": "registrations",
+      "file": "registrations.json"
+    },
+    {
+      "name": "settings",
+      "file": "settings.json"
+    },
+    {
+      "name": "diagnostics",
+      "file": "diagnostics.json"
+    },
+    {
+      "name": "protocol-compatibility",
+      "file": "protocol-compatibility.json"
+    },
+    {
+      "name": "shared-dependencies",
+      "file": "shared-dependencies.json"
+    }
+  ]
+}

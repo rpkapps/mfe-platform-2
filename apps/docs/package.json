@@ -1,0 +1,44 @@
+{
+  "name": "docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --port 3000",
+    "build": "vite build",
+    "preview": "vite preview --port 3000",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "docs:generate": "node ./scripts/generate.mjs",
+    "docs:check": "node ./scripts/check-docs.mjs"
+  },
+  "dependencies": {
+    "@platform-internal/core": "workspace:*",
+    "@tanstack/react-router": "catalog:",
+    "@tanstack/react-start": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@tecton/react": "catalog:",
+    "class-variance-authority": "catalog:",
+    "cn": "catalog:",
+    "fumadocs-core": "catalog:",
+    "fumadocs-mdx": "catalog:",
+    "lucide-react": "catalog:",
+    "next-themes": "catalog:",
+    "react-aria-components": "catalog:",
+    "shiki": "catalog:",
+    "sonner": "catalog:",
+    "tailwindcss": "catalog:",
+    "zod": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19"
+  },
+  "devDependencies": {
+    "@types/mdx": "catalog:",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19"
+  }
+}

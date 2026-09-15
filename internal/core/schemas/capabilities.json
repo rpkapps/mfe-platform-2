@@ -1,0 +1,33 @@
+{
+  "$id": "https://platform.docs.local/schemas/capabilities.json",
+  "title": "capabilities",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "navigation",
+          "context",
+          "storage.local",
+          "storage.session",
+          "telemetry",
+          "commands",
+          "settings",
+          "help",
+          "release-notes",
+          "breadcrumbs",
+          "overlays",
+          "notifications",
+          "runtime-env",
+          "widgets"
+        ]
+      }
+    }
+  },
+  "required": [
+    "capabilities"
+  ]
+}

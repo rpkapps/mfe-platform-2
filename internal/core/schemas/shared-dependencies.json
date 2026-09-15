@@ -1,0 +1,61 @@
+{
+  "$id": "https://platform.docs.local/schemas/shared-dependencies.json",
+  "title": "shared-dependencies",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "shared": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "requiredVersion": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string"
+          },
+          "singleton": {
+            "default": false,
+            "type": "boolean"
+          },
+          "shared": {
+            "default": true,
+            "type": "boolean"
+          },
+          "reason": {
+            "default": "inferred",
+            "type": "string",
+            "enum": [
+              "inferred",
+              "configured",
+              "source-package",
+              "disabled",
+              "pinned"
+            ]
+          },
+          "pairedWith": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "requiredVersion",
+          "scope"
+        ]
+      }
+    }
+  },
+  "required": [
+    "shared"
+  ]
+}

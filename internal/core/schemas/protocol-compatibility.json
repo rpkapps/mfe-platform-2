@@ -1,0 +1,27 @@
+{
+  "$id": "https://platform.docs.local/schemas/protocol-compatibility.json",
+  "title": "protocol-compatibility",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "hostProtocolVersion": {
+      "type": "string"
+    },
+    "remoteProtocolVersion": {
+      "type": "string"
+    },
+    "compatible": {
+      "type": "boolean"
+    },
+    "rule": {
+      "type": "string",
+      "const": "same major"
+    }
+  },
+  "required": [
+    "hostProtocolVersion",
+    "remoteProtocolVersion",
+    "compatible",
+    "rule"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "name": "@platform-internal/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Loader-neutral platform contracts: manifest, runtime configuration, registrations, storage, telemetry, navigation, shared-dependency negotiation, diagnostics.",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "schemas"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "schemas:build": "node ./scripts/build-schemas.mjs"
+  },
+  "dependencies": {
+    "zod": "catalog:",
+    "@standard-schema/spec": "catalog:"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
