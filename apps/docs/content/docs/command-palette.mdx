@@ -55,8 +55,8 @@ The reference implementation's props: `hotkey` (default `mod+k`; `null` disables
 ## Programmatic access
 
 ```ts
-await host.commands.run("asset-tracker:slow-sync", { source: "api" }) // { qualifiedId, outcome, durationMs, error? }
-host.commands.abort("asset-tracker:slow-sync")
+await host.commands.run("well-planner:slow-sync", { source: "api" }) // { qualifiedId, outcome, durationMs, error? }
+host.commands.abort("well-planner:slow-sync")
 host.commands.running() // qualified ids
 host.registries.commands.list() // RegisteredCommand[]
 host.registries.commands.conflicts() // { shortcut, holder, rejected }[]
@@ -64,4 +64,4 @@ host.registries.commands.conflicts() // { shortcut, holder, rejected }[]
 
 ## Not business data
 
-The first release does not search business entities (assets, reports, users). Commands may implement their own pickers after being invoked (a "Go to asset…" command that opens a Tecton `Combobox`), but the palette index stays limited to the sources above. This keeps the index static, permission-aware and fast, and avoids leaking data through metadata. General business-data search is listed under [Unsupported cases](/docs/unsupported-cases).
+The first release does not search business entities (wells, reports, users). Commands may implement their own pickers after being invoked (a "Go to well…" command that opens a Tecton `Combobox`), but the palette index stays limited to the sources above. This keeps the index static, permission-aware and fast, and avoids leaking data through metadata. General business-data search is listed under [Unsupported cases](/docs/unsupported-cases).

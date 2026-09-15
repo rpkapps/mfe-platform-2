@@ -35,22 +35,22 @@ import { within } from "@testing-library/react"
 import definition from "../mfe"
 
 const bridge = createTestBridge({
-  mfeId: "asset-tracker",
+  mfeId: "well-planner",
   user: { id: "u1", displayName: "Ada" },
-  permissionGroups: ["assets:read"],
+  permissionGroups: ["wells:read"],
   env: { API_BASE_URL: "https://api.example.test", PAGE_SIZE: 10 },
 })
-const mounted = renderMfe(definition, { bridge, path: "/asset-tracker/assets/pump-42" })
-await within(mounted.container).findByText("Pump 42")
+const mounted = renderMfe(definition, { bridge, path: "/well-planner/wells/w01" })
+await within(mounted.container).findByText("16/2-D-12 H")
 
-expect(mounted.container.querySelector('[data-mfe="asset-tracker"]')).not.toBeNull()
+expect(mounted.container.querySelector('[data-mfe="well-planner"]')).not.toBeNull()
 expect(bridge.registries.commands.list().map((command) => command.definition.id)).toContain(
   "say-hello"
 )
 
 bridge.setContext({ permissionGroups: [] }) // shell context change: guards and loaders re-run
-mounted.navigate("/asset-tracker/assets") // through the memory navigation
-expect(mounted.location().pathname).toBe("/asset-tracker/assets")
+mounted.navigate("/well-planner/wells") // through the memory navigation
+expect(mounted.location().pathname).toBe("/well-planner/wells")
 
 mounted.dispose()
 expect(bridge.registries.commands.list()).toEqual([])
@@ -64,18 +64,18 @@ expect(bridge.registries.commands.list()).toEqual([])
 
 ```ts
 const bridge = createTestBridge({
-  mfeId: "asset-tracker",
-  widgetId: "asset-card",
+  mfeId: "well-planner",
+  widgetId: "well-summary",
   routePrefix: null,
 })
 const container = document.body.appendChild(document.createElement("div"))
 const handle = definition.mountWidget({
   container,
   bridge,
-  widgetId: "asset-card",
-  props: { assetId: "pump-42" },
+  widgetId: "well-summary",
+  props: { wellId: "w01" },
 })
-handle.setProps({ assetId: "valve-7" })
+handle.setProps({ wellId: "w03" })
 handle.dispose()
 ```
 
@@ -85,7 +85,7 @@ handle.dispose()
 import { renderHook } from "@testing-library/react"
 import { PlatformTestProvider } from "@platform/mfe-react/testing"
 
-const bridge = createTestBridge({ mfeId: "asset-tracker" })
+const bridge = createTestBridge({ mfeId: "well-planner" })
 const { result } = renderHook(() => usePlatform((p) => p.user?.displayName), {
   wrapper: ({ children }) => (
     <PlatformTestProvider bridge={bridge}>{children}</PlatformTestProvider>

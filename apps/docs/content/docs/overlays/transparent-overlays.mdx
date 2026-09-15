@@ -5,7 +5,7 @@ description: The Tecton portal provider adapter gives every MFE an owner-tagged,
 
 ## The problem
 
-CSS is scoped under `[data-mfe="asset-tracker"]` and the MFE root is a `div` somewhere in the shell layout. A dialog rendered inside that `div` would be clipped by `overflow`, stacking contexts and transforms of the layout. A dialog portalled to `document.body` escapes the layout but also escapes the scoped styles.
+CSS is scoped under `[data-mfe="well-planner"]` and the MFE root is a `div` somewhere in the shell layout. A dialog rendered inside that `div` would be clipped by `overflow`, stacking contexts and transforms of the layout. A dialog portalled to `document.body` escapes the layout but also escapes the scoped styles.
 
 ## The adapter
 
@@ -29,7 +29,7 @@ The `dark` class of the MFE root and of its overlay root follows `resolvedTheme`
 
 ## Widgets
 
-Each widget instance gets its own root (`data-platform-widget="asset-card"`), so two instances of the same widget can open overlays independently and are disposed independently.
+Each widget instance gets its own root (`data-platform-widget="well-summary"`), so two instances of the same widget can open overlays independently and are disposed independently.
 
 ## Contained mode
 

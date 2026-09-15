@@ -37,7 +37,7 @@ function Dashboard() {
   const telemetry = useTelemetry()
   const { notify } = useNotifications()
   const columns = dashboardStorage.use((state) => state.columns)
-  const bulkEdit = usePlatform((p) => Boolean(p.featureFlags["assets.bulk-edit"]))
+  const bulkEdit = usePlatform((p) => Boolean(p.featureFlags["wells.bulk-edit"]))
 
   // Command palette entry with a shortcut. The id is local; the platform namespaces it as
   // `__MFE_ID__:say-hello`. Registration is removed when this component unmounts.

@@ -129,7 +129,7 @@ export function DevtoolsPanel({
         <TabsList
           aria-label="Developer tools"
           variant="line"
-          className="platform-devtools-tablist"
+          className="platform-devtools-tablist w-full"
         >
           {tabs.map((tab) => (
             <TabsTrigger key={tab.id} id={tab.id}>

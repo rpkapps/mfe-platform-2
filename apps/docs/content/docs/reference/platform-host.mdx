@@ -16,7 +16,7 @@ import { createTanStackShellNavigation } from "@platform/host-react/tanstack"
 const host = createPlatformHost({
   runtimeConfig: await loadRuntimeConfig({ inline }), // a parsed RuntimeConfig (required)
   navigation: createTanStackShellNavigation(router), // ShellNavigation (required)
-  registry: [{ mfeId: "asset-tracker", manifestUrl: "https://…/platform-manifest.json", displayName: "Asset Tracker" }],
+  registry: [{ mfeId: "well-planner", manifestUrl: "https://…/platform-manifest.json", displayName: "Well Planner" }],
   context: { user, permissionGroups, tenant, project, job, locale, timezone, theme, resolvedTheme, featureFlags, environment, release }, // Partial<ShellContextState> or a ShellContextStore
   notifications: myNotificationPort, // NotificationPort, implemented by the shell
   credentials: myCredentialAdapter, // CredentialAdapter (see Authentication)
@@ -92,9 +92,9 @@ import {
 
 const host = createTestHost({
   fetch: recordingFetch({
-    "http://shell.test/mfes/asset-tracker/platform-manifest.json": manifest(),
+    "http://shell.test/mfes/well-planner/platform-manifest.json": manifest(),
   }),
-  loader: fakeLoader({ "asset-tracker": definition() }),
+  loader: fakeLoader({ "well-planner": definition() }),
 })
 ```
 

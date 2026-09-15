@@ -13,7 +13,7 @@ describe("__MFE_ID__", () => {
     const bridge = createTestBridge({
       mfeId: "__MFE_ID__",
       user: { id: "u1", displayName: "Ada" },
-      permissionGroups: ["assets:read"],
+      permissionGroups: ["wells:read"],
       env: { API_BASE_URL: "https://api.example.test" },
     })
     const mounted = renderMfe(definition, { bridge, path: "__ROUTE_PREFIX__" })

@@ -53,7 +53,7 @@ loader: ({ context }) => {
 
 ```ts
 const bridge = createTestBridge({
-  mfeId: "asset-tracker",
+  mfeId: "well-planner",
   user: { id: "u1", displayName: "Ada" },
 })
 const mounted = renderMfe(definition, { bridge })
@@ -61,4 +61,4 @@ bridge.setContext({ theme: "light", resolvedTheme: "light" }) // UserName does n
 bridge.setContext({ user: { id: "u1", displayName: "Grace" } }) // it does
 ```
 
-Count renders with a `useRef` counter in the component under test. The conformance app exposes such a counter (`asset-tracker-render-count`) that the E2E suite watches while switching the theme and the project: the count is unchanged, and increases by one when the user changes.
+Count renders with a `useRef` counter in the component under test. The conformance app exposes such a counter (`well-planner-render-count`) that the E2E suite watches while switching the theme and the project: the count is unchanged, and increases by one when the user changes.

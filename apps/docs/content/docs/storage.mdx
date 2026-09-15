@@ -73,12 +73,12 @@ The shell decides the persistence implementation (`StorageBackend`): browser sto
 Keys are stored as `platform:<mfeId>[:<instanceId>]:<scope>:<key>`:
 
 ```text
-platform:asset-tracker:local:dashboard
-platform:asset-tracker:session:notes
-platform:widget-b:widget-b#3:session:counter   (instanceScoped: true — one value per widget instance)
+platform:well-planner:local:dashboard
+platform:well-planner:session:notes
+platform:field-widgets:field-widgets#3:session:counter   (instanceScoped: true — one value per widget instance)
 ```
 
-Two MFEs with a `dashboard` store never collide; two widget instances with an instance-scoped store each get their own value (the `counter-widget` fixture).
+Two MFEs with a `dashboard` store never collide; two widget instances with an instance-scoped store each get their own value (the `rig-status` fixture).
 
 ## Validation
 
@@ -119,7 +119,7 @@ Values are stored as `{ v, data, updatedAt }` envelopes.
 | Schema failure, migration repairs it      | migrated value | `recovered: "migrated"`        |
 | Schema failure otherwise                  | defaults       | `recovered: "defaults"`        |
 
-The store keeps working with defaults, `useStorageDiagnostics()` exposes the problem to the MFE, and the host records a `storage.invalid` event with the namespaced key. Nothing crashes: the E2E suite writes `{broken` into `platform:asset-tracker:local:dashboard`, reloads and sees the defaults.
+The store keeps working with defaults, `useStorageDiagnostics()` exposes the problem to the MFE, and the host records a `storage.invalid` event with the namespaced key. Nothing crashes: the E2E suite writes `{broken` into `platform:well-planner:local:dashboard`, reloads and sees the defaults.
 
 ## Unavailable
 

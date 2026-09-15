@@ -32,14 +32,14 @@ import { z } from "zod"
 
 import "./styles.css"
 import { routeTree } from "./routeTree.gen"
-import { AssetCard } from "./widgets/asset-card"
+import { WellSummary } from "./widgets/well-summary"
 
 export default createMfe({
   routeTree,
   widgets: {
-    "asset-card": createWidget({
-      component: AssetCard,
-      propsSchema: z.object({ assetId: z.string() }),
+    "well-summary": createWidget({
+      component: WellSummary,
+      propsSchema: z.object({ wellId: z.string() }),
     }),
   },
   // errorComponent, pendingComponent, notFoundComponent: optional, default to the platform boundaries
@@ -66,28 +66,28 @@ export const Route = createRootRouteWithContext<MfeRouterContext>()({
 
 ## A route
 
-```tsx title="src/routes/assets/$assetId.tsx"
+```tsx title="src/routes/wells/$wellId.tsx"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { fetchAsset } from "@/lib/api"
 
-export const Route = createFileRoute("/assets/$assetId")({
-  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["assets:read"] },
+export const Route = createFileRoute("/wells/$wellId")({
+  staticData: { breadcrumb: { fromLoader: "breadcrumb" }, permissionGroups: ["wells:read"] },
   beforeLoad: ({ context, params }) => {
-    if (!context.platform.permissions.hasGroup("assets:read")) {
-      throw redirect({ to: "/", search: { denied: params.assetId } })
+    if (!context.platform.permissions.hasGroup("wells:read")) {
+      throw redirect({ to: "/", search: { denied: params.wellId } })
     }
   },
   loader: async ({ context, params, abortController }) => {
-    const span = context.platform.telemetry.span("asset.load", { assetId: params.assetId })
+    const span = context.platform.telemetry.span("well.load", { wellId: params.wellId })
     try {
-      const asset = await fetchAsset(
+      const well = await fetchWell(
         context.platform.runtime.env.API_BASE_URL,
-        params.assetId,
+        params.wellId,
         abortController.signal
       )
       span.end()
-      return { asset, breadcrumb: asset.name }
+      return { well, breadcrumb: well.name }
     } catch (error) {
       span.fail(error)
       throw error
@@ -97,8 +97,8 @@ export const Route = createFileRoute("/assets/$assetId")({
 })
 
 function AssetDetail() {
-  const { asset } = Route.useLoaderData() // typed through the Register augmentation
-  return <h2>{asset.name}</h2>
+  const { well } = Route.useLoaderData() // typed through the Register augmentation
+  return <h2>{well.name}</h2>
 }
 ```
 
@@ -140,7 +140,7 @@ function SettingsPage() {
           { value: "compact", label: "Compact" },
         ],
       },
-      showOffline: { defaultValue: true, description: "Include offline assets in lists" },
+      showAbandoned: { defaultValue: true, description: "Include abandoned wells in lists" },
       pageSize: {
         defaultValue: 25,
         schema: z.number().int().min(5).max(200),
@@ -179,22 +179,22 @@ export const dashboardStorage = createPlatformStorage({
 
 ## A widget
 
-```tsx title="src/widgets/asset-card.tsx"
+```tsx title="src/widgets/well-summary.tsx"
 import { useNavigation, useMfeInstance, useRegisterCommand } from "@platform/mfe-react"
 
-export function AssetCard({ assetId, compact }: { assetId: string; compact?: boolean }) {
+export function WellSummary({ wellId, compact }: { wellId: string; compact?: boolean }) {
   const navigation = useNavigation()
   const { routePrefix } = useMfeInstance()
   useRegisterCommand({
-    id: "open-asset", // widget commands are instance-scoped automatically
-    label: `Open ${assetId}`,
-    handler: () => navigation.navigate(`${routePrefix ?? ""}/assets/${assetId}`),
+    id: "open-well", // widget commands are instance-scoped automatically
+    label: `Open ${wellId}`,
+    handler: () => navigation.navigate(`${routePrefix ?? ""}/wells/${wellId}`),
   })
-  return <section data-asset={assetId}>{compact ? assetId : `Asset ${assetId}`}</section>
+  return <section data-well={wellId}>{compact ? wellId : `Well ${wellId}`}</section>
 }
 ```
 
-The widget is exposed in `src/mfe.tsx` under a kebab-case key (`"asset-card"`), which becomes its id.
+The widget is exposed in `src/mfe.tsx` under a kebab-case key (`"well-summary"`), which becomes its id.
 
 ## Conventions
 

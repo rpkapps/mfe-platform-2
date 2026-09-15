@@ -10,7 +10,7 @@ import { defineMfeConfig } from "@platform/vite/config"
 
 export default defineMfeConfig({
   env: {
-    API_BASE_URL: { required: true, description: "Base URL of the asset API" },
+    API_BASE_URL: { required: true, description: "Base URL of the wells API" },
     PAGE_SIZE: { default: 25 },
     FEATURE_MAP: { default: false, description: "Show the map view" },
   },
@@ -27,7 +27,7 @@ import "@platform/mfe-react"
 declare module "@platform/mfe-react" {
   interface Register {
     env: { API_BASE_URL: string; PAGE_SIZE: number; FEATURE_MAP: boolean }
-    featureFlags: { "assets.bulk-edit": boolean }
+    featureFlags: { "wells.bulk-edit": boolean }
   }
 }
 ```
@@ -52,12 +52,12 @@ In loaders: `context.platform.runtime.env.API_BASE_URL`. In command handlers and
 
 ## Where values come from
 
-| Source            | Example                                                               |
-| ----------------- | --------------------------------------------------------------------- |
-| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com` |
-| Static document   | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json`      |
-| Local development | `mfe.config.ts` defaults, or the shell's own `PLATFORM_*` variables   |
-| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`          |
+| Source            | Example                                                              |
+| ----------------- | -------------------------------------------------------------------- |
+| Docker entrypoint | `PLATFORM_MFE_WELL_PLANNER_ENV_API_BASE_URL=https://api.example.com` |
+| Static document   | `mfes.well-planner.env.API_BASE_URL` in `/platform-config.json`      |
+| Local development | `mfe.config.ts` defaults, or the shell's own `PLATFORM_*` variables  |
+| Tests             | `createTestBridge({ env: { API_BASE_URL: "http://test" } })`         |
 
 See [Runtime configuration](/docs/runtime-configuration).
 

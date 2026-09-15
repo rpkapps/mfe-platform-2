@@ -8,9 +8,9 @@ src/mfe.tsx              createMfe({ routeTree, widgets, registrations }) — th
 src/routes/__root.tsx    root layout, breadcrumb root, error + not-found boundaries
 src/routes/index.tsx     dashboard: usePlatform slice, useRegisterCommand, storage, telemetry
 src/routes/settings.tsx  useRegisterSettingsGroup with boolean/select/number/async-options fields
-src/routes/assets/index.tsx      list route with links
-src/routes/assets/$assetId.tsx   beforeLoad permission guard, loader breadcrumb, pending/error components
-src/widgets/asset-card.tsx       widget (createWidget in mfe.tsx), navigation + overlay example
+src/routes/wells/index.tsx      list route with links
+src/routes/wells/$wellId.tsx   beforeLoad permission guard, loader breadcrumb, pending/error components
+src/widgets/well-summary.tsx       widget (createWidget in mfe.tsx), navigation + overlay example
 src/lib/storage.ts       createPlatformStorage stores
 src/lib/api.ts           data access: usePlatformFetch + useRuntimeEnv().API_BASE_URL
 src/platform.d.ts        declare module "@platform/mfe-react" { interface Register { env; featureFlags } }

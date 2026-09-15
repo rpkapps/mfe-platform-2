@@ -88,10 +88,10 @@ createPlatformStorage({ scope: "local" | "session", key, schema?, defaults, vers
   → { use(selector?), get(), set(), setKey(), reset(), subscribe() }  (bound to the current mount)
 
 // routing conventions (native TanStack)
-createFileRoute("/assets/$assetId")({
-  beforeLoad: ({ context }) => { if (!context.platform.permissions.hasGroup("assets:read")) throw redirect({ to: "/" }) },
-  loader: ({ context, params }) => context.platform.telemetry.span("load-asset") ...,
-  staticData: { breadcrumb: "Assets" | { label, dynamic?, hidden?, fromLoader?: "title" }, navigation: { title, description?, icon?, keywords?, order?, hidden? }, permissionGroups: ["assets:read"] },
+createFileRoute("/wells/$wellId")({
+  beforeLoad: ({ context }) => { if (!context.platform.permissions.hasGroup("wells:read")) throw redirect({ to: "/" }) },
+  loader: ({ context, params }) => context.platform.telemetry.span("load-well") ...,
+  staticData: { breadcrumb: "Wells" | { label, dynamic?, hidden?, fromLoader?: "title" }, navigation: { title, description?, icon?, keywords?, order?, hidden? }, permissionGroups: ["wells:read"] },
 })
 
 // route context
@@ -124,7 +124,7 @@ The package is framework-free and declares **no peer dependencies**. Alongside t
 
 **Shell UI is the shell's job.** `@platform/host-react` supplies only what is platform API rather than opinion: `PlatformProvider` (and `renderLoading` / `renderError` for every outlet at once), `usePlatformHost`, `useHostSelector`, `useHostDiagnostics`, `useSubscription`, `useShellLocation`, `useRegistryVersion`, `MfeOutlet`, `WidgetSlot`, `SurfaceMount`, `outletStateFor`, and `@platform/host-react/tanstack` with `createTanStackShellNavigation(router)` and the `$`-route helper. It ships no design system; `MfeOutlet`'s built-in loading and error states are structural, and a shell replaces them.
 
-The chrome — command palette, settings host, breadcrumbs, app finder, notifications, overlay provider, help and release-note surfaces, developer-tools toggle — lives in `apps/conformance-shell/src/components/`, built entirely on that headless API. It is the reference implementation: a real shell copies it and restyles it, shadcn-style, rather than depending on it, so changing a button is an application change and not a package release.
+The chrome — the header (app finder, breadcrumb context, command trigger, global actions, user menu), the command palette, the shortcuts dialog, the settings host, notifications, the overlay provider, the help and release-note surfaces, the page-state compositions and the developer-tools dock — lives in `apps/conformance-shell/src/components/`, built on that headless API and on Tecton's own `tecton/app-shell` and `tecton/shell-actions`. It is the reference implementation: a real shell copies it and restyles it, shadcn-style, rather than depending on it, so changing a button is an application change and not a package release.
 
 **Developer tools** are `@platform/devtools`, which the shell loads on demand:
 `devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") }`. The host never imports them, so a shell that does not want them never pays for React Flow or the panel. Its `Faults` panel injects the failures a shell is otherwise hard to push into (`host.remotes.setFault`, gated on the same `decideDevtools` check as the tools themselves).

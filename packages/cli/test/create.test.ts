@@ -19,7 +19,7 @@ describe("platform create", () => {
   let tecton19: Awaited<ReturnType<typeof create>>
   beforeAll(async () => {
     tecton19 = await create({
-      name: "@acme/asset-tracker",
+      name: "@acme/well-planner",
       dir: temp.dir,
       install: false,
       git: false,
@@ -34,15 +34,15 @@ describe("platform create", () => {
     // treat it as ordinary rather than unanalysable.
     const analysis = analyzeProjectSources({ root: tecton19.dir })
     expect(analysis.warnings).toEqual([])
-    expect(analysis.widgets.map((widget) => widget.id)).toContain("asset-card")
+    expect(analysis.widgets.map((widget) => widget.id)).toContain("well-summary")
   })
 
   it("scaffolds the canonical file map", () => {
     const dir = tecton19.dir
-    expect(dir).toBe(join(temp.dir, "asset-tracker"))
-    expect(tecton19.mfeId).toBe("asset-tracker")
-    expect(tecton19.displayName).toBe("Asset Tracker")
-    expect(tecton19.routePrefix).toBe("/asset-tracker")
+    expect(dir).toBe(join(temp.dir, "well-planner"))
+    expect(tecton19.mfeId).toBe("well-planner")
+    expect(tecton19.displayName).toBe("Well Planner")
+    expect(tecton19.routePrefix).toBe("/well-planner")
     for (const file of [
       "package.json",
       "vite.config.ts",
@@ -66,9 +66,9 @@ describe("platform create", () => {
       "src/routes/__root.tsx",
       "src/routes/index.tsx",
       "src/routes/settings.tsx",
-      "src/routes/assets/index.tsx",
-      "src/routes/assets/$assetId.tsx",
-      "src/widgets/asset-card.tsx",
+      "src/routes/wells/index.tsx",
+      "src/routes/wells/$wellId.tsx",
+      "src/widgets/well-summary.tsx",
       "src/lib/storage.ts",
       "src/lib/api.ts",
       "src/__tests__/mfe.test.tsx",
@@ -82,7 +82,7 @@ describe("platform create", () => {
 
   it("writes the identity file and replaces every token", () => {
     const dir = tecton19.dir
-    expect(json(dir, ".platform/identity.json")).toEqual({ mfeId: "asset-tracker" })
+    expect(json(dir, ".platform/identity.json")).toEqual({ mfeId: "well-planner" })
     const all = [
       "package.json",
       "mfe.config.ts",
@@ -101,13 +101,13 @@ describe("platform create", () => {
       /__(MFE_ID|PACKAGE_NAME|DISPLAY_NAME|ROUTE_PREFIX|REACT_MAJOR|REACT_RANGE|TYPES_REACT_RANGE|YEAR|PLATFORM_[A-Z]+_SPEC|TECTON_SPEC)__/
     )
     expect(all).not.toMatch(/\{\{[#^/]/)
-    expect(read(dir, "src/routes/__root.tsx")).toContain('breadcrumb: "Asset Tracker"')
-    expect(read(dir, "src/__tests__/mfe.test.tsx")).toContain('mfeId: "asset-tracker"')
+    expect(read(dir, "src/routes/__root.tsx")).toContain('breadcrumb: "Well Planner"')
+    expect(read(dir, "src/__tests__/mfe.test.tsx")).toContain('mfeId: "well-planner"')
   })
 
   it("scaffolds React 19 + Tecton by default", () => {
     const pkg = json(tecton19.dir, "package.json")
-    expect(pkg.name).toBe("@acme/asset-tracker")
+    expect(pkg.name).toBe("@acme/well-planner")
     expect(pkg.type).toBe("module")
     expect(pkg.scripts).toMatchObject({
       dev: "platform dev",
@@ -134,14 +134,14 @@ describe("platform create", () => {
     expect(read(tecton19.dir, "src/routes/__root.tsx")).toContain(
       "@tecton/react/components/badge"
     )
-    expect(read(tecton19.dir, "src/widgets/asset-card.tsx")).toContain("DialogTrigger")
-    expect(read(tecton19.dir, "src/widgets/asset-card.tsx")).not.toContain("React.useState")
+    expect(read(tecton19.dir, "src/widgets/well-summary.tsx")).toContain("DialogTrigger")
+    expect(read(tecton19.dir, "src/widgets/well-summary.tsx")).not.toContain("React.useState")
     expect(read(tecton19.dir, "eslint.config.ts")).toContain("export default platformConfig()")
   })
 
   it("scaffolds React 18 without Tecton", async () => {
     const result = await create({
-      name: "legacy-reports",
+      name: "production-reports",
       dir: temp.dir,
       react: 18,
       tecton: false,
@@ -155,8 +155,8 @@ describe("platform create", () => {
     expect(pkg.dependencies["react-aria-components"]).toBeUndefined()
     expect(read(result.dir, "src/styles.css")).not.toContain("@tecton/react")
     expect(read(result.dir, "src/routes/__root.tsx")).not.toContain("@tecton/react")
-    expect(read(result.dir, "src/widgets/asset-card.tsx")).toContain("React.useState")
-    expect(read(result.dir, "src/widgets/asset-card.tsx")).not.toContain("DialogTrigger")
+    expect(read(result.dir, "src/widgets/well-summary.tsx")).toContain("React.useState")
+    expect(read(result.dir, "src/widgets/well-summary.tsx")).not.toContain("DialogTrigger")
     expect(read(result.dir, "README.md")).toContain("React 18")
   })
 
@@ -187,10 +187,10 @@ describe("platform create", () => {
 
   it("refuses a non-empty directory unless --force", async () => {
     await expect(
-      create({ name: "asset-tracker", dir: temp.dir, install: false, git: false })
+      create({ name: "well-planner", dir: temp.dir, install: false, git: false })
     ).rejects.toMatchObject({ code: "TARGET_NOT_EMPTY" })
     const forced = await create({
-      name: "asset-tracker",
+      name: "well-planner",
       dir: temp.dir,
       install: false,
       git: false,
@@ -217,7 +217,7 @@ describe("platform create", () => {
   })
 
   it("derives display names", () => {
-    expect(titleCase("asset-tracker")).toBe("Asset Tracker")
+    expect(titleCase("well-planner")).toBe("Well Planner")
     expect(titleCase("mfe-1")).toBe("Mfe 1")
   })
 })

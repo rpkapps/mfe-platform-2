@@ -13,23 +13,23 @@ src/routes/
 ├── index.tsx             → /<prefix>
 ├── settings.tsx          → /<prefix>/settings
 ├── assets/
-│   ├── index.tsx         → /<prefix>/assets
-│   └── $assetId.tsx      → /<prefix>/assets/:assetId
+│   ├── index.tsx         → /<prefix>/wells
+│   └── $wellId.tsx      → /<prefix>/wells/:wellId
 └── reports.$reportId.tsx → /<prefix>/reports/:reportId (flat syntax)
 ```
 
-Paths inside the MFE are written relative to the MFE root (`/assets/$assetId`). The shell mounts the whole tree under the MFE's [route prefix](/docs/route-prefixes); `Link` and `navigate` inside the MFE keep using the relative form, and the shell-backed history translates them.
+Paths inside the MFE are written relative to the MFE root (`/wells/$wellId`). The shell mounts the whole tree under the MFE's [route prefix](/docs/route-prefixes); `Link` and `navigate` inside the MFE keep using the relative form, and the shell-backed history translates them.
 
-```tsx title="src/routes/assets/index.tsx"
+```tsx title="src/routes/wells/index.tsx"
 import { createFileRoute, Link } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/assets/")({
-  staticData: { breadcrumb: "Assets", navigation: { title: "Assets", order: 1 } },
+export const Route = createFileRoute("/wells/")({
+  staticData: { breadcrumb: "Wells", navigation: { title: "Wells", order: 1 } },
   component: () => (
     <ul>
       <li>
-        <Link to="/assets/$assetId" params={{ assetId: "pump-42" }}>
-          Pump 42
+        <Link to="/wells/$wellId" params={{ wellId: "w01" }}>
+          16/2-D-12 H
         </Link>
       </li>
     </ul>
@@ -67,11 +67,11 @@ declare module "@tanstack/react-router" {
 }
 ```
 
-With it, `Route.useLoaderData()`, `Route.useSearch()`, `useParams`, `getRouteApi`, `<Link to="/assets/$assetId" params={{ assetId }}>` and `redirect({ to })` are checked against the tree; a `to` that does not exist is a type error. The conformance MFEs put the same augmentation at the bottom of `src/mfe.tsx`.
+With it, `Route.useLoaderData()`, `Route.useSearch()`, `useParams`, `getRouteApi`, `<Link to="/wells/$wellId" params={{ wellId }}>` and `redirect({ to })` are checked against the tree; a `to` that does not exist is a type error. The conformance MFEs put the same augmentation at the bottom of `src/mfe.tsx`.
 
 ## Code splitting
 
-`autoCodeSplitting: true` splits each route's `component`, `pendingComponent`, `errorComponent`, `notFoundComponent` and loader-adjacent code into its own chunk. The Module Federation build keeps those chunks next to the remote entry, so a shell that mounts `/asset-tracker/assets/pump-42` downloads the remote entry, the shared-dependency negotiation result and the chunks of the matched routes only.
+`autoCodeSplitting: true` splits each route's `component`, `pendingComponent`, `errorComponent`, `notFoundComponent` and loader-adjacent code into its own chunk. The Module Federation build keeps those chunks next to the remote entry, so a shell that mounts `/well-planner/wells/w01` downloads the remote entry, the shared-dependency negotiation result and the chunks of the matched routes only.
 
 Preloading works as in a stand-alone app: the router is created with `defaultPreload: "intent"`, and `Link preload="viewport"` is honoured.
 
@@ -81,9 +81,9 @@ The plugin statically reads each route file and writes route metadata into the m
 
 ```ts
 staticData: {
-  breadcrumb: "Assets" | { label, dynamic?, hidden?, fromLoader?: "title" },
+  breadcrumb: "Wells" | { label, dynamic?, hidden?, fromLoader?: "title" },
   navigation: { title, description?, icon?, keywords?, order?, hidden? },
-  permissionGroups: ["assets:read"],
+  permissionGroups: ["wells:read"],
 }
 ```
 
@@ -107,7 +107,7 @@ import { createMfeRouter } from "@platform/mfe-react"
 const router = createMfeRouter({
   routeTree,
   bridge,
-  displayName: "Assets",
+  displayName: "Wells",
   defaultPreloadStaleTime: 30_000,
 })
 // later: disposeMfeRouter(router)

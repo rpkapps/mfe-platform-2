@@ -9,7 +9,7 @@ description: Groups place, order and label an MFE's settings in the shell. Field
 useRegisterSettingsGroup({
   key: "notifications",
   title: "Notifications",
-  group: "Asset tracker", // placement section in the settings host; defaults to the MFE display name
+  group: "Well planner", // placement section in the settings host; defaults to the MFE display name
   order: 20,
   icon: "bell",
   keywords: ["alerts", "email"],
@@ -21,7 +21,7 @@ The settings host groups by MFE (or by `group`), orders by `order` then title, a
 
 ## Several groups per MFE
 
-An MFE registers as many groups as it needs; each has its own local key. Keys are namespaced (`asset-tracker:notifications`), so two MFEs can both have a `display` group.
+An MFE registers as many groups as it needs; each has its own local key. Keys are namespaced (`well-planner:notifications`), so two MFEs can both have a `display` group.
 
 ## Dependencies between fields
 

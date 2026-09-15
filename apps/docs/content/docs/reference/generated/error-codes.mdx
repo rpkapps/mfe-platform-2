@@ -34,7 +34,7 @@ Every platform failure is a `PlatformError` carrying one of the 31 codes below, 
 | [`RUNTIME_CONFIG_INVALID`](#runtime_config_invalid)           | [/runtime-configuration#validation](/docs/runtime-configuration#validation)                 | Fix the runtime configuration document before the platform starts; the entrypoint validates it.                                                                                     |
 | [`RUNTIME_CONFIG_FETCH_FAILED`](#runtime_config_fetch_failed) | [/runtime-configuration#loading](/docs/runtime-configuration#loading)                       | Serve `/platform-config.json` from the same origin or inline it in the SSR document.                                                                                                |
 | [`ROUTE_PREFIX_INVALID`](#route_prefix_invalid)               | [/route-prefixes](/docs/route-prefixes)                                                     | Route prefixes start with `/`, contain only lowercase segments and have no trailing slash.                                                                                          |
-| [`MFE_ID_INVALID`](#mfe_id_invalid)                           | [/manifests#mfe-id](/docs/manifests#mfe-id)                                                 | `mfeId` is kebab-case (`asset-tracker`); it is inferred from the package name and persisted in `.platform/identity.json`.                                                           |
+| [`MFE_ID_INVALID`](#mfe_id_invalid)                           | [/manifests#mfe-id](/docs/manifests#mfe-id)                                                 | `mfeId` is kebab-case (`well-planner`); it is inferred from the package name and persisted in `.platform/identity.json`.                                                            |
 | [`DEV_RESTART_REQUIRED`](#dev_restart_required)               | [/local-development#restart-diagnostics](/docs/local-development#restart-diagnostics)       | Restart the development server: manifests, shared dependency versions, federation configuration and generated route trees are read at startup.                                      |
 | [`TELEMETRY_FAILED`](#telemetry_failed)                       | [/telemetry#failure-isolation](/docs/telemetry#failure-isolation)                           | The telemetry adapter threw; events are dropped and the MFE keeps running.                                                                                                          |
 | [`DEVTOOLS_UNAVAILABLE`](#devtools_unavailable)               | [/developer-tools#enabling](/docs/developer-tools#enabling)                                 | Enable `platform:devtools` in localStorage and check the host devtools policy.                                                                                                      |
@@ -195,7 +195,7 @@ Documentation: [/route-prefixes](/docs/route-prefixes). Diagnostic URL: `https:/
 
 ### MFE_ID_INVALID
 
-`mfeId` is kebab-case (`asset-tracker`); it is inferred from the package name and persisted in `.platform/identity.json`.
+`mfeId` is kebab-case (`well-planner`); it is inferred from the package name and persisted in `.platform/identity.json`.
 
 Documentation: [/manifests#mfe-id](/docs/manifests#mfe-id). Diagnostic URL: `https://platform.docs.local/docs/manifests#mfe-id`.
 

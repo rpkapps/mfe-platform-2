@@ -2,7 +2,6 @@ import * as React from "react"
 import {
   createRootRoute,
   HeadContent,
-  Link,
   Outlet,
   Scripts,
   useRouter,
@@ -11,24 +10,19 @@ import {
 import { ThemeProvider, useTheme } from "next-themes"
 import { RouterProvider as AriaRouterProvider } from "react-aria-components"
 import {
-  Breadcrumbs,
   CommandPalette,
   NotificationHost,
+  PageState,
   PlatformDevtools,
+  ShellHeader,
   ShellOverlayProvider,
+  ShortcutsDialog,
+  type DevtoolsControl,
 } from "@/components"
 import { TEST_IDS, PROJECTS } from "@platform-internal/conformance"
 
-import {
-  AppShell,
-  AppShellBody,
-  AppShellBrand,
-  AppShellHeader,
-  AppShellHeaderActions,
-  AppShellMain,
-  AppShellNav,
-} from "@tecton/react/tecton/app-shell"
-import { Button } from "@tecton/react/components/button"
+import { DialogTrigger } from "@tecton/react/components/dialog"
+import { AppShell, AppShellBody, AppShellMain } from "@tecton/react/tecton/app-shell"
 
 import { getRuntimeConfig } from "@/lib/runtime-config"
 import { ShellPlatform, switchUser, useShellHost, type UserKey } from "@/lib/platform"
@@ -50,10 +44,11 @@ export const Route = createRootRoute({
   shellComponent: RootDocument,
   component: RootLayout,
   notFoundComponent: () => (
-    <main className="p-6">
-      <h1 className="text-xl font-medium">404</h1>
-      <p className="text-muted-foreground">Nothing at this address in the shell.</p>
-    </main>
+    <PageState
+      code="404"
+      title="Nothing at this address"
+      description="The shell has no page here, and no application claims the path."
+    />
   ),
 })
 
@@ -102,22 +97,15 @@ function RootLayout() {
   )
 }
 
-const nav = [
-  { to: "/", title: "Home" },
-  { to: "/dashboard", title: "Dashboard" },
-  { to: "/settings", title: "Settings" },
-  { to: "/help", title: "Help" },
-  { to: "/release-notes", title: "Release notes" },
-  { to: "/failures", title: "Failure lab" },
-] as const
-
 function ShellChrome({ children }: { children: React.ReactNode }) {
   const host = useShellHost()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
-  const { resolvedTheme, setTheme } = useTheme()
-  const [counter, setCounter] = React.useState(0)
+  const { resolvedTheme } = useTheme()
   const [userKey, setUserKey] = React.useState<UserKey>("admin")
   const [projectIndex, setProjectIndex] = React.useState(0)
+  const [paletteOpen, setPaletteOpen] = React.useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = React.useState(false)
+  const devtools = React.useRef<DevtoolsControl | null>(null)
 
   React.useEffect(() => {
     if (!host) return
@@ -125,101 +113,51 @@ function ShellChrome({ children }: { children: React.ReactNode }) {
     host.context.patch({ theme, resolvedTheme: theme })
   }, [host, resolvedTheme])
 
+  // `?` opens the shortcut list, the way every shell that copies this file
+  // should: the palette owns `mod+k` itself.
+  React.useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "?" || event.metaKey || event.ctrlKey || event.altKey) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return
+      event.preventDefault()
+      setShortcutsOpen(true)
+    }
+    document.addEventListener("keydown", onKey)
+    return () => document.removeEventListener("keydown", onKey)
+  }, [])
+
   const chrome = (
-    <AppShell data-testid={ids.root} className="h-auto min-h-svh">
-      <AppShellHeader>
-        <AppShellBrand>
-          <Link to="/">Conformance Shell</Link>
-        </AppShellBrand>
-        <AppShellNav>
-          {nav.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="text-foreground/70 hover:bg-muted hover:text-foreground data-[status=active]:text-foreground rounded-md px-2 py-1 text-sm"
-              activeOptions={{ exact: item.to === "/" }}
-            >
-              {item.title}
-            </Link>
-          ))}
-          <Link
-            to="/$"
-            params={{ _splat: "asset-tracker" }}
-            className="text-foreground/70 hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-sm"
-          >
-            Asset Tracker
-          </Link>
-          <Link
-            to="/$"
-            params={{ _splat: "legacy/reports" }}
-            className="text-foreground/70 hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-sm"
-          >
-            Legacy Reports
-          </Link>
-        </AppShellNav>
-        <AppShellHeaderActions>
-          <Button
-            size="sm"
-            variant="outline"
-            data-testid={ids.counter}
-            onPress={() => setCounter((value) => value + 1)}
-          >
-            Shell {counter}
-          </Button>
-          <select
-            aria-label="Current user"
-            data-testid={ids.userSwitch}
-            className="border-input bg-background h-8 rounded-md border px-2 text-sm"
-            value={userKey}
-            onChange={(event) => {
-              const key = event.target.value as UserKey
-              setUserKey(key)
-              if (host) switchUser(host, key)
-            }}
-          >
-            <option value="admin">Ada (admin)</option>
-            <option value="viewer">Grace (viewer)</option>
-            <option value="restricted">Guest (restricted)</option>
-          </select>
-          <select
-            aria-label="Project"
-            data-testid={ids.projectSwitch}
-            className="border-input bg-background h-8 rounded-md border px-2 text-sm"
-            value={projectIndex}
-            onChange={(event) => {
-              const index = Number(event.target.value)
-              setProjectIndex(index)
-              host?.context.patch({ project: PROJECTS[index]! })
-            }}
-          >
-            {PROJECTS.map((project, index) => (
-              <option key={project.id} value={index}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-          <Button
-            size="sm"
-            variant="ghost"
-            data-testid={ids.themeToggle}
-            onPress={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          >
-            Theme: {resolvedTheme ?? "dark"}
-          </Button>
-          <span data-testid={ids.userName} className="text-muted-foreground text-sm">
-            {host?.context.getState().user?.displayName ?? "…"}
-          </span>
-          {host ? <CommandPalette /> : null}
-        </AppShellHeaderActions>
-      </AppShellHeader>
+    <AppShell data-testid={ids.root}>
+      <ShellHeader
+        hasHost={Boolean(host)}
+        userKey={userKey}
+        onUserChange={(key) => {
+          setUserKey(key)
+          if (host) switchUser(host, key)
+        }}
+        projectIndex={projectIndex}
+        onProjectChange={(index) => {
+          setProjectIndex(index)
+          host?.context.patch({ project: PROJECTS[index]! })
+        }}
+        onOpenPalette={() => setPaletteOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+        onToggleDevtools={() => devtools.current?.toggle()}
+      />
       <AppShellBody>
-        <AppShellMain className="flex flex-col gap-4 p-4">
-          <div data-testid={ids.breadcrumbs}>{host ? <Breadcrumbs /> : null}</div>
+        <AppShellMain className="flex flex-col gap-6 p-4 md:p-6">
           <div data-current-path={pathname}>{children}</div>
         </AppShellMain>
       </AppShellBody>
+      {host ? <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} /> : null}
+      {host ? (
+        <DialogTrigger isOpen={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+          <ShortcutsDialog />
+        </DialogTrigger>
+      ) : null}
       {host ? <NotificationHost /> : null}
-      {host ? <PlatformDevtools /> : null}
+      {host ? <PlatformDevtools controlRef={devtools} /> : null}
     </AppShell>
   )
   return host ? <ShellOverlayProvider>{chrome}</ShellOverlayProvider> : chrome

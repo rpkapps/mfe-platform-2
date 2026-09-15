@@ -26,7 +26,7 @@ createPlatformHost({
 
 `@platform/host` never imports the package, so a shell that omits `load` never pays for React Flow, Tecton or the panel in its dependency tree — and `loadDevtools(host)` says exactly that if the tools are enabled with no loader. The dynamic `import()` lives in the shell's own bundle, which is what makes it a separate chunk. `loadDevtools` calls it once per host and records `devtools: loaded`, or `devtools: failed` with the reason, after which the shell keeps running.
 
-The toggle that renders the panel is shell chrome like any other; `apps/conformance-shell/src/components/devtools.tsx` is the reference implementation, and it is 85 lines. The E2E suite loads the conformance dashboard, asserts that no devtools or React Flow chunk was requested, sets the flag, reloads and opens the panel.
+The trigger and the panel around it are shell chrome like any other; `apps/conformance-shell/src/components/devtools.tsx` is the reference implementation. It docks the tools the way a browser does: a small bug icon fixed in the bottom-right corner, and, once pressed, a panel spanning the full width of the viewport along the bottom edge, resized by dragging its top edge. The height and the open state are remembered in `localStorage` (`platform:devtools:height`, `platform:devtools:open`), `Esc` closes it, and the shell header carries a second trigger next to the other global actions. The E2E suite loads the conformance dashboard, asserts that no devtools or React Flow chunk was requested, sets the flag, reloads and opens the panel.
 
 ## Panels
 
@@ -76,4 +76,4 @@ Withholding `auth` is the quickest way to see what an MFE does when it cannot au
 
 ## In tests
 
-`decideDevtools(host, window)` returns `{ allowed, reason }` without side effects; `shouldLoadDevtools(host)` also emits the diagnostic. The E2E suite asserts that the devtools chunk is not requested until the flag is set and the toggle is pressed, that the dependency graph shows both share scopes, that the overview lists `asset-tracker` and `widget-b` with their React versions, and that a fault makes the real outlet render the real error.
+`decideDevtools(host, window)` returns `{ allowed, reason }` without side effects; `shouldLoadDevtools(host)` also emits the diagnostic. The E2E suite asserts that the devtools chunk is not requested until the flag is set and the toggle is pressed, that the dependency graph shows both share scopes, that the overview lists `well-planner` and `field-widgets` with their React versions, and that a fault makes the real outlet render the real error.

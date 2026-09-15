@@ -17,10 +17,10 @@ The chosen URL and its source (`query`, `override`, `runtime-config`, `registry`
 ## Query parameter
 
 ```text
-https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:4201/platform-manifest.json
+https://shell.example.com/well-planner?platform.override.well-planner=http://localhost:4201/platform-manifest.json
 ```
 
-The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("asset-tracker", null)`, from the override control in the developer tools, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
+The override is stored in `localStorage["platform:manifest-overrides"]`, so it survives navigation. Clear it with `host.remotes.setLocalOverride("well-planner", null)`, from the override control in the developer tools, or by removing the storage key; `host.remotes.localOverrides()` lists the active ones and `host.remotes.resolveManifestUrl(mfeId)` returns `{ url, source }`. The E2E suite sets an override pointing at an unreachable port, sees `MANIFEST_FETCH_FAILED` with the overridden URL in the devtools, clears the key and gets the runtime-configuration URL back.
 
 ## Developer tools
 
@@ -31,19 +31,19 @@ The _Overview_ tab lists every known `mfeId` with the effective URL and its sour
 ```ts title="apps/shell/src/lib/registry.ts"
 export const registry = [
   {
-    mfeId: "asset-tracker",
-    manifestUrl: "https://remotes.example.com/asset-tracker/platform-manifest.json",
-    displayName: "Asset Tracker",
+    mfeId: "well-planner",
+    manifestUrl: "https://remotes.example.com/well-planner/platform-manifest.json",
+    displayName: "Well Planner",
   },
   {
-    mfeId: "legacy-reports",
+    mfeId: "production-reports",
     manifestUrl: "https://legacy.example.com/reports/platform-manifest.json",
-    displayName: "Legacy Reports",
+    displayName: "Production Reports",
   },
   {
-    mfeId: "widget-a",
-    manifestUrl: "/mfes/widget-a/platform-manifest.json",
-    displayName: "Widget Library A",
+    mfeId: "subsurface-widgets",
+    manifestUrl: "/mfes/subsurface-widgets/platform-manifest.json",
+    displayName: "Subsurface Widgets",
     discoverable: false,
   },
   { mfeId: "old-remote", manifestUrl: "…", enabled: false },

@@ -38,7 +38,7 @@ const host = createPlatformHost({ runtimeConfig, registry, navigation })
 
 `createMfeRouter` wraps the bridge's navigation in a private TanStack history (`createShellHistory`) and passes it to `createRouter({ history, basepath: routePrefix })`. The adapter:
 
-- delegates every MFE navigation (`Link`, `navigate`, `redirect`) to `ShellNavigation.push`/`replace`; TanStack already prefixes hrefs with the `basepath`, and `normalizeShellHref` drops the trailing slash TanStack adds to the MFE root (`/asset-tracker/` → `/asset-tracker`),
+- delegates every MFE navigation (`Link`, `navigate`, `redirect`) to `ShellNavigation.push`/`replace`; TanStack already prefixes hrefs with the `basepath`, and `normalizeShellHref` drops the trailing slash TanStack adds to the MFE root (`/well-planner/` → `/well-planner`),
 - asks `navigation.canLeave(path)` first when the shell implements it, so a shell can block a navigation,
 - receives location changes from the shell (`subscribe`) and feeds them to the router as `PUSH`, `REPLACE`, `BACK`, `FORWARD` or `GO`, so browser back/forward and shell-side navigations update the MFE,
 - implements `back`, `forward`, `go` and `reload` by delegation and keeps TanStack's `state` and `key`,
@@ -46,19 +46,19 @@ const host = createPlatformHost({ runtimeConfig, registry, navigation })
 
 ### Inactive location
 
-While the shell URL is **outside the MFE's prefix** — another MFE or a shell page is active, or the mount is headless — the router does not see the foreign URL. It sees a synthetic inactive location under its own prefix (`/asset-tracker/__platform_inactive__`), and its own pushes and replaces are **dropped**. An MFE router can therefore never rewrite a URL it does not own, which is what makes headless mounts (settings owners) and lingering roots safe. When the shell navigates back under the prefix, the real location is delivered again.
+While the shell URL is **outside the MFE's prefix** — another MFE or a shell page is active, or the mount is headless — the router does not see the foreign URL. It sees a synthetic inactive location under its own prefix (`/well-planner/__platform_inactive__`), and its own pushes and replaces are **dropped**. An MFE router can therefore never rewrite a URL it does not own, which is what makes headless mounts (settings owners) and lingering roots safe. When the shell navigates back under the prefix, the real location is delivered again.
 
 ## Semantics
 
-| MFE action                                                     | Shell effect                                                                           |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `<Link to="/assets/$assetId" params={{ assetId: "1" }}>`       | `push("/asset-tracker/assets/1")`                                                      |
-| `navigate({ to: "/assets", replace: true })` (TanStack router) | `replace("/asset-tracker/assets")`                                                     |
-| `useNavigation().navigateWithin("/assets/1")`                  | `push("/asset-tracker/assets/1")`                                                      |
-| `useNavigation().navigate("/legacy/reports")`                  | `push("/legacy/reports")` — leaves the MFE; the shell's `$` route swaps the outlet     |
-| `useNavigation().back()`                                       | `back()` — may leave the MFE; the shell disposes the root on the next route match      |
-| Shell navigates to `/dashboard`                                | MFE router sees the inactive location; the shell disposes the root                     |
-| Browser back into the MFE                                      | The shell mounts the MFE; the adapter delivers the current location as the first entry |
+| MFE action                                                    | Shell effect                                                                           |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `<Link to="/wells/$wellId" params={{ wellId: "1" }}>`         | `push("/well-planner/wells/1")`                                                        |
+| `navigate({ to: "/wells", replace: true })` (TanStack router) | `replace("/well-planner/wells")`                                                       |
+| `useNavigation().navigateWithin("/wells/1")`                  | `push("/well-planner/wells/1")`                                                        |
+| `useNavigation().navigate("/legacy/reports")`                 | `push("/legacy/reports")` — leaves the MFE; the shell's `$` route swaps the outlet     |
+| `useNavigation().back()`                                      | `back()` — may leave the MFE; the shell disposes the root on the next route match      |
+| Shell navigates to `/dashboard`                               | MFE router sees the inactive location; the shell disposes the root                     |
+| Browser back into the MFE                                     | The shell mounts the MFE; the adapter delivers the current location as the first entry |
 
 ## Navigating outside the MFE
 
@@ -71,7 +71,7 @@ function Links() {
   const nav = useNavigation()
   return (
     <>
-      <button onClick={() => nav.navigateWithin("/assets/pump-42")}>Pump 42</button>
+      <button onClick={() => nav.navigateWithin("/wells/w01")}>16/2-D-12 H</button>
       <button onClick={() => nav.navigate("/legacy/reports/daily-production")}>
         Daily report
       </button>

@@ -9,7 +9,7 @@ This is the platform monorepo for independently deployed React micro-frontends: 
 - `pnpm check` = format + lint + typecheck + unit tests. `pnpm e2e` runs Playwright against the conformance apps (build first with `pnpm build:all`).
 - Scripts are Node (`.mjs`) so they run on Windows and Linux; never add bash-only scripts.
 - A package that publishes a `bin` points it at a checked-in stub (`packages/*/bin.js`) that imports the build output. pnpm links bins during `pnpm install`, before `dist/` exists in a fresh clone; a `bin` pointing straight at `dist/` is skipped with a warning and the command is missing for the rest of the CI run.
-- The workspace root pins `@types/react`/`@types/react-dom` to the React 19 catalog even though nothing at the root imports React. Two React majors mean two copies of the types; a package inside the virtual store that does not resolve them as a peer walks up to `node_modules/.pnpm/node_modules`, and which major pnpm hoists there is not stable (a clean install picked React 18, so `apps/docs` type-checked React 19 code against React 18 types and only CI saw it). Declaring them at the root removes the hoisted copy entirely, so the fallback is this pin. Applications still resolve their own major first: `apps/conformance-react18` compiles against `@types/react@18`.
+- The workspace root pins `@types/react`/`@types/react-dom` to the React 19 catalog even though nothing at the root imports React. Two React majors mean two copies of the types; a package inside the virtual store that does not resolve them as a peer walks up to `node_modules/.pnpm/node_modules`, and which major pnpm hoists there is not stable (a clean install picked React 18, so `apps/docs` type-checked React 19 code against React 18 types and only CI saw it). Declaring them at the root removes the hoisted copy entirely, so the fallback is this pin. Applications still resolve their own major first: `apps/production-reports` compiles against `@types/react@18`.
 - `.gitattributes` checks every text file out with LF. Prettier is configured with `endOfLine: "lf"` and CI verifies on Windows, where Git would otherwise convert the tree to CRLF and fail `pnpm format:check` on every file.
 
 ## Layout
@@ -17,10 +17,10 @@ This is the platform monorepo for independently deployed React micro-frontends: 
 ```
 apps/docs                   TanStack Start + Fumadocs documentation site (Tecton styles)
 apps/conformance-shell      SSR shell (TanStack Start, React 19) and the reference chrome in src/components
-apps/conformance-react19    MFE "asset-tracker" (React 19, Tecton)
-apps/conformance-react18    MFE "legacy-reports" (React 18, no Tecton)
-apps/conformance-widget-a   hidden widget library (React 19)
-apps/conformance-widget-b   hidden widget library (React 18)
+apps/well-planner           MFE "well-planner" (React 19, Tecton)
+apps/production-reports     MFE "production-reports" (React 18, no design system)
+apps/subsurface-widgets     hidden widget library (React 19, Tecton)
+apps/field-widgets          hidden widget library (React 18, no design system)
 packages/mfe-react|host|host-react|devtools|vite|cli   public packages
 internal/core|module-federation|diagnostics|conformance   private packages
 test/integration            package and runtime boundary tests (Vitest)

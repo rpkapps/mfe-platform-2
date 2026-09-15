@@ -18,9 +18,9 @@ function Actions() {
   const { hasGroup, hasAnyGroup, hasAllGroups, groups } = usePermissions()
   return (
     <>
-      {hasGroup("assets:write") && <NewAssetButton />}
+      {hasGroup("wells:write") && <NewAssetButton />}
       {hasAnyGroup(["reports:read", "admin"]) && <ReportsLink />}
-      {hasAllGroups(["assets:write", "assets:approve"]) && <ApproveButton />}
+      {hasAllGroups(["wells:write", "assets:approve"]) && <ApproveButton />}
     </>
   )
 }

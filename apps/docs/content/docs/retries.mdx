@@ -37,8 +37,8 @@ The runtime configuration sets the policy for the whole shell:
 Every boundary state has a _Retry_ action. Programmatically:
 
 ```ts
-await host.remotes.retry("asset-tracker") // re-resolve the URL, refetch the manifest, invalidate the loader and load again
-await host.remotes.loadManifest("asset-tracker", { force: true }) // refetch the manifest only
+await host.remotes.retry("well-planner") // re-resolve the URL, refetch the manifest, invalidate the loader and load again
+await host.remotes.loadManifest("well-planner", { force: true }) // refetch the manifest only
 ```
 
 `MfeOutlet` and `WidgetSlot` call `retry` from their _Retry_ buttons and mount again. To exercise these states, the developer tools' [_Faults_ panel](/docs/developer-tools#fault-injection) simulates manifest 404s, unavailable remotes, withheld capabilities, denied permission groups and incompatible shared dependencies against the running shell.

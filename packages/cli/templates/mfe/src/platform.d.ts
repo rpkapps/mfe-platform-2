@@ -13,7 +13,7 @@ declare module "@platform/mfe-react" {
       API_BASE_URL: string
     }
     featureFlags: {
-      "assets.bulk-edit": boolean
+      "wells.bulk-edit": boolean
     }
   }
 }

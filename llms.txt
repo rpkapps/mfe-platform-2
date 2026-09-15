@@ -113,10 +113,10 @@ Public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @p
 ## Examples
 
 - [Conformance shell](https://platform.docs.local/docs/examples#appsconformance-shell): apps/conformance-shell — TanStack Start SSR shell on @platform/host, and the reference chrome in src/components
-- [asset-tracker (React 19, Tecton)](https://platform.docs.local/docs/examples#appsconformance-react19--asset-tracker): apps/conformance-react19 — routes, guards, commands, settings, storage, widgets
-- [legacy-reports (React 18)](https://platform.docs.local/docs/examples#appsconformance-react18--legacy-reports): apps/conformance-react18 — React 18 remote on a legacy route prefix
-- [widget-a (React 19 widgets)](https://platform.docs.local/docs/examples#appsconformance-widget-a--widget-a): apps/conformance-widget-a — hidden widget library
-- [widget-b (React 18 widgets)](https://platform.docs.local/docs/examples#appsconformance-widget-b--widget-b): apps/conformance-widget-b — hidden widget library
+- [well-planner (React 19, Tecton)](https://platform.docs.local/docs/examples#appswell-planner--well-planner): apps/well-planner — routes, guards, commands, settings, storage, widgets
+- [production-reports (React 18)](https://platform.docs.local/docs/examples#appsproduction-reports--production-reports): apps/production-reports — React 18 remote on a legacy route prefix
+- [subsurface-widgets (React 19 widgets)](https://platform.docs.local/docs/examples#appsconformance-subsurface-widgets--subsurface-widgets): apps/conformance-subsurface-widgets — hidden widget library
+- [field-widgets (React 18 widgets)](https://platform.docs.local/docs/examples#appsconformance-field-widgets--field-widgets): apps/conformance-field-widgets — hidden widget library
 
 ## Diagnostics
 

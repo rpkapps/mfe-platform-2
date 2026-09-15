@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test"
 
-import { gotoShell, ids } from "./helpers"
+import { gotoShell, ids, openApp } from "./helpers"
 
 test.describe("failure isolation", () => {
   test("every boundary fails alone with an actionable diagnostic", async ({ page }) => {
@@ -34,14 +34,14 @@ test.describe("failure isolation", () => {
         .getByRole("button", { name: /Retry/ })
     ).toBeVisible()
     // The shell keeps working.
-    await page.getByRole("link", { name: "Asset Tracker" }).first().click()
-    await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({ timeout: 30_000 })
+    await openApp(page, "Well Planner")
+    await expect(page.getByTestId(ids.wellPlanner.root)).toBeVisible({ timeout: 30_000 })
   })
 
   test("manifest URL overrides at runtime with visible source", async ({ page }) => {
     await gotoShell(
       page,
-      "/asset-tracker?platform.override.asset-tracker=http://127.0.0.1:4999/platform-manifest.json"
+      "/well-planner?platform.override.well-planner=http://127.0.0.1:4999/platform-manifest.json"
     )
     await expect(page.getByTestId(ids.shell.outlet)).toContainText("MANIFEST_FETCH_FAILED", {
       timeout: 40_000,
@@ -57,7 +57,7 @@ test.describe("failure isolation", () => {
       localStorage.removeItem("platform:manifest-overrides")
       sessionStorage.removeItem("platform:manifest-overrides")
     })
-    await page.goto("/asset-tracker")
-    await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({ timeout: 30_000 })
+    await page.goto("/well-planner")
+    await expect(page.getByTestId(ids.wellPlanner.root)).toBeVisible({ timeout: 30_000 })
   })
 })

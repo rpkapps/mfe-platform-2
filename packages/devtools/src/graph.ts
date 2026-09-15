@@ -1,8 +1,10 @@
 import type { DiagnosticSnapshot } from "@platform-internal/diagnostics"
 
+export type DependencyNodeKind = "shell" | "remote" | "instance" | "package" | "bundled"
+
 export interface DependencyNode {
   id: string
-  kind: "shell" | "remote" | "instance" | "package" | "bundled"
+  kind: DependencyNodeKind
   label: string
   /** Share scope (version group) for packages. */
   scope?: string
@@ -25,8 +27,23 @@ export interface DependencyGraph {
   scopes: Record<string, string[]>
 }
 
-const COLUMN = 260
-const ROW = 72
+// Column pitch leaves a gap beside a 13rem node; the row pitch clears its
+// three lines of text, so nothing overlaps at 100% zoom.
+const COLUMN = 300
+const ROW = 96
+/*
+ * Packages are the long tail — a dozen shared modules plus every bundled copy.
+ * Stacked in one column they make the graph several thousand pixels tall, and
+ * `fitView` then shrinks it until no label can be read. They wrap into a grid
+ * instead, which keeps the whole graph close to the panel's aspect ratio.
+ */
+const PACKAGES_PER_COLUMN = 8
+
+function packagePosition(index: number): { x: number; y: number } {
+  const column = Math.floor(index / PACKAGES_PER_COLUMN)
+  const row = index % PACKAGES_PER_COLUMN
+  return { x: COLUMN * (3 + column), y: ROW * (row + 1) }
+}
 
 /**
  * Nodes: the shell, every loaded remote (with its instances) and every
@@ -82,7 +99,7 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
         kind: "instance",
         label: instance.widgetId ? `${instance.widgetId} widget` : "route instance",
         detail: `${instance.instanceId} · ${instance.state}`,
-        position: { x: COLUMN * 2, y: ROW * (remoteRow + 1) + instanceRow * 40 },
+        position: { x: COLUMN * 2, y: ROW * (remoteRow + 1) + instanceRow * 84 },
       })
       edges.push({
         id: `instance:${instance.instanceId}`,
@@ -127,7 +144,7 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
             label: `${row.name}@${row.version ?? "?"}`,
             scope: row.scope,
             detail: `scope ${row.scope}`,
-            position: { x: COLUMN * 3, y: ROW * (packageRow + 1) },
+            position: packagePosition(packageRow),
           })
           packageRow += 1
           scopes[row.scope] = [...(scopes[row.scope] ?? []), nodeId]
@@ -155,7 +172,7 @@ export function buildDependencyGraph(snapshot: DiagnosticSnapshot): DependencyGr
           label: `${row.name}@${row.version ?? "?"} (bundled)`,
           scope: row.scope,
           detail: row.reason,
-          position: { x: COLUMN * 3, y: ROW * (packageRow + 1) },
+          position: packagePosition(packageRow),
         })
         packageRow += 1
         scopes[row.scope] = [...(scopes[row.scope] ?? []), nodeId]

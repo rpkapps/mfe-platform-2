@@ -13,7 +13,7 @@ description: Every MFE and widget always renders in its own React root, even whe
 ## How a root is created
 
 ```text
-host: <div data-platform-root data-mfe="asset-tracker" data-platform-instance="asset-tracker#1">
+host: <div data-platform-root data-mfe="well-planner" data-platform-instance="well-planner#1">
         └─ definition.mount({ container, bridge })       // remote code, remote React
              └─ createRoot(container).render(<Providers bridge={bridge}><RouterProvider/></Providers>)
       dispose() → root.unmount(); registrations cleared; overlay root removed

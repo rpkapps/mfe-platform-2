@@ -8,8 +8,10 @@ export default defineConfig({
     projects: [
       "internal/*/vitest.config.ts",
       "packages/*/vitest.config.ts",
-      "apps/conformance-react19/vitest.config.ts",
-      "apps/conformance-react18/vitest.config.ts",
+      "apps/well-planner/vitest.config.ts",
+      "apps/production-reports/vitest.config.ts",
+      "apps/subsurface-widgets/vitest.config.ts",
+      "apps/field-widgets/vitest.config.ts",
       "apps/conformance-shell/vitest.config.ts",
       "test/integration/vitest.config.ts",
     ],

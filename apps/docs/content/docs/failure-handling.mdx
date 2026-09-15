@@ -79,8 +79,8 @@ A failing devtools chunk or panel records `devtools: failed`; the toggle stays a
 
 ```tsx
 <MfeOutlet
-  mfeId="asset-tracker"
-  routePrefix="/asset-tracker"
+  mfeId="well-planner"
+  routePrefix="/well-planner"
   fallback={<AppSkeleton />}
   errorFallback={(error, retry) => <ErrorPanel error={error} onRetry={retry} />}
   onStateChange={(state) => track(state)} // "loading" | "mounted" | "error" | "unavailable" | "denied" | "disabled"
@@ -95,9 +95,9 @@ Inside an MFE, `<MfeErrorBoundary fallback={…}>` and `<MfeLoading />` are the 
 
 ```text
 [platform:REMOTE_LOAD_FAILED] Could not load remote entry.
-  owner: asset-tracker / instance asset-tracker#1
-  source: https://remotes.example.com/asset-tracker/remoteEntry.js
-  override: ?platform.override.asset-tracker=<manifest url>
+  owner: well-planner / instance well-planner#1
+  source: https://remotes.example.com/well-planner/remoteEntry.js
+  override: ?platform.override.well-planner=<manifest url>
   hint: Check that the remote entry is reachable and served with CORS headers; the host retries with cache busting.
   docs: https://platform.docs.local/docs/failure-handling#remote-loading
 ```

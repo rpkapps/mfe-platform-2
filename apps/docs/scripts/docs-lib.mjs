@@ -234,30 +234,30 @@ export function renderLlmsTxt() {
   )
   lines.push(
     link(
-      "asset-tracker (React 19, Tecton)",
-      "/docs/examples#appsconformance-react19--asset-tracker",
-      "apps/conformance-react19 — routes, guards, commands, settings, storage, widgets"
+      "well-planner (React 19, Tecton)",
+      "/docs/examples#appswell-planner--well-planner",
+      "apps/well-planner — routes, guards, commands, settings, storage, widgets"
     )
   )
   lines.push(
     link(
-      "legacy-reports (React 18)",
-      "/docs/examples#appsconformance-react18--legacy-reports",
-      "apps/conformance-react18 — React 18 remote on a legacy route prefix"
+      "production-reports (React 18)",
+      "/docs/examples#appsproduction-reports--production-reports",
+      "apps/production-reports — React 18 remote on a legacy route prefix"
     )
   )
   lines.push(
     link(
-      "widget-a (React 19 widgets)",
-      "/docs/examples#appsconformance-widget-a--widget-a",
-      "apps/conformance-widget-a — hidden widget library"
+      "subsurface-widgets (React 19 widgets)",
+      "/docs/examples#appsconformance-subsurface-widgets--subsurface-widgets",
+      "apps/conformance-subsurface-widgets — hidden widget library"
     )
   )
   lines.push(
     link(
-      "widget-b (React 18 widgets)",
-      "/docs/examples#appsconformance-widget-b--widget-b",
-      "apps/conformance-widget-b — hidden widget library"
+      "field-widgets (React 18 widgets)",
+      "/docs/examples#appsconformance-field-widgets--field-widgets",
+      "apps/conformance-field-widgets — hidden widget library"
     )
   )
   lines.push("", "## Diagnostics", "")
@@ -387,18 +387,18 @@ eslint.config.ts            platformConfig() from @platform/cli/eslint
 Bootstrap (src/mfe.tsx):
   import { createMfe, createWidget } from "@platform/mfe-react"
   import { routeTree } from "./routeTree.gen"
-  export default createMfe({ routeTree, widgets: { "asset-card": createWidget({ component: AssetCard, propsSchema }) } })
+  export default createMfe({ routeTree, widgets: { "well-summary": createWidget({ component: WellSummary, propsSchema }) } })
 
-Route with guard, loader, breadcrumb (src/routes/assets/$assetId.tsx):
-  export const Route = createFileRoute("/assets/$assetId")({
-    beforeLoad: ({ context }) => { if (!context.platform.permissions.hasGroup("assets:read")) throw redirect({ to: "/" }) },
-    loader: async ({ context, params }) => { const span = context.platform.telemetry.span("asset.load"); const asset = await fetchAsset(params.assetId); span.end(); return { asset, breadcrumb: asset.name } },
-    staticData: { breadcrumb: { fromLoader: "breadcrumb" }, navigation: { title: "Asset" }, permissionGroups: ["assets:read"] },
+Route with guard, loader, breadcrumb (src/routes/wells/$wellId.tsx):
+  export const Route = createFileRoute("/wells/$wellId")({
+    beforeLoad: ({ context }) => { if (!context.platform.permissions.hasGroup("wells:read")) throw redirect({ to: "/" }) },
+    loader: async ({ context, params }) => { const span = context.platform.telemetry.span("well.load"); const well = await fetchWell(params.wellId); span.end(); return { well, breadcrumb: well.name } },
+    staticData: { breadcrumb: { fromLoader: "breadcrumb" }, navigation: { title: "Asset" }, permissionGroups: ["wells:read"] },
     component: AssetPage,   // Route.useLoaderData() is typed through the Register augmentation
   })
 
 Command:
-  useRegisterCommand({ id: "new-asset", label: "New asset", shortcut: "mod+shift+n", permissionGroups: ["assets:write"],
+  useRegisterCommand({ id: "new-well", label: "New well", shortcut: "mod+shift+n", permissionGroups: ["wells:write"],
     handler: async ({ signal, platform }) => { ... } })            // or <CommandRegistration definition={...} />
 
 Settings group (defaultValue, never value; Standard Schema / Zod):
@@ -412,8 +412,8 @@ Storage:
   store.use((s) => s.columns); store.get(); store.set(...); store.setKey("columns", ...); store.reset(); store.bind({ bridge }) in tests
 
 Widget:
-  widgets: { "asset-card": createWidget({ propsSchema: z.object({ assetId: z.string() }), component: AssetCard }) }
-  // shell: <WidgetSlot mfeId="asset-tracker" widgetId="asset-card" props={{ assetId }} />
+  widgets: { "well-summary": createWidget({ propsSchema: z.object({ wellId: z.string() }), component: WellSummary }) }
+  // shell: <WidgetSlot mfeId="well-planner" widgetId="well-summary" props={{ wellId }} />
 
 Context:
   usePlatform()                        full context (user, permissionGroups, permissions, tenant, project, job, locale, timezone,

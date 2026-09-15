@@ -1,8 +1,0 @@
-@import "tailwindcss";
-@source "./";
-
-.widget-b-card {
-  border: 1px dashed #0f766e;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-}

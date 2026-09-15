@@ -20,7 +20,7 @@ No portal container, no z-index, no owner attribute. Tecton's `PortalProvider` a
 
 ## What the manager does
 
-- creates body-level portal roots per MFE instance: `<div data-platform-overlay-root data-mfe="asset-tracker" data-platform-instance="asset-tracker#1">`,
+- creates body-level portal roots per MFE instance: `<div data-platform-overlay-root data-mfe="well-planner" data-platform-instance="well-planner#1">`,
 - allocates layers deterministically in opening order (`--platform-layer`, `data-platform-layer`),
 - tracks open modals (`hasOpenModal()`, `data-platform-modal-count` on `body`) so the shell can inert its chrome,
 - removes roots and layers on unmount,

@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@source "./";
+
+/*
+ * The shell switches themes with a `.dark` class on the document, not with
+ * `prefers-color-scheme`. Tailwind's default `dark:` variant follows the media
+ * query, so without this the remote stays light while the shell goes dark —
+ * which is how a remote with no design system still honours the host's theme.
+ */
+@custom-variant dark (&:is(.dark *));
+
+/* No Tecton here: this remote proves the platform works with plain Tailwind
+   and that its styles stay scoped under [data-mfe="production-reports"].
+   The `:root` rule below is deliberate — the build scopes it to this remote,
+   so the shell never sees the variable. */
+:root {
+  /* One accent for both grounds: the build scopes this `:root` to the remote,
+     so a `.dark` ancestor rule would be rewritten past recognition. Amber-500
+     clears contrast on the shell's near-black and on white. */
+  --legacy-accent: #f59e0b;
+  --legacy-surface: color-mix(in oklch, var(--legacy-accent) 10%, transparent);
+}
+
+.legacy-card {
+  border: 1px solid color-mix(in oklch, var(--legacy-accent) 45%, transparent);
+  border-radius: 0.5rem;
+  background: var(--legacy-surface);
+  padding: 1rem;
+}
+
+.legacy-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in oklch, var(--legacy-accent) 60%, transparent);
+  border-radius: 9999px;
+  padding: 0.05rem 0.5rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.02em;
+  color: var(--legacy-accent);
+}
+
+.legacy-figure {
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.legacy-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(0 0 0 / 0.4);
+}

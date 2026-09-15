@@ -10,7 +10,7 @@
  * tokens (bg-muted, text-muted-foreground…){{/tecton}}; never stock colour classes such as
  * `bg-red-500`{{#tecton}} (they produce no CSS with the Tecton palette){{/tecton}}.
  */
-.asset-status-dot {
+.well-status-dot {
   display: inline-block;
   width: 0.5rem;
   height: 0.5rem;

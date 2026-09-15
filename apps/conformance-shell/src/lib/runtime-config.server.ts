@@ -7,10 +7,10 @@ import {
 } from "@platform-internal/core"
 
 const KNOWN_MFES = [
-  "asset-tracker",
-  "legacy-reports",
-  "widget-a",
-  "widget-b",
+  "well-planner",
+  "production-reports",
+  "subsurface-widgets",
+  "field-widgets",
   "unavailable-remote",
   "disabled-remote",
   "restricted-remote",

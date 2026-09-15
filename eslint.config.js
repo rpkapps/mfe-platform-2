@@ -11,10 +11,12 @@ export default tseslint.config(
     // The conformance MFEs and the scaffold template are linted with the platform config
     // (`platform lint`, see the root lint script); the root config covers everything else.
     ignores: [
-      "apps/conformance-react19/**",
-      "apps/conformance-react18/**",
-      "apps/conformance-widget-a/**",
-      "apps/conformance-widget-b/**",
+      // The example remotes lint with their own flat config (`platform lint`),
+      // which carries the platform rules the root config does not load.
+      "apps/well-planner/**",
+      "apps/production-reports/**",
+      "apps/subsurface-widgets/**",
+      "apps/field-widgets/**",
       "**/dist/**",
       "**/node_modules/**",
       "**/.output/**",

@@ -9,6 +9,7 @@ import {
 import type { RegisteredSettingsGroup, SettingsOption } from "@platform-internal/core"
 
 import { Alert, AlertDescription, AlertTitle } from "@tecton/react/components/alert"
+import { Badge } from "@tecton/react/components/badge"
 import { Button } from "@tecton/react/components/button"
 import { Checkbox } from "@tecton/react/components/checkbox"
 import { Field, FieldDescription, FieldError, FieldLabel } from "@tecton/react/components/field"
@@ -20,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@tecton/react/components/select"
+import { Empty, EmptyDescription, EmptyTitle } from "@tecton/react/components/empty"
+import { Separator } from "@tecton/react/components/separator"
 import { Switch } from "@tecton/react/components/switch"
 import { Textarea } from "@tecton/react/components/textarea"
 
@@ -103,9 +106,10 @@ export function SettingsHost({
   }
   if (sorted.length === 0)
     return (
-      <p className={["platform-settings-empty", className].filter(Boolean).join(" ")}>
-        {emptyState}
-      </p>
+      <Empty className={className}>
+        <EmptyTitle>No settings registered</EmptyTitle>
+        <EmptyDescription>{emptyState}</EmptyDescription>
+      </Empty>
     )
   const byOwner = new Map<string, RegisteredSettingsGroup[]>()
   for (const group of sorted)
@@ -121,26 +125,32 @@ export function SettingsHost({
             <span className="platform-settings-nav-owner-title">
               {list[0]?.owner.displayName ?? host.remotes.get(mfeId)?.displayName ?? mfeId}
             </span>
-            <ul>
-              {list.map((group) => (
-                <li key={group.qualifiedKey}>
-                  <button
-                    type="button"
-                    className="platform-settings-nav-item"
-                    aria-current={
-                      selected?.qualifiedKey === group.qualifiedKey ? "page" : undefined
-                    }
-                    onClick={() => select(group.qualifiedKey)}
-                    data-platform-settings-group={group.qualifiedKey}
+            {/* A button, not a link: selecting a group changes the pane, not the URL. */}
+            {list.map((group) => (
+              <button
+                key={group.qualifiedKey}
+                type="button"
+                className="platform-settings-nav-item"
+                aria-current={
+                  selected?.qualifiedKey === group.qualifiedKey ? "page" : undefined
+                }
+                onClick={() => select(group.qualifiedKey)}
+                data-platform-settings-group={group.qualifiedKey}
+              >
+                <span className="truncate">
+                  {group.definition.title ?? group.definition.key}
+                </span>
+                {group.definition.managedBy === "mfe" ? (
+                  <Badge
+                    variant="secondary"
+                    appearance="outline"
+                    className="ml-auto text-[0.625rem]"
                   >
-                    {group.definition.title ?? group.definition.key}
-                    {group.definition.managedBy === "mfe" ? (
-                      <span className="platform-settings-nav-badge">app</span>
-                    ) : null}
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    app
+                  </Badge>
+                ) : null}
+              </button>
+            ))}
           </div>
         ))}
       </nav>
@@ -175,8 +185,13 @@ function SettingsGroupView({
         {group.definition.description ? (
           <p className="platform-settings-group-description">{group.definition.description}</p>
         ) : null}
-        <p>This settings page is provided by {group.owner.displayName ?? group.owner.mfeId}.</p>
-        <Button onPress={() => host.navigation.push(href)}>Open {title}</Button>
+        <Separator className="my-4" />
+        <p className="text-muted-foreground text-sm">
+          This settings page is provided by {group.owner.displayName ?? group.owner.mfeId}.
+        </p>
+        <Button className="mt-3" onPress={() => host.navigation.push(href)}>
+          Open {title}
+        </Button>
       </div>
     )
   }
@@ -186,6 +201,7 @@ function SettingsGroupView({
       {group.definition.description ? (
         <p className="platform-settings-group-description">{group.definition.description}</p>
       ) : null}
+      <Separator className="my-4" />
       <div className="platform-settings-fields">
         {group.fields.map((meta) => (
           <SettingsFieldView

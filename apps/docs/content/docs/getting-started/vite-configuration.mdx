@@ -43,11 +43,11 @@ Everything the plugin accepts is also accepted from `mfe.config.ts`, so the Vite
 import { defineMfeConfig } from "@platform/vite/config"
 
 export default defineMfeConfig({
-  routePrefix: "/assets",
-  navigation: { title: "Asset tracker", icon: "wrench", category: "Operations", order: 10 },
-  permissionGroups: ["assets:read"],
+  routePrefix: "/wells",
+  navigation: { title: "Well planner", icon: "wrench", category: "Subsurface", order: 10 },
+  permissionGroups: ["wells:read"],
   env: {
-    API_BASE_URL: { required: true, description: "Asset API" },
+    API_BASE_URL: { required: true, description: "Wells API" },
     PAGE_SIZE: { default: 25 },
   },
   shared: {

@@ -8,7 +8,7 @@ description: With managedBy mfe the MFE renders a whole settings page on one of 
 ```ts title="src/lib/settings.ts"
 useRegisterSettingsGroup({
   key: "advanced",
-  title: "Advanced asset settings",
+  title: "Advanced well settings",
   managedBy: "mfe",
   route: "/settings/custom", // MFE-relative
   keywords: ["advanced", "custom"],
@@ -31,7 +31,7 @@ function CustomSettingsPage() {
 }
 ```
 
-The settings host lists _Advanced asset settings_ under the MFE's section as a link to `/asset-tracker/settings/custom`. The route renders inside the MFE root with its guards, loaders and error boundaries (this is the `asset-tracker` conformance MFE; the E2E suite checks that the page persists to `platform:asset-tracker:session:notes`).
+The settings host lists _Advanced well settings_ under the MFE's section as a link to `/well-planner/settings/custom`. The route renders inside the MFE root with its guards, loaders and error boundaries (this is the `well-planner` conformance MFE; the E2E suite checks that the page persists to `platform:well-planner:session:notes`).
 
 ## Ownership
 

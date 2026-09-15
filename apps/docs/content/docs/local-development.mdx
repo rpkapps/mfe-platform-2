@@ -17,7 +17,7 @@ pnpm dev
 development manifest at `/platform-manifest.json`. Point a shell at it:
 
 ```text
-https://shell.example.com/asset-tracker?platform.override.asset-tracker=http://localhost:5173/platform-manifest.json
+https://shell.example.com/well-planner?platform.override.well-planner=http://localhost:5173/platform-manifest.json
 ```
 
 Four ways to set that override, all equivalent ([Manifest overrides](/docs/manifest-overrides)):
@@ -46,7 +46,7 @@ fixture remote in development mode.
 
 - Component edits hot-swap inside the remote's React root; the shell and other remotes do not
   re-render (the E2E suite edits a React 19 route and a React 18 widget and checks that the
-  shell counter and the other roots keep their state).
+  shell's selected licence and the other roots keep their state).
 - React 18 and React 19 refresh runtimes are installed per React instance
   (`/@platform/refresh-preamble`) and never mixed.
 - Widget instances refresh independently; state held in the shell (slot props, open panels)
@@ -95,9 +95,9 @@ the real error boundary and the real diagnostic. See [Developer tools](/docs/dev
 
 ## Ports
 
-| App                                                       | Port                                                     |
-| --------------------------------------------------------- | -------------------------------------------------------- |
-| A remote's dev server (`platform dev`)                    | 5173 by default, `/platform-manifest.json`               |
-| Conformance shell (production build / dev)                | 4100 / 4110                                              |
-| `asset-tracker`, `legacy-reports`, `widget-a`, `widget-b` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite |
-| Unavailable-remote fixture                                | 4999 (nothing listens)                                   |
+| App                                                                         | Port                                                     |
+| --------------------------------------------------------------------------- | -------------------------------------------------------- |
+| A remote's dev server (`platform dev`)                                      | 5173 by default, `/platform-manifest.json`               |
+| Conformance shell (production build / dev)                                  | 4100 / 4110                                              |
+| `well-planner`, `production-reports`, `subsurface-widgets`, `field-widgets` | 4201–4204 built (`pnpm e2e`), 4301–4304 in the HMR suite |
+| Unavailable-remote fixture                                                  | 4999 (nothing listens)                                   |

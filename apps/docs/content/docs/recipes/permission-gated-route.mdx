@@ -3,36 +3,36 @@ title: Permission-gated route
 description: Gate a route on a permission group with a native guard, declare the group for preflight, and show a friendly denied state.
 ---
 
-```tsx title="src/routes/assets/$assetId/edit.tsx"
+```tsx title="src/routes/wells/$wellId/edit.tsx"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/assets/$assetId/edit")({
+export const Route = createFileRoute("/wells/$wellId/edit")({
   beforeLoad: ({ context, params }) => {
     const { permissions, telemetry } = context.platform
-    if (!permissions.hasGroup("assets:write")) {
+    if (!permissions.hasGroup("wells:write")) {
       telemetry.track("guard.denied", {
-        route: "/assets/$assetId/edit",
-        assetId: params.assetId,
+        route: "/wells/$wellId/edit",
+        wellId: params.wellId,
       })
       throw redirect({
-        to: "/assets/$assetId",
-        params: { assetId: params.assetId },
-        search: { denied: "assets:write" },
+        to: "/wells/$wellId",
+        params: { wellId: params.wellId },
+        search: { denied: "wells:write" },
       })
     }
   },
   staticData: {
     breadcrumb: "Edit",
-    permissionGroups: ["assets:write"], // manifest metadata: preflight + palette filtering
+    permissionGroups: ["wells:write"], // manifest metadata: preflight + palette filtering
   },
   component: EditAssetPage,
 })
 ```
 
-```tsx title="src/routes/assets/$assetId.tsx (excerpt)"
+```tsx title="src/routes/wells/$wellId.tsx (excerpt)"
 import { z } from "zod"
 
-export const Route = createFileRoute("/assets/$assetId")({
+export const Route = createFileRoute("/wells/$wellId")({
   validateSearch: z.object({ denied: z.string().optional() }),
   component: () => {
     const { denied } = Route.useSearch()
@@ -41,7 +41,7 @@ export const Route = createFileRoute("/assets/$assetId")({
         {denied && (
           <Alert variant="warning">
             <AlertTitle>Read only</AlertTitle>
-            <AlertDescription>You need the {denied} group to edit this asset.</AlertDescription>
+            <AlertDescription>You need the {denied} group to edit this well.</AlertDescription>
           </Alert>
         )}
         <AssetDetails />
@@ -61,7 +61,7 @@ Why this shape:
 Test it with a bridge without the group:
 
 ```ts
-const bridge = createTestBridge({ mfeId: "asset-tracker", permissionGroups: ["assets:read"] })
-const mounted = renderMfe(definition, { bridge, path: "/asset-tracker/assets/pump-42/edit" })
+const bridge = createTestBridge({ mfeId: "well-planner", permissionGroups: ["wells:read"] })
+const mounted = renderMfe(definition, { bridge, path: "/well-planner/wells/w01/edit" })
 await waitFor(() => expect(mounted.location().search).toContain("denied=assets%3Awrite"))
 ```

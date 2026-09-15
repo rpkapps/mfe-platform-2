@@ -48,7 +48,7 @@ function problems(results: LintResult[], cwd: string): string[] {
 describe("platform create → platform lint", () => {
   it("scaffolds a React 19 Tecton project that passes the platform lint configuration without manual setup", async () => {
     const result = await create({
-      name: "@acme/asset-tracker",
+      name: "@acme/well-planner",
       dir: temp.dir,
       linkPlatform: MONOREPO_ROOT,
       install: false,
@@ -65,7 +65,7 @@ describe("platform create → platform lint", () => {
         "src/routes/settings.tsx",
         "mfe.config.ts",
         "eslint.config.ts",
-        "src/widgets/asset-card.tsx",
+        "src/widgets/well-summary.tsx",
       ])
     )
     expect(lintedFiles).not.toContain("src/routeTree.gen.ts")
@@ -78,7 +78,7 @@ describe("platform create → platform lint", () => {
 
   it("scaffolds a React 18 plain project that passes as well", async () => {
     const result = await create({
-      name: "legacy-reports",
+      name: "production-reports",
       dir: temp.dir,
       react: 18,
       tecton: false,

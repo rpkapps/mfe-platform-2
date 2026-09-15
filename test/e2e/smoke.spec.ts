@@ -2,24 +2,28 @@ import { expect, test } from "@playwright/test"
 
 import {
   gotoShell,
+  gotoShellPage,
   historySignature,
   ids,
-  waitForAssetTracker,
-  waitForLegacyReports,
+  openApp,
+  waitForProductionReports,
+  waitForWellPlanner,
 } from "./helpers"
 
 test.describe("shell and remotes", () => {
   test("React 19 and React 18 remotes load in isolated roots", async ({ page }) => {
-    await gotoShell(page, "/asset-tracker")
-    await waitForAssetTracker(page)
-    await expect(page.getByTestId(ids.assetTracker.reactVersion)).toContainText("React 19")
-    await expect(page.locator('[data-mfe="asset-tracker"][data-platform-root]')).toHaveCount(1)
+    await gotoShell(page, "/well-planner")
+    await waitForWellPlanner(page)
+    await expect(page.getByTestId(ids.wellPlanner.reactVersion)).toContainText("React 19")
+    await expect(page.locator('[data-mfe="well-planner"][data-platform-root]')).toHaveCount(1)
 
-    await page.getByRole("link", { name: "Legacy Reports" }).first().click()
-    await waitForLegacyReports(page)
-    await expect(page.getByTestId(ids.legacyReports.reactVersion)).toContainText("React 18")
-    await expect(page.locator('[data-mfe="legacy-reports"][data-platform-root]')).toHaveCount(1)
-    await expect(page.locator('[data-mfe="asset-tracker"][data-platform-root]')).toHaveCount(0)
+    await openApp(page, "Production Reports")
+    await waitForProductionReports(page)
+    await expect(page.getByTestId(ids.productionReports.reactVersion)).toContainText("React 18")
+    await expect(
+      page.locator('[data-mfe="production-reports"][data-platform-root]')
+    ).toHaveCount(1)
+    await expect(page.locator('[data-mfe="well-planner"][data-platform-root]')).toHaveCount(0)
   })
 
   test("no History API or storage monkeypatching by the platform or the remotes", async ({
@@ -30,26 +34,26 @@ test.describe("shell and remotes", () => {
     expect(before.storageNative).toBe(true)
     expect(before.historyOwn).toBe(true)
     // Load a React 19 remote, a React 18 remote and every widget without leaving the page.
-    await page.getByRole("link", { name: "Asset Tracker" }).first().click()
-    await waitForAssetTracker(page)
-    await page.getByRole("link", { name: "Legacy Reports" }).first().click()
-    await waitForLegacyReports(page)
-    await page.getByRole("link", { name: "Dashboard" }).first().click()
-    await expect(page.getByTestId(ids.widgets.assetCard)).toBeVisible({ timeout: 30_000 })
+    await openApp(page, "Well Planner")
+    await waitForWellPlanner(page)
+    await openApp(page, "Production Reports")
+    await waitForProductionReports(page)
+    await gotoShellPage(page, "Dashboard")
+    await expect(page.getByTestId(ids.widgets.wellSummary)).toBeVisible({ timeout: 30_000 })
     const after = await historySignature(page)
     expect(after).toEqual(before)
   })
 
   test("CSS stays scoped to the owning remote", async ({ page }) => {
     await gotoShell(page, "/legacy/reports")
-    await waitForLegacyReports(page)
+    await waitForProductionReports(page)
     // The legacy remote declares `:root { --legacy-accent }`; scoped, it must not reach the shell root.
     const rootAccent = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue("--legacy-accent").trim()
     )
     expect(rootAccent).toBe("")
     const scopedAccent = await page.evaluate(() =>
-      getComputedStyle(document.querySelector('[data-mfe="legacy-reports"]')!)
+      getComputedStyle(document.querySelector('[data-mfe="production-reports"]')!)
         .getPropertyValue("--legacy-accent")
         .trim()
     )
@@ -67,10 +71,10 @@ test.describe("shell and remotes", () => {
   })
 
   test("runtime environment reaches each MFE, secrets never do", async ({ page, request }) => {
-    await gotoShell(page, "/asset-tracker")
-    await waitForAssetTracker(page)
-    await expect(page.getByTestId(ids.assetTracker.envValue)).toHaveText(
-      "https://api.example.com/assets"
+    await gotoShell(page, "/well-planner")
+    await waitForWellPlanner(page)
+    await expect(page.getByTestId(ids.wellPlanner.envValue)).toHaveText(
+      "https://api.example.com/wells"
     )
     const config = await request.get("/platform-config.json")
     const text = await config.text()

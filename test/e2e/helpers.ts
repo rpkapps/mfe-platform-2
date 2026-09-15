@@ -8,12 +8,63 @@ export async function gotoShell(page: Page, path = "/") {
   await expect(page.getByTestId(ids.shell.root)).toBeVisible()
 }
 
-export async function waitForAssetTracker(page: Page) {
-  await expect(page.getByTestId(ids.assetTracker.root)).toBeVisible({ timeout: 30_000 })
+export async function waitForWellPlanner(page: Page) {
+  await expect(page.getByTestId(ids.wellPlanner.root)).toBeVisible({ timeout: 30_000 })
 }
 
-export async function waitForLegacyReports(page: Page) {
-  await expect(page.getByTestId(ids.legacyReports.root)).toBeVisible({ timeout: 30_000 })
+export async function waitForProductionReports(page: Page) {
+  await expect(page.getByTestId(ids.productionReports.root)).toBeVisible({ timeout: 30_000 })
+}
+
+/**
+ * Switch application the way the shell intends it: through the app finder in
+ * the header. There is no per-MFE link in the nav — the finder is the
+ * switcher, and every discoverable remote appears in it.
+ */
+export async function openApp(page: Page, name: string) {
+  await page.getByTestId(ids.shell.appFinderTrigger).first().click()
+  // Items carry a two-letter code before the name, so match on the name only.
+  await page
+    .getByRole("menuitem", { name: new RegExp(name) })
+    .first()
+    .click()
+}
+
+/** Back to the shell's own pages, which own no MFE. */
+export async function gotoShellPage(page: Page, name: string) {
+  await page.getByRole("link", { name, exact: true }).first().click()
+}
+
+/**
+ * The user, licence and theme controls live in the header's user menu now,
+ * the way a real shell arranges them — not as three bare `<select>`s.
+ */
+export async function openUserMenu(page: Page) {
+  await page
+    .getByRole("button", { name: /^Account:/ })
+    .first()
+    .click()
+}
+
+export async function switchUser(page: Page, displayName: string) {
+  await openUserMenu(page)
+  await page
+    .getByRole("menuitem", { name: new RegExp(displayName) })
+    .first()
+    .click()
+}
+
+export async function switchProject(page: Page, name: string) {
+  await openUserMenu(page)
+  await page
+    .getByRole("menuitem", { name: new RegExp(name) })
+    .first()
+    .click()
+}
+
+export async function toggleTheme(page: Page) {
+  await openUserMenu(page)
+  await page.getByTestId(ids.shell.themeToggle).click()
 }
 
 export async function openPalette(page: Page) {

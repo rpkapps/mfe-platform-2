@@ -1,6 +1,13 @@
 import { expect, test, type Page } from "@playwright/test"
 
-import { enableDevtools, gotoShell, ids, waitForAssetTracker } from "./helpers"
+import {
+  enableDevtools,
+  gotoShell,
+  gotoShellPage,
+  ids,
+  openApp,
+  waitForWellPlanner,
+} from "./helpers"
 
 /**
  * Navigate away and back so the outlet unmounts and mounts again on the same
@@ -8,9 +15,11 @@ import { enableDevtools, gotoShell, ids, waitForAssetTracker } from "./helpers"
  * remote is faulted.
  */
 async function remount(page: Page) {
-  await page.getByRole("link", { name: "Conformance Shell" }).first().click()
-  await expect(page.getByTestId(ids.shell.appFinder)).toBeVisible({ timeout: 30_000 })
-  await page.getByRole("link", { name: "Asset Tracker" }).first().click()
+  await gotoShellPage(page, "Home")
+  await expect(page.getByRole("heading", { name: "Conformance shell" })).toBeVisible({
+    timeout: 30_000,
+  })
+  await openApp(page, "Well Planner")
 }
 
 test.describe("developer tools", () => {
@@ -20,13 +29,13 @@ test.describe("developer tools", () => {
     const requests: string[] = []
     page.on("request", (request) => requests.push(request.url()))
     await gotoShell(page, "/dashboard")
-    await expect(page.getByTestId(ids.widgets.assetCard)).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByTestId(ids.widgets.wellSummary)).toBeVisible({ timeout: 30_000 })
     await expect(page.getByTestId(ids.shell.devtoolsToggle)).toHaveCount(0)
     expect(requests.some((url) => /devtools|xyflow/i.test(url))).toBe(false)
 
     await enableDevtools(page)
     await page.reload()
-    await expect(page.getByTestId(ids.widgets.assetCard)).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByTestId(ids.widgets.wellSummary)).toBeVisible({ timeout: 30_000 })
     await page.getByTestId(ids.shell.devtoolsToggle).click()
     const panel = page.getByTestId(ids.shell.devtoolsPanel)
     await expect(panel).toBeVisible()
@@ -36,15 +45,15 @@ test.describe("developer tools", () => {
     await expect(panel).toContainText("react19")
     await expect(panel).toContainText("react18")
     await panel.getByRole("tab", { name: /Overview/ }).click()
-    await expect(panel).toContainText("asset-tracker")
-    await expect(panel).toContainText("widget-b")
+    await expect(panel).toContainText("well-planner")
+    await expect(panel).toContainText("field-widgets")
     await expect(panel).toContainText(/18\.\d+\.\d+/)
   })
 
   test("injects faults into the live shell and clears them again", async ({ page }) => {
     await enableDevtools(page)
-    await gotoShell(page, "/asset-tracker")
-    await waitForAssetTracker(page)
+    await gotoShell(page, "/well-planner")
+    await waitForWellPlanner(page)
     await page.getByTestId(ids.shell.devtoolsToggle).click()
     const panel = page.getByTestId(ids.shell.devtoolsPanel)
     await panel.getByRole("tab", { name: /Faults/ }).click()
@@ -66,11 +75,11 @@ test.describe("developer tools", () => {
     await panel.getByRole("button", { name: /Clear every fault/ }).click()
     await expect(unavailable).not.toBeChecked()
     await remount(page)
-    await waitForAssetTracker(page)
+    await waitForWellPlanner(page)
 
     // A reload is the other way out: faults are per-host, in memory, and never persisted.
     await unavailable.dispatchEvent("click")
     await page.reload()
-    await waitForAssetTracker(page)
+    await waitForWellPlanner(page)
   })
 })

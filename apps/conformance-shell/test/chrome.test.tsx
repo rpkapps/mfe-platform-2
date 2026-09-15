@@ -11,9 +11,9 @@ import { SettingsHost } from "@/components/settings"
 import { HelpSlot } from "@/components/surfaces"
 
 const owner = {
-  mfeId: "asset-tracker",
-  instanceId: "asset-tracker#1",
-  displayName: "Asset tracker",
+  mfeId: "well-planner",
+  instanceId: "well-planner#1",
+  displayName: "Well planner",
 }
 
 describe("CommandPalette", () => {
@@ -100,7 +100,7 @@ describe("SettingsHost", () => {
     await userEvent.click(toggle)
     await waitFor(() =>
       expect(host.storage.keys("local")).toContain(
-        "platform:asset-tracker:settings:asset-tracker:display.compact"
+        "platform:well-planner:settings:well-planner:display.compact"
       )
     )
     expect(screen.getByRole("button", { name: "Reset to default" })).toBeInTheDocument()
@@ -113,7 +113,7 @@ describe("SettingsHost", () => {
         JSON.parse(
           host.storage.get(
             "local",
-            "platform:asset-tracker:settings:asset-tracker:display.title"
+            "platform:well-planner:settings:well-planner:display.title"
           )!
         )
       ).toMatchObject({ value: "World" })
@@ -121,7 +121,7 @@ describe("SettingsHost", () => {
     expect(screen.getAllByText("Airy").length).toBeGreaterThanOrEqual(1)
     await userEvent.click(screen.getByRole("button", { name: /^Advanced/ }))
     await userEvent.click(screen.getByRole("button", { name: "Open Advanced" }))
-    expect(host.navigation.getLocation().pathname).toBe("/asset-tracker/settings")
+    expect(host.navigation.getLocation().pathname).toBe("/well-planner/settings")
   })
 })
 
@@ -132,18 +132,18 @@ describe("Breadcrumbs, HelpSlot, PlatformDevtools", () => {
       { key: "home", label: "Home", href: "/", state: "ready", kind: "shell" },
     ])
     host.breadcrumbs.publish({
-      owner: { mfeId: "asset-tracker", instanceId: "i1" },
+      owner: { mfeId: "well-planner", instanceId: "i1" },
       updatedAt: 1,
       entries: [
         {
           key: "root",
           label: "Assets",
-          href: "/asset-tracker",
+          href: "/well-planner",
           state: "ready",
           kind: "mfe-root",
         },
-        { key: "a", label: "A", href: "/asset-tracker/a", state: "ready", kind: "route" },
-        { key: "b", label: "B", href: "/asset-tracker/b", state: "ready", kind: "route" },
+        { key: "a", label: "A", href: "/well-planner/a", state: "ready", kind: "route" },
+        { key: "b", label: "B", href: "/well-planner/b", state: "ready", kind: "route" },
         { key: "c", label: "Pump 42", state: "loading", kind: "route" },
       ],
     })
@@ -199,7 +199,7 @@ describe("Breadcrumbs, HelpSlot, PlatformDevtools", () => {
             },
           },
         },
-        { mfeId: "asset-tracker", instanceId: "i1", displayName: "Asset tracker" }
+        { mfeId: "well-planner", instanceId: "i1", displayName: "Well planner" }
       )
     })
     const view = render(
