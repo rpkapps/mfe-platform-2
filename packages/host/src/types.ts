@@ -35,6 +35,7 @@ import type {
 } from "@platform-internal/diagnostics"
 
 import type { DevtoolsLoader } from "./devtools"
+import type { HostFaults } from "./faults"
 
 export type { ManifestUrlSource, RemoteInstanceState }
 
@@ -220,8 +221,17 @@ export interface RemotesApi {
   /** Longest route-prefix match over loaded manifests and registry entries. */
   matchRoute(pathname: string): { mfeId: string; routePrefix: string } | null
   sharedReport(mfeId: string): SnapshotShareRow[]
-  /** Register or refresh a registry entry at runtime (harness, tests). */
+  /** Register or refresh a registry entry at runtime (tests, dynamic registries). */
   register(entry: RegistryEntry): void
+  /** Faults the developer tools are currently injecting. */
+  faults(): HostFaults
+  /**
+   * Simulate a failure the shell would otherwise be hard to push into. Ignored
+   * unless the developer tools are allowed to load, so production cannot reach
+   * it; setting one drops cached definitions so the next load takes the faulted
+   * path.
+   */
+  setFault<K extends keyof HostFaults>(fault: K, value: HostFaults[K]): void
 }
 
 export interface HostEvents extends Record<string, unknown> {

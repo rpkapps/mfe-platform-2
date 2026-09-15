@@ -41,7 +41,9 @@ export {
   DEVTOOLS_FLAG_KEY,
   DEVTOOLS_QUERY,
 } from "./devtools"
-export type { DevtoolsDecision, DevtoolsModule } from "./devtools"
+export type { DevtoolsDecision, DevtoolsModule, DevtoolsLoader } from "./devtools"
+export { NO_FAULTS } from "./faults"
+export type { HostFaults } from "./faults"
 export type * from "./types"
 
 // Core helpers a shell composes the host from (adapters, navigation, storage backends,

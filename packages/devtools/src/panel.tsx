@@ -15,6 +15,7 @@ import { BreadcrumbsPanel } from "./panels/breadcrumbs"
 import { CommandsPanel } from "./panels/commands"
 import { DependenciesPanel } from "./panels/dependencies"
 import { DiagnosticsPanel } from "./panels/diagnostics"
+import { FaultsPanel } from "./panels/faults"
 import { HelpPanel } from "./panels/help"
 import { OverlaysPanel } from "./panels/overlays"
 import { OverviewPanel } from "./panels/overview"
@@ -58,6 +59,7 @@ export const DEVTOOLS_TABS: {
     render: (props) => <DiagnosticsPanel {...props} />,
   },
   { id: "overlays", title: "Overlays", render: (props) => <OverlaysPanel {...props} /> },
+  { id: "faults", title: "Faults", render: (props) => <FaultsPanel {...props} /> },
 ]
 
 export interface DevtoolsPanelProps {

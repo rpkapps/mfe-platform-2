@@ -4,4 +4,4 @@ export { registerDevtoolsPanel, listDevtoolsPanels, subscribeDevtoolsPanels } fr
 export type { DevtoolsPanelDefinition, DevtoolsPanelRenderProps } from "./registry"
 export { buildDependencyGraph } from "./graph"
 export type { DependencyGraph, DependencyNode, DependencyEdge } from "./graph"
-export type { DevtoolsHost } from "./host"
+export type { DevtoolsHost, DevtoolsFaults } from "./host"
