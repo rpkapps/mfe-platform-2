@@ -75,6 +75,13 @@ export interface NavigationValue extends PlatformNavigation {
 }
 
 /** Navigation through the shell-owned history, with the current location subscribed. */
+function sameLocation(a: ShellLocation, b: ShellLocation): boolean {
+  return (
+    a === b ||
+    (a.pathname === b.pathname && a.search === b.search && a.hash === b.hash && a.key === b.key)
+  )
+}
+
 export function useNavigation(): NavigationValue {
   const scope = useMountScope("useNavigation")
   const navigation = scope.navigation
@@ -85,7 +92,9 @@ export function useNavigation(): NavigationValue {
     }),
     [scope]
   )
-  const location = useStoreSlice(locationStore, undefined, Object.is)
+  // Shell navigations may build a fresh location object per read; compare by content so
+  // the snapshot stays referentially stable between changes.
+  const location = useStoreSlice(locationStore, undefined, sameLocation)
   return useMemo(
     () => ({
       routePrefix: navigation.routePrefix,
