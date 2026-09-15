@@ -24,7 +24,7 @@ src/mfe.tsx              the one bootstrap: createMfe({ routeTree, widgets, regi
 src/routes/              TanStack folder routes (prefix-relative); routeTree.gen.ts is generated
 src/widgets/             components exposed through createWidget (own React root each)
 src/lib/storage.ts       createPlatformStorage stores (namespaced, schema-backed)
-src/lib/api.ts           data access using the runtime env (API_BASE_URL)
+src/lib/api.ts           data access: usePlatformFetch (shell token) + the runtime env
 src/platform.d.ts        Register augmentation: typed env and feature flags
 src/__tests__/           unit tests with renderMfe from @platform/mfe-react/testing
 .platform/identity.json  persisted mfeId (commit it; never edit generated files)

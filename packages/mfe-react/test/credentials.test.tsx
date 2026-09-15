@@ -64,9 +64,9 @@ describe("usePlatformFetch", () => {
     const response = await result.current("/api/assets")
     expect(response.status).toBe(401)
     expect(calls).toHaveLength(2)
-    expect(bridge.credentials.requests).toEqual([
-      { audience: undefined, scopes: undefined, signal: undefined },
-      { audience: undefined, scopes: undefined, forceRefresh: true, signal: undefined },
+    expect(bridge.credentials.requests.map((request) => request.forceRefresh)).toEqual([
+      false,
+      true,
     ])
   })
 

@@ -50,12 +50,12 @@ export {
   type CommandRegistrationState,
 } from "./hooks/registrations"
 export { useBreadcrumb, BreadcrumbPublisher, buildBreadcrumbTrail } from "./breadcrumbs"
+export { useCredentials, usePlatformFetch } from "./hooks/credentials"
 export {
-  useCredentials,
-  usePlatformFetch,
+  createPlatformFetch,
   type PlatformFetch,
   type PlatformFetchOptions,
-} from "./hooks/credentials"
+} from "./credentials"
 
 // Storage
 export {

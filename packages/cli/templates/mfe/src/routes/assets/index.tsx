@@ -12,9 +12,21 @@ export const Route = createFileRoute("/assets/")({
       order: 1,
     },
   },
-  // Loaders read the runtime env through the route context; they re-run when the context changes.
+  // Loaders read the runtime env and the authenticated fetch through the route
+  // context; they re-run when the context changes.
   loader: ({ context, abortController }) =>
-    fetchAssets(context.platform.runtime.env.API_BASE_URL, abortController.signal),
+    fetchAssets(
+      context.platform.fetch,
+      context.platform.runtime.env.API_BASE_URL,
+      abortController.signal
+    ),
+  // A failed load renders here rather than being replaced by stand-in data.
+  errorComponent: ({ error }: { error: unknown }) => (
+    <p role="alert" className="text-destructive text-sm">
+      {error instanceof Error ? error.message : String(error)}
+    </p>
+  ),
+  pendingComponent: () => <p className="text-muted-foreground text-sm">Loading assets…</p>,
   component: AssetList,
 })
 

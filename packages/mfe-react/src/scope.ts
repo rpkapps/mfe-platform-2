@@ -16,6 +16,8 @@ import {
   type StorageDiagnostic,
   type StorageStore,
 } from "@platform-internal/core"
+
+import { createPlatformFetch } from "./credentials"
 import type {
   BreadcrumbOverride,
   MfeEnhancer,
@@ -206,10 +208,17 @@ export function createContextValueStore(
 /** Route context object whose getters always read the live store. */
 export function createRouteContext(
   store: ReadonlyStore<PlatformContextValue>,
-  instance: MfeInstance
+  instance: MfeInstance,
+  bridge: HostBridge
 ): PlatformRouteContext {
   const state = () => store.getState()
+  const platformFetch = createPlatformFetch(bridge, {
+    mfeId: instance.mfeId,
+    instanceId: instance.instanceId,
+    widgetId: instance.widgetId,
+  })
   return {
+    fetch: platformFetch,
     get user() {
       return state().user
     },
@@ -354,7 +363,7 @@ export function createMountScope(options: CreateMountScopeOptions): MountScope {
     enhancers: options.enhancers ?? [],
     navigation,
     contextStore,
-    routeContext: createRouteContext(contextStore, instance),
+    routeContext: createRouteContext(contextStore, instance, options.bridge),
     storageStores: new Map(),
     storageDiagnostics: createObservable<readonly StorageDiagnostic[]>([]),
     breadcrumbOverrides: createObservable<ReadonlyMap<string, BreadcrumbOverride>>(new Map()),

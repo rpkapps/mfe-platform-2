@@ -12,7 +12,7 @@ src/routes/assets/index.tsx      list route with links
 src/routes/assets/$assetId.tsx   beforeLoad permission guard, loader breadcrumb, pending/error components
 src/widgets/asset-card.tsx       widget (createWidget in mfe.tsx), navigation + overlay example
 src/lib/storage.ts       createPlatformStorage stores
-src/lib/api.ts           data access using useRuntimeEnv().API_BASE_URL
+src/lib/api.ts           data access: usePlatformFetch + useRuntimeEnv().API_BASE_URL
 src/platform.d.ts        declare module "@platform/mfe-react" { interface Register { env; featureFlags } }
 mfe.config.ts            defineMfeConfig({ displayName, navigation, env, … })
 eslint.config.ts         export default platformConfig()

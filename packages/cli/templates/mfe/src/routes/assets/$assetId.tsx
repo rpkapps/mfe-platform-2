@@ -18,6 +18,7 @@ export const Route = createFileRoute("/assets/$assetId")({
     const span = context.platform.telemetry.span("asset.load", { assetId: params.assetId })
     try {
       const asset = await fetchAsset(
+        context.platform.fetch,
         context.platform.runtime.env.API_BASE_URL,
         params.assetId,
         abortController.signal

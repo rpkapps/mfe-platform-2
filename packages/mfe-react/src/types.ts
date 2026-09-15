@@ -26,6 +26,8 @@ import type {
   WidgetMountOptions,
 } from "@platform-internal/core"
 
+import type { PlatformFetch } from "./credentials"
+
 // ---------------------------------------------------------------------------
 // Typing through module augmentation (same pattern as TanStack's `Register`)
 // ---------------------------------------------------------------------------
@@ -131,6 +133,12 @@ export interface PlatformRouteContext {
   readonly runtime: PlatformContextValue["runtime"]
   readonly telemetry: Telemetry
   readonly navigation: PlatformNavigation
+  /**
+   * `fetch` with the shell's access token attached — the loader-side form of
+   * `usePlatformFetch()`. Loaders are not components, so this is how a route
+   * loads data from an authenticated backend.
+   */
+  readonly fetch: PlatformFetch
   readonly mfeId: string
   readonly instanceId: string
   /** Increments on every context change; loaders that read it re-run after `router.invalidate()`. */
