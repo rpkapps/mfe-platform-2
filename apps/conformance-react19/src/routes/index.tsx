@@ -176,7 +176,7 @@ function Dashboard() {
         }}
       />
       <p data-testid={ids.hmrLabel} className="text-muted-foreground text-xs">
-        HMR_LABEL_V2
+        HMR_LABEL_V1
       </p>
     </div>
   )
