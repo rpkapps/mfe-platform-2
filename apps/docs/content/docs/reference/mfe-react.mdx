@@ -178,7 +178,7 @@ createTestBridge({
   navigation?: ShellNavigation, // default: memory navigation at initialPath
   initialPath?: string, // default: the route prefix
   context?: Partial<ShellContextState>, // theme, locale, tenant, project, job, featureFlags…
-  host?: { kind, dev, environment, protocolVersion, headless? }, // default { kind: "harness", dev: true, environment: "test" }
+  host?: { kind, dev, environment, headless? }, // default { kind: "harness", dev: true, environment: "test" }
   notifications?: boolean, // false: no notification port (tests the no-op fallback)
 }): TestBridge
 // HostBridge + shell (context store), setContext(partial), setInstance(partial), storage.emitExternal(scope, key, value),

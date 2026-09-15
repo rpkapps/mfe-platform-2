@@ -31,7 +31,7 @@ The host only calls `mount` and `dispose` (and `setProps` for widgets). It never
 | Promises of elements         | data promises                                                                                                  |
 | Class instances with methods | serialisable objects and functions                                                                             |
 
-The `HostBridge` is a plain object of data and functions: navigation, context store, capabilities, registries, breadcrumb store, storage backend, telemetry, overlay manager, diagnostics, notifications, settings value port and host flags. Because it contains no loader details, a test harness can build one as easily as Module Federation.
+The `HostBridge` is a plain object of data and functions: navigation, context store, capabilities, registries, breadcrumb store, storage backend, telemetry, overlay manager, diagnostics, notifications, credential port, settings value port and host flags. Because it contains no loader details, a test can build one as easily as Module Federation.
 
 ## Surfaces that look like components
 

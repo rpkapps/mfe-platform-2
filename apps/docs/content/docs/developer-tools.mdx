@@ -1,29 +1,32 @@
 ---
 title: Developer tools
-description: A private, lazily loaded panel in the host that shows the diagnostic snapshot, the live event stream and the shared-dependency graph.
+description: A private panel the shell loads on demand: the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
 ---
 
 ## Enabling
 
 Developer tools load only in the browser when all three hold:
 
-1. the flag is set: `localStorage.setItem("platform:devtools", "1")` or `?platform.devtools=1` on the page URL (the harness has a toggle; `setDevtoolsFlag(true)` from `@platform/host` does the same),
+1. the flag is set: `localStorage.setItem("platform:devtools", "1")` or `?platform.devtools=1` on the page URL (`setDevtoolsFlag(true)` from `@platform/host` does the same),
 2. the host policy permits it: `devtools.policy` is `flag` (default) or `always` — `never` disables them entirely,
 3. the environment is supported: `devtools.environments` (default `development`, `local`, `test`, `staging`) contains the host `environment`.
 
-The policy comes from the runtime configuration (`devtools`, set with `PLATFORM_DEVTOOLS_POLICY`) or from `createPlatformHost({ devtools })`. Otherwise `PlatformDevtools` renders nothing and a `devtools: denied` diagnostic names the reason (`policy-never`, `environment`, `flag-missing`); `DEVTOOLS_UNAVAILABLE` points here.
+The policy comes from the runtime configuration (`devtools`, set with `PLATFORM_DEVTOOLS_POLICY`) or from `createPlatformHost({ devtools })`. When any of the three fails, a `devtools: denied` diagnostic names the reason (`policy-never`, `environment`, `flag-missing`); `DEVTOOLS_UNAVAILABLE` points here.
 
-```tsx title="apps/shell/src/routes/__root.tsx"
-import { PlatformDevtools } from "@platform/host/react"
+## The shell supplies them
 
-;<PlatformDevtools /> // props: defaultOpen?, force?, className?
+The tools are `@platform/devtools`, and the shell decides whether and how to load them:
+
+```ts title="apps/shell/src/lib/platform.ts"
+createPlatformHost({
+  // …
+  devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") },
+})
 ```
 
-`force` bypasses the flag and policy (harness, tests). The E2E suite loads the conformance dashboard, asserts that no devtools or React Flow chunk was requested, sets the flag, reloads and opens the panel.
+`@platform/host` never imports the package, so a shell that omits `load` never pays for React Flow, Tecton or the panel in its dependency tree — and `loadDevtools(host)` says exactly that if the tools are enabled with no loader. The dynamic `import()` lives in the shell's own bundle, which is what makes it a separate chunk. `loadDevtools` calls it once per host and records `devtools: loaded`, or `devtools: failed` with the reason, after which the shell keeps running.
 
-## Lazy loading
-
-The panel, React Flow and their styles live in `@platform-internal/devtools`, bundled into `@platform/host` as a separate chunk that `loadDevtools(host)` `import()`s on first open (`devtools: loaded`). The MFE SDK bundle contains none of it. When the chunk fails to load the host records `devtools: failed` and keeps running.
+The toggle that renders the panel is shell chrome like any other; `apps/conformance-shell/src/components/devtools.tsx` is the reference implementation, and it is 85 lines. The E2E suite loads the conformance dashboard, asserts that no devtools or React Flow chunk was requested, sets the flag, reloads and opens the panel.
 
 ## Panels
 
@@ -41,11 +44,34 @@ The panel, React Flow and their styles live in `@platform-internal/devtools`, bu
 | Telemetry    | the recorded telemetry events (`host.telemetryEvents()`)                                                                                                                           |
 | Diagnostics  | every diagnostic event with level filters                                                                                                                                          |
 | Overlays     | open overlay roots and layers with owner and z-index                                                                                                                               |
+| Faults       | inject a failure into the live shell: see [Fault injection](#fault-injection)                                                                                                      |
 
 ## Read-only and redacted
 
-The panel works on `host.snapshot()`, a frozen copy of the host state; it never mutates registries. `PlatformError`s are shown serialised (`toJSON()`), including `owner`, `source`, `override`, `hint` and `docsUrl`. Manifest overrides can be changed from the harness _Remotes_ page or with `host.remotes.setLocalOverride(mfeId, url)`.
+Every panel but _Faults_ works on `host.snapshot()`, a frozen copy of the host state; none of them mutates a registry. `PlatformError`s are shown serialised (`toJSON()`), including `owner`, `source`, `override`, `hint` and `docsUrl`. The runtime panel masks sensitive-looking keys (`redactRuntimeConfig`).
+
+Manifest overrides are the exception that is meant to be changed: the _Overview_ panel offers the override control, which is `host.remotes.setLocalOverride(mfeId, url)` and the recommended way to point a deployed shell at your dev server ([Local development](/docs/local-development)).
+
+## Fault injection
+
+The failures that matter most are the ones hardest to reach by hand. The _Faults_ panel switches them on against the running shell, so what you see is the real error boundary, the real diagnostic and the real retry — not a mock:
+
+| Fault                  | What happens                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Unavailable            | loading that remote fails with `REMOTE_LOAD_FAILED`                                            |
+| Manifest 404           | the remote's manifest URL is overridden to one that does not resolve (`MANIFEST_FETCH_FAILED`) |
+| Deny permission groups | the coarse preflight denies every remote that requires a group (`PERMISSION_DENIED`)           |
+| Incompatible shared    | every shared request is pinned to a range nothing satisfies (`DEPENDENCY_INCOMPATIBLE`)        |
+| Withhold a capability  | the named capability never reaches the bridge, so the MFE feature-detects it as absent         |
+
+Faults are set through `host.remotes.setFault(fault, value)` and read with `host.remotes.faults()`. Both are gated on the same `decideDevtools` check as the tools themselves, so production cannot reach them even by calling them; setting one drops cached definitions so the next load takes the faulted path. _Clear every fault_ resets all of them.
+
+Withholding `auth` is the quickest way to see what an MFE does when it cannot authenticate ([Authentication](/docs/authentication)).
+
+## Extending the panel
+
+`registerDevtoolsPanel({ id, title, render, order? })` from `@platform/devtools` adds a tab; it returns a disposer. `render` receives `{ host, snapshot }`, where `host` is the structural `DevtoolsHost` port rather than `PlatformHost` — the tools never import `@platform/host`, which is what lets a shell with a different runtime use them.
 
 ## In tests
 
-`decideDevtools(host, window)` returns `{ allowed, reason }` without side effects; `shouldLoadDevtools(host)` also emits the diagnostic. The E2E suite asserts that the devtools chunk is not requested until the flag is set and the toggle is pressed, that the dependency graph shows both share scopes, and that the overview lists `asset-tracker` and `widget-b` with their React versions.
+`decideDevtools(host, window)` returns `{ allowed, reason }` without side effects; `shouldLoadDevtools(host)` also emits the diagnostic. The E2E suite asserts that the devtools chunk is not requested until the flag is set and the toggle is pressed, that the dependency graph shows both share scopes, that the overview lists `asset-tracker` and `widget-b` with their React versions, and that a fault makes the real outlet render the real error.

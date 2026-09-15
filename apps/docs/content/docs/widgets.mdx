@@ -52,7 +52,7 @@ The definition lists every widget (`widgets[]`: `id`, `title`, `description`); t
 ## Mounting from the shell
 
 ```tsx title="apps/shell/src/routes/dashboard.tsx"
-import { WidgetSlot } from "@platform/host/react"
+import { WidgetSlot } from "@platform/host-react"
 
 <WidgetSlot mfeId="asset-tracker" widgetId="asset-card" slot="dashboard-asset-card" props={{ assetId: "pump-42" }} />
 <WidgetSlot mfeId="widget-a" widgetId="kpi-tile" slot="kpi-1" props={{ label: "Production", value: kpi, unit: "bbl/d" }} />

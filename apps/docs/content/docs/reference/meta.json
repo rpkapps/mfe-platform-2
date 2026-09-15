@@ -2,10 +2,12 @@
   "title": "Reference",
   "pages": [
     "index",
-    "platform-react",
+    "mfe-react",
     "platform-vite",
     "platform-cli",
     "platform-host",
+    "host-react",
+    "devtools",
     "manifest-schema",
     "runtime-config-schema",
     "diagnostics",

@@ -191,11 +191,11 @@ export function renderLlmsTxt() {
   lines.push("# MFE Platform")
   lines.push("")
   lines.push(
-    "> Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, Tecton UI, schema-backed storage, provider-neutral telemetry, runtime Docker configuration, manifest overrides and lazy developer tools."
+    "> Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, schema-backed storage, provider-neutral credentials and telemetry, runtime Docker configuration, manifest overrides and developer tools the shell loads on demand. The runtime is framework-free; React, TanStack Router and Tecton are adapters it ships."
   )
   lines.push("")
   lines.push(
-    "Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint) and @platform/host (shell runtime). Canonical project instructions for agents: " +
+    "Public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint), @platform/host (framework-free shell runtime, no peer dependencies), @platform/host-react (its React bindings) and @platform/devtools (the panel a shell loads on demand). Shell chrome is the shell's own code, not a package. Canonical project instructions for agents: " +
       `${DOCS_ORIGIN}/llm.txt. Every platform error carries a docs URL under ${DOCS_ORIGIN}/docs/.`
   )
   let section = null
@@ -229,7 +229,7 @@ export function renderLlmsTxt() {
     link(
       "Conformance shell",
       "/docs/examples#appsconformance-shell",
-      "apps/conformance-shell — TanStack Start SSR shell using @platform/host"
+      "apps/conformance-shell — TanStack Start SSR shell on @platform/host, and the reference chrome in src/components"
     )
   )
   lines.push(
@@ -327,15 +327,21 @@ A platform for independently deployed React micro-frontends (MFEs) and widgets. 
 ordinary TanStack Router file routes, React components and business logic. The platform owns Module
 Federation 2, runtime loading, browser history, React root isolation, CSS scoping, storage namespacing,
 overlays, registrations (commands, settings, help, release notes, breadcrumbs), telemetry, runtime
-configuration and the shell chrome (Tecton UI).
+configuration and the mounting seam. React, TanStack Router and Tecton are adapters the platform
+ships, not dependencies it has: @platform/host declares no peer dependencies, and the shell owns its
+own UI.
 
 ## Packages
 
 - @platform/mfe-react  MFE SDK (React 18 or 19): createMfe, createWidget, hooks, storage, registrations, testing
 - @platform/vite   platform() Vite plugin: route tree, code splitting, manifest, inference, CSS scoping, federation
 - @platform/cli    platform create | dev | build | manifest | validate | lint | test; @platform/cli/eslint
-- @platform/host   shell runtime (React 19): host API, React components, TanStack bridge, harness, Docker entrypoint
-Internal packages (@platform-internal/core, module-federation, diagnostics, devtools, conformance) are bundled; never install them.
+- @platform/host   framework-free shell runtime: host API, headless command/search/settings APIs, testing helpers, Docker entrypoint
+- @platform/host-react   React bindings for a shell: PlatformProvider, host hooks, MfeOutlet, WidgetSlot, TanStack bridge. No design system
+- @platform/devtools   developer tools panel the shell loads on demand (remotes, routes, dependency graph, diagnostics, telemetry, faults)
+Shell chrome (command palette, settings host, breadcrumbs, app finder) is not a package: it lives in
+apps/conformance-shell/src/components, built on the headless API, for a shell to copy and restyle.
+Internal packages (@platform-internal/core, module-federation, diagnostics, conformance) are bundled; never install them.
 
 ## Non-negotiable rules
 
@@ -353,9 +359,11 @@ Internal packages (@platform-internal/core, module-federation, diagnostics, devt
 ## Creating and running an MFE
 
 pnpm dlx @platform/cli create my-mfe   # scaffold (routes, widget, commands, settings, storage, tests, lint, AGENTS.md, llm.txt, llms.txt)
-pnpm dev        # platform dev: Vite + local shell harness at http://localhost:5173/__platform/harness/ (HMR, context, failure lab)
+pnpm dev        # platform dev: Vite + dev manifest at http://localhost:5173/platform-manifest.json
+                # load it into a shell with ?platform.override.<mfeId>=<url>, the devtools override
+                # control, or runtime configuration; dev.hmr gives full HMR inside the shell
 pnpm build      # platform build: dist/remoteEntry.js + dist/platform-manifest.json
-pnpm manifest | pnpm validate | pnpm lint | pnpm test | pnpm test:e2e
+pnpm manifest | pnpm validate | pnpm lint | pnpm test
 
 ## File locations (scaffold)
 
@@ -365,11 +373,11 @@ src/routes/**               TanStack file routes (relative to the route prefix);
 src/routeTree.gen.ts        generated
 src/widgets/*.tsx           widget components; createWidget({ component, propsSchema }) under a kebab-case key in src/mfe.tsx
 src/lib/storage.ts          createPlatformStorage stores
-src/lib/api.ts              data access using useRuntimeEnv().API_BASE_URL
+src/lib/api.ts              data access: usePlatformFetch (shell token) + useRuntimeEnv().API_BASE_URL
 src/platform.d.ts           declare module "@platform/mfe-react" { interface Register { env; featureFlags } }
                             declare module "@tanstack/react-router" { interface Register { router: MfeRouter<typeof routeTree> } }
-src/__tests__/, e2e/        Vitest (renderMfe, createTestBridge) and Playwright against the harness
-mfe.config.ts               defineMfeConfig({ ... }) overrides (routePrefix, navigation, env, shared, capabilities, css, tecton, harness)
+src/__tests__/              Vitest with renderMfe / createTestBridge from @platform/mfe-react/testing
+mfe.config.ts               defineMfeConfig({ ... }) overrides (routePrefix, navigation, env, shared, capabilities, css, tecton)
 .platform/identity.json     { mfeId } persisted; committed
 vite.config.ts              plugins: [platform()]    vitest.config.ts: the same call (identity defines only)
 eslint.config.ts            platformConfig() from @platform/cli/eslint
@@ -413,24 +421,37 @@ Context:
   usePlatform((p) => p.user?.displayName)   slice subscription (no rerender when unrelated state changes)
   usePermissions(), useCapability(id), useRuntimeEnv(), useTelemetry(), useNavigation(), useNotifications(), useMfeInstance(),
   useOverlayContainer() (portal target), useMountDisposer(), useStorageDiagnostics()
+  In loaders the same context is context.platform, which also carries fetch (the loader-side usePlatformFetch)
 
 Help / release notes: useRegisterHelp([...]), useRegisterReleaseNotes([...]); static ones via createMfe({ registrations })
 Breadcrumbs: staticData.breadcrumb ("Label" | { label, dynamic, hidden, fromLoader }); useBreadcrumb(override) for manual cases
 Overlays: ordinary Tecton Dialog/Popover/Menu; no configuration (withTecton PortalProvider + shell overlay manager); plain React: createPortal(el, useOverlayContainer())
 Runtime env: declare in mfe.config.ts env: { API_BASE_URL: { required: true } }; type via Register; read with useRuntimeEnv()
-Testing (@platform/mfe-react/testing): createTestBridge({ mfeId, user, permissionGroups, env }), renderMfe(definition, { bridge, path }) -> { container, navigate, location, dispose }; PlatformTestProvider for hooks
+Authentication: usePlatformFetch() is fetch + Authorization: Bearer from the shell, one 401 retry with forceRefresh, and it
+  refuses any origin the shell did not allow-list. Non-ok responses come back as Responses — never swallow a status and never
+  substitute stand-in data. useCredentials() gives the raw token for a client library. Both imply the auth capability, which
+  @platform/vite infers. Loaders use context.platform.fetch.
+Testing (@platform/mfe-react/testing): createTestBridge({ mfeId, user, permissionGroups, env, capabilities, token, credentialOrigins }), renderMfe(definition, { bridge, path }) -> { container, navigate, location, dispose }; PlatformTestProvider for hooks
 
 ## Shell (host) essentials
 
-createPlatformHost({ runtimeConfig, navigation, registry?, context?, notifications: createSonnerNotificationPort(), telemetry?, storage?, loader?, policy?, devtools?, hostKind? })
-  -> host.remotes.{list,get,mount,mountWidget,retry,setLocalOverride,matchRoute,sharedReport,register}, host.commands.{run,abort,running}, host.config.{get,subscribe,refresh}, host.snapshot()
-@platform/host/react: PlatformProvider (installs the shortcut listener), MfeOutlet (headless for settings owners), WidgetSlot, CommandPalette, SettingsHost, HelpSlot, ReleaseNotesSlot, Breadcrumbs, AppFinder, NotificationHost, PlatformDevtools, ShellOverlayProvider
-@platform/host/tanstack: createTanStackShellNavigation(router), mfeRouteHelpers({ host }).matchMfeForPath(pathname) in the shell's $ catch-all route
+createPlatformHost({ runtimeConfig, navigation, registry?, context?, notifications?, credentials?, telemetry?, storage?, loader?, policy?, devtools?, hostKind? })
+  -> host.remotes.{list,get,mount,mountWidget,retry,setLocalOverride,matchRoute,sharedReport,register,faults,setFault}, host.commands.{run,abort,running}, host.config.{get,subscribe,refresh}, host.snapshot()
+@platform/host has NO peer dependencies: no React, no router, no design system. Headless API it exports for a shell's own UI:
+  createCommandSearchIndex, SEARCH_GROUPS, scoreEntry, runCommand, createCommandRunner, commandHref, isCommandAvailable,
+  installShortcutListener, settingsController, readSettingsGroupValues. @platform/host/testing has an in-memory host for testing chrome.
+Credentials: implement CredentialAdapter { getToken({ audience, scopes, forceRefresh, signal }), subscribe } against the shell's IdP and pass it as
+  credentials; list API origins in policy.credentialOrigins. Remotes never see the provider.
+@platform/host-react: PlatformProvider (installs the shortcut listener; renderLoading/renderError dress every outlet), MfeOutlet (headless for settings owners), WidgetSlot, SurfaceMount, outletStateFor, usePlatformHost/useHostSelector/useHostDiagnostics/useSubscription/useShellLocation/useRegistryVersion
+@platform/host-react/tanstack: createTanStackShellNavigation(router), mfeRouteHelpers({ host }).matchMfeForPath(pathname) in the shell's $ catch-all route
+Shell chrome is the shell's own code: build the palette on createCommandSearchIndex/runCommand/installShortcutListener and the settings page on settingsController, all exported from @platform/host. apps/conformance-shell/src/components is the reference implementation to copy.
+Developer tools: devtools: { ...runtimeConfig.devtools, load: () => import("@platform/devtools") } — the host never imports them.
 Runtime config in an SSR shell: root loader -> server function -> .server.ts reads the entrypoint output -> loadRuntimeConfig({ inline }) on the client (apps/conformance-shell)
 Manifest URL precedence: ?platform.override.<mfeId>= / localStorage["platform:manifest-overrides"] > runtime config (mfes.<id>.manifestUrl) > registry > default
 Runtime config: platform-host-entrypoint --out platform-config.json [--base] [--known] [--print] from PLATFORM_* variables
   (PLATFORM_ENVIRONMENT, PLATFORM_MFE_<ID>_MANIFEST_URL|ENABLED|PRELOAD|ALLOWED_ORIGINS|ENV_<KEY>, PLATFORM_SHARED_<KEY>, PLATFORM_ALLOWED_ORIGINS, PLATFORM_DEVTOOLS_POLICY); sensitive names refused
-Devtools: localStorage["platform:devtools"] = "1" + policy (flag|always|never) + environment; lazy chunk; React Flow dependency graph
+Devtools: localStorage["platform:devtools"] = "1" + policy (flag|always|never) + environment; the shell supplies devtools.load;
+  React Flow dependency graph; a Faults panel injects unavailable remotes, 404 manifests, incompatible shared deps, denied groups and withheld capabilities
 
 ## Monorepo workflows
 
@@ -439,13 +460,17 @@ pnpm test:integration; pnpm build:all && pnpm e2e (Playwright against apps/confo
 pnpm --filter <pkg> build after editing a package (apps consume dist/); pnpm --filter <pkg> dev for watch mode
 pnpm schemas:build (JSON Schemas from core); pnpm docs:generate (schemas, generated reference pages, llms.txt); pnpm --filter docs docs:check
 New SDK hook: packages/mfe-react/src + export + CAPABILITY_BY_API in core if it implies a capability + docs page + lint rule if misuse is statically detectable
+New shell chrome: apps/conformance-shell/src/components on the headless API — not a package, and not a new peer dependency
+New devtools panel: packages/devtools/src/panels, registered in DEVTOOLS_TABS or by a shell through registerDevtoolsPanel
 New manifest field: internal/core/src/manifest.ts + packages/vite (generation) + packages/host (consumption) + pnpm schemas:build + docs page manifests
 New error: add a code to ERROR_CODES with a docs path that exists, then throw new PlatformError({ code, message, owner, source, override })
 
 ## Conventions
 
 TypeScript strict; Prettier (no semicolons, double quotes, width 96); ESLint 9 flat config; Node scripts are .mjs (Windows + Linux).
-Tecton is the UI library (@tecton/react); never stock Tailwind colour classes (bg-red-500) — use semantic tokens or Tecton palette steps.
+Tecton is the UI library of the applications and the developer tools (@tecton/react); never stock Tailwind colour classes (bg-red-500) —
+  use semantic tokens or Tecton palette steps. The platform packages are different: @platform/host has no peers, @platform/host-react uses
+  React but no design system, internal/* imports no framework. test/integration/package-boundaries.test.ts enforces all of it.
 Tests: unit next to the package, integration in test/integration, browser in test/e2e; every behaviour in docs/ARCHITECTURE.md has a test.
 Every feature has a docs page under apps/docs/content/docs; error codes link to it; llms.txt is regenerated when pages change.
 

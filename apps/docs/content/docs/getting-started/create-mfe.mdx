@@ -1,6 +1,6 @@
 ---
 title: Create an MFE
-description: Scaffold a complete, runnable micro-frontend with one command, then run it in the local shell harness.
+description: Scaffold a complete, runnable micro-frontend with one command, then load it into a shell with a manifest override.
 ---
 
 <Steps>
@@ -20,7 +20,13 @@ cd my-mfe
 pnpm dev
 ```
 
-`pnpm dev` runs `platform dev`: a Vite dev server for the remote plus the **local shell harness** at `http://localhost:5173/__platform/harness/`. The harness is a self-contained shell with a realistic user, permission groups, tenant/project/job context, a command palette, settings host, help and release notes, widget playground, overlays and a failure lab. Your MFE hot-reloads inside it.
+`pnpm dev` runs `platform dev`: a Vite dev server for the remote, serving its development manifest at `http://localhost:5173/platform-manifest.json`. Load it into a shell with a manifest override:
+
+```text
+https://shell.example.com/my-mfe?platform.override.my-mfe=http://localhost:5173/platform-manifest.json
+```
+
+Your MFE hot-reloads inside that shell, with the shell's real context and — against a deployed development shell — its real session. See [Local development](/docs/local-development).
 
 <Step>Build</Step>
 
@@ -38,8 +44,6 @@ pnpm build
 my-mfe/
 ├── .platform/
 │   └── identity.json          # { "mfeId": "my-mfe" } — committed; everything else in .platform is generated
-├── e2e/
-│   └── harness.spec.ts        # Playwright against the harness
 ├── src/
 │   ├── mfe.tsx                # default export: createMfe({ routeTree, widgets, registrations })
 │   ├── platform.d.ts          # Register augmentations: typed env/feature flags and the typed router
@@ -55,7 +59,7 @@ my-mfe/
 │   ├── widgets/
 │   │   └── asset-card.tsx     # widget component (createWidget in mfe.tsx) with a dialog and a command
 │   ├── lib/
-│   │   ├── api.ts             # data access using useRuntimeEnv().API_BASE_URL
+│   │   ├── api.ts             # data access: usePlatformFetch + useRuntimeEnv().API_BASE_URL
 │   │   └── storage.ts         # createPlatformStorage stores (local with migration, session)
 │   └── __tests__/
 │       ├── mfe.test.tsx       # renderMfe + createTestBridge from @platform/mfe-react/testing
@@ -63,7 +67,6 @@ my-mfe/
 ├── mfe.config.ts              # defineMfeConfig({ displayName, navigation, env, … })
 ├── vite.config.ts             # plugins: [platform()]
 ├── vitest.config.ts           # plugins: [platform()] — identity defines only under Vitest
-├── playwright.config.ts       # webServer: platform dev, baseURL/__platform/harness/
 ├── eslint.config.ts           # export default platformConfig()
 ├── tsconfig.json              # strict, bundler resolution, "@/*" → src
 ├── .gitignore · .npmrc · .prettierrc · .prettierignore
@@ -133,18 +136,17 @@ Keep `env` in step with `mfe.config.ts → env`.
 
 | Script           | Runs                                                                                |
 | ---------------- | ----------------------------------------------------------------------------------- |
-| `pnpm dev`       | `platform dev` — Vite dev server + harness with HMR                                 |
+| `pnpm dev`       | `platform dev` — Vite dev server + the development manifest a shell can load        |
 | `pnpm build`     | `platform build` — production remote, manifest validation and summary               |
 | `pnpm preview`   | `vite preview` — serve `dist/` as a production artefact                             |
 | `pnpm manifest`  | `platform manifest` — print the manifest inferred from the sources                  |
 | `pnpm validate`  | `platform validate` — structure, identity, configuration, generated files, manifest |
 | `pnpm lint`      | `platform lint` — the shareable ESLint config                                       |
 | `pnpm test`      | `platform test` — Vitest (`src/**/*.test.{ts,tsx}`)                                 |
-| `pnpm test:e2e`  | `playwright test` — `e2e/` against the harness                                      |
 | `pnpm typecheck` | `tsc --noEmit`                                                                      |
 
 ## Next steps
 
 - [Vite configuration](/docs/getting-started/vite-configuration): what `platform()` infers and how to override it.
 - [Project structure](/docs/getting-started/project-structure): the canonical patterns, file by file.
-- [Local development](/docs/local-development): the harness and running against a real SSR shell.
+- [Local development](/docs/local-development): manifest overrides, HMR and running against a deployed shell.

@@ -58,8 +58,15 @@ export default createMfe({
 
 ## Rendering
 
+<Callout type="info">
+  This component is the shell's own code, not one the platform ships. The reference
+  implementation lives in `apps/conformance-shell/src/components` and is built entirely on the
+  platform's headless API — copy it and restyle it. See
+  [`@platform/host`](/docs/reference/platform-host#headless-apis-for-a-shells-own-ui).
+</Callout>
+
 ```tsx title="apps/shell"
-import { HelpSlot } from "@platform/host/react"
+import { HelpSlot } from "@/components"
 
 ;<HelpSlot mfeId={activeMfeId} /> // or without mfeId for every remote
 ```

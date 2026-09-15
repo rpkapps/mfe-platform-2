@@ -7,10 +7,10 @@ description: Compatible packages are shared by version group. React 19 never sat
 
 Packages bound to a React instance share inside the scope of their React major; framework-neutral packages share in `default`.
 
-| Scope                 | Packages                                                                                                                           |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Scope                 | Packages                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `react18` / `react19` | `react`, `react-dom`, `react/jsx-runtime`, `@tanstack/react-router`, `@tanstack/react-store` and, when opted in, `@platform/mfe-react` |
-| `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                 |
+| `default`             | `@tanstack/history`, `zod` and any other framework-neutral package                                                                     |
 
 Example: the shell uses React 19, MFE A and MFE B use React 18. The result is one React 19 instance for the shell (and React 19 remotes) and one shared React 18 instance for A and B. A React 18 request is never satisfied by React 19 because the scopes are distinct.
 

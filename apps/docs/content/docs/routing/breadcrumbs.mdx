@@ -71,8 +71,15 @@ function AssetPage() {
 
 ## Rendering in the shell
 
+<Callout type="info">
+  This component is the shell's own code, not one the platform ships. The reference
+  implementation lives in `apps/conformance-shell/src/components` and is built entirely on the
+  platform's headless API — copy it and restyle it. See
+  [`@platform/host`](/docs/reference/platform-host#headless-apis-for-a-shells-own-ui).
+</Callout>
+
 ```tsx
-import { Breadcrumbs } from "@platform/host/react"
+import { Breadcrumbs } from "@/components"
 
 ;<Breadcrumbs maxItems={5} announcePrefix="Location" />
 ```

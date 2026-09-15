@@ -1,6 +1,6 @@
 # Working in this repository (for humans and AI agents)
 
-This is the platform monorepo for independently deployed React micro-frontends: `@platform/mfe-react` (MFE SDK), `@platform/vite` (Vite plugin), `@platform/cli` (scaffolding, dev, lint) and `@platform/host` (shell runtime), plus private internal packages, conformance applications and the documentation site. `docs/ARCHITECTURE.md` is the design contract; `llm.txt` is the short version; `llms.txt` indexes the documentation.
+This is the platform monorepo for independently deployed React micro-frontends: `@platform/mfe-react` (MFE SDK), `@platform/vite` (Vite plugin), `@platform/cli` (scaffolding, dev, lint), `@platform/host` (framework-free shell runtime), `@platform/host-react` (its React bindings) and `@platform/devtools`, plus private internal packages, conformance applications and the documentation site. `docs/ARCHITECTURE.md` is the design contract; `llm.txt` is the short version; `llms.txt` indexes the documentation.
 
 ## Toolchain
 
@@ -16,7 +16,7 @@ This is the platform monorepo for independently deployed React micro-frontends: 
 
 ```
 apps/docs                   TanStack Start + Fumadocs documentation site (Tecton styles)
-apps/conformance-shell      SSR shell (TanStack Start, React 19, @platform/host)
+apps/conformance-shell      SSR shell (TanStack Start, React 19) and the reference chrome in src/components
 apps/conformance-react19    MFE "asset-tracker" (React 19, Tecton)
 apps/conformance-react18    MFE "legacy-reports" (React 18, no Tecton)
 apps/conformance-widget-a   hidden widget library (React 19)
@@ -36,12 +36,14 @@ test/e2e                    Playwright suites
 5. Generated files are never edited by hand: `**/routeTree.gen.ts`, `platform-manifest.json`, `.platform/*`, `apps/docs/public/schemas/*`, `apps/docs/content/docs/reference/generated/*`. Regenerate with the owning script.
 6. Errors are `PlatformError`s with a code from `ERROR_CODES` (owner, source, override, hint, docs URL). Add a code before throwing a new kind of failure; the docs page in `docs` must exist. One failure is one telemetry event: the call site that owns it reports it (it knows the `boundary`), and a diagnostic carrying the same failure passes `errorInstance` so the bus forwards the error that was thrown instead of a reconstruction. `createTelemetry` drops the repeats by identity.
 7. Every public API takes an options object, infers what it can and exposes explicit overrides; hooks are primitives, components are thin wrappers. One canonical pattern per task — do not add a second way.
-8. Tecton is the UI library (`@tecton/react`, installed from the Tecton repository as a git dependency in `pnpm-workspace.yaml`). Use Tecton components and tokens; never stock Tailwind colour classes (`bg-red-500` produces no CSS with the Tecton palette).
+8. Tecton is the UI library **of the applications and the developer tools** (`@tecton/react`, installed from the Tecton repository as a git dependency in `pnpm-workspace.yaml`). Use Tecton components and tokens there; never stock Tailwind colour classes (`bg-red-500` produces no CSS with the Tecton palette). The platform packages are a different matter: `@platform/host` has no peer dependencies at all, `@platform/host-react` may use React but no design system, and `internal/*` imports no framework. `test/integration/package-boundaries.test.ts` enforces each of those, and shell UI belongs in `apps/conformance-shell/src/components` rather than in a package.
 9. Tests: unit tests next to each package (`test/` or `src/**/*.test.ts`), integration tests in `test/integration`, browser tests in `test/e2e`. A behaviour listed in `docs/ARCHITECTURE.md` needs a test.
 10. Documentation: every feature has a page under `apps/docs/content/docs`; error codes link to it. Update `llms.txt` when pages are added (`pnpm docs:generate` regenerates the index).
 
 ## Common workflows
 
 - New SDK hook → `packages/mfe-react/src`, export from `src/index.ts`, add to `CAPABILITY_BY_API` in core if it implies a capability, document under `docs/…`, add a lint rule if misuse is statically detectable.
+- New shell chrome → `apps/conformance-shell/src/components`, built on the headless API `@platform/host` exports. A new package is the wrong answer; so is a new peer dependency on `@platform/host` or `@platform/host-react`.
+- New developer-tools panel → `packages/devtools/src/panels`, registered in `DEVTOOLS_TABS` (or by a shell through `registerDevtoolsPanel`). Anything it needs from the host goes on the structural `DevtoolsHost` port, never as an import of `@platform/host`.
 - New manifest field → `internal/core/src/manifest.ts` (schema + type), `packages/vite` (generation), `packages/host` (consumption), `pnpm schemas:build`, docs page `manifests`.
 - New conformance scenario → the relevant `apps/conformance-*` app + `test/e2e/<scenario>.spec.ts`.

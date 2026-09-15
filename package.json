@@ -2,7 +2,7 @@
   "name": "mfe-platform",
   "version": "0.1.0",
   "private": true,
-  "description": "React-only micro-frontend platform: TanStack Router MFEs and widgets, Vite builds, platform-managed Module Federation, Tecton UI.",
+  "description": "Micro-frontend platform: a framework-free shell runtime with React, TanStack Router and Tecton adapters, Vite builds and platform-managed Module Federation.",
   "scripts": {
     "build": "pnpm -r --filter \"./internal/**\" --filter \"./packages/**\" run build",
     "build:apps": "pnpm -r --filter \"./apps/**\" run build",

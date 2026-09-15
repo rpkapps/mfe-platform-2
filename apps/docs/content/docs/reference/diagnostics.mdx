@@ -56,6 +56,6 @@ host.diagnostics.subscribe(() => {
 const snapshot = host.snapshot() // remotes, instances, registrations, shared, overlays, events
 ```
 
-In React, `useHostDiagnostics(selector)` from `@platform/host/react` subscribes to the events.
+In React, `useHostDiagnostics(selector)` from `@platform/host-react` subscribes to the events.
 
 Inside an MFE, `bridge.diagnostics.emit()` is used by the SDK; MFE code reports through telemetry instead.

@@ -1,14 +1,14 @@
 # MFE Platform
 
-> Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, Tecton UI, schema-backed storage, provider-neutral telemetry, runtime Docker configuration, manifest overrides and lazy developer tools.
+> Independently deployed React micro-frontends and widgets: TanStack Router folder routing, Vite builds, platform-managed Module Federation 2, isolated React roots, version-group dependency sharing, shell-owned history, schema-backed storage, provider-neutral credentials and telemetry, runtime Docker configuration, manifest overrides and developer tools the shell loads on demand. The runtime is framework-free; React, TanStack Router and Tecton are adapters it ships.
 
-Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint) and @platform/host (shell runtime). Canonical project instructions for agents: https://platform.docs.local/llm.txt. Every platform error carries a docs URL under https://platform.docs.local/docs/.
+Public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin), @platform/cli (scaffolding, dev, lint), @platform/host (framework-free shell runtime, no peer dependencies), @platform/host-react (its React bindings) and @platform/devtools (the panel a shell loads on demand). Shell chrome is the shell's own code, not a package. Canonical project instructions for agents: https://platform.docs.local/llm.txt. Every platform error carries a docs URL under https://platform.docs.local/docs/.
 
 ## Getting started
 
 - [Introduction](https://platform.docs.local/docs): A platform for independently deployed React micro-frontends and widgets that feel like ordinary TanStack Router applications.
 - [Guides](https://platform.docs.local/docs/guides): Every platform feature has a guide. Start with routing and widgets, then work through isolation, shell integration, configuration and operations.
-- [Create an MFE](https://platform.docs.local/docs/getting-started/create-mfe): Scaffold a complete, runnable micro-frontend with one command, then run it in the local shell harness.
+- [Create an MFE](https://platform.docs.local/docs/getting-started/create-mfe): Scaffold a complete, runnable micro-frontend with one command, then load it into a shell with a manifest override.
 - [Vite configuration](https://platform.docs.local/docs/getting-started/vite-configuration): The platform() plugin composes every Vite integration a remote needs. Configure it inline or through mfe.config.ts.
 - [Project structure](https://platform.docs.local/docs/getting-started/project-structure): Predictable file locations and one canonical pattern for every task, so humans and coding agents always know where things go.
 
@@ -56,15 +56,15 @@ Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin
 - [Overlays](https://platform.docs.local/docs/overlays): Ordinary Tecton dialogs, popovers, menus and tooltips work in every MFE and widget without configuration, through a centralized shell overlay manager.
 - [Transparent overlays](https://platform.docs.local/docs/overlays/transparent-overlays): The Tecton portal provider adapter gives every MFE an owner-tagged, body-level overlay root, so scoped styles and theme tokens apply to dialogs that escape the MFE container.
 - [Modal ordering](https://platform.docs.local/docs/overlays/modal-ordering): Deterministic layer allocation across MFEs and widgets, with owner metadata for every open overlay.
-- [Developer tools](https://platform.docs.local/docs/developer-tools): A private, lazily loaded panel in the host that shows the diagnostic snapshot, the live event stream and the shared-dependency graph.
+- [Developer tools](https://platform.docs.local/docs/developer-tools): A private panel the shell loads on demand: the diagnostic snapshot, the live event stream, the shared-dependency graph and fault injection.
 
 ## Operations
 
 - [Failure handling](https://platform.docs.local/docs/failure-handling): Every remote boundary has clear loading, error, unavailable and retry states. A failed remote, widget, command or settings field never crashes the shell.
 - [Retries](https://platform.docs.local/docs/retries): What the host retries automatically, with which policy, and what it deliberately does not.
-- [Local development](https://platform.docs.local/docs/local-development): Run an MFE alone in the local shell harness, or through a real SSR shell with a manifest override. Both give HMR, a realistic context and every shell surface.
+- [Local development](https://platform.docs.local/docs/local-development): Run an MFE through a shell with a manifest override — locally or against a deployed development shell. Full HMR, a real context and real authentication.
 - [Linting](https://platform.docs.local/docs/linting): The shareable ESLint plugin and flat config from @platform/cli/eslint, every platform rule with its rationale, and the generated eslint.config.ts.
-- [Testing](https://platform.docs.local/docs/testing): The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers and the harness.
+- [Testing](https://platform.docs.local/docs/testing): The comprehensive suite belongs to the platform repository. An MFE tests its own behaviour with the testing helpers.
 - [Troubleshooting](https://platform.docs.local/docs/troubleshooting): How to read a platform diagnostic and where each error code leads.
 - [Migration patterns](https://platform.docs.local/docs/migration-patterns): Moving an existing application onto the platform, from a single SPA, from iframes, or from an older micro-frontend setup.
 - [Unsupported cases](https://platform.docs.local/docs/unsupported-cases): What the platform deliberately does not do, and what to use instead.
@@ -84,11 +84,13 @@ Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin
 
 ## Reference
 
-- [Reference](https://platform.docs.local/docs/reference): Every public export of the four packages, the published schemas, the error codes and the diagnostic events.
-- [@platform/mfe-react](https://platform.docs.local/docs/reference/platform-react): The MFE-facing SDK. Every export with its signature and a short description.
+- [Reference](https://platform.docs.local/docs/reference): Every public export of the platform packages, the published schemas, the error codes and the diagnostic events.
+- [@platform/mfe-react](https://platform.docs.local/docs/reference/mfe-react): The MFE-facing SDK. Every export with its signature and a short description.
 - [@platform/vite](https://platform.docs.local/docs/reference/platform-vite): The platform() Vite plugin, the mfe.config.ts helper and the programmatic API (manifest generation, config resolution, CSS scoping).
 - [@platform/cli](https://platform.docs.local/docs/reference/platform-cli): The platform command line and the shareable ESLint plugin and flat config.
-- [@platform/host](https://platform.docs.local/docs/reference/platform-host): Shell-side runtime API, React 19 components, the TanStack shell bridge, the local harness and the Docker entrypoint.
+- [@platform/host](https://platform.docs.local/docs/reference/platform-host): The framework-free shell runtime, its headless command, search and settings APIs, the testing helpers and the Docker entrypoint.
+- [@platform/host-react](https://platform.docs.local/docs/reference/host-react): React bindings for a shell — PlatformProvider, the host hooks, MfeOutlet, WidgetSlot, SurfaceMount and the TanStack shell bridge. No design system.
+- [@platform/devtools](https://platform.docs.local/docs/reference/devtools): The developer tools panel a shell loads on demand — its exports, the DevtoolsHost port it talks to, and how to add a panel of your own.
 - [Manifest schema](https://platform.docs.local/docs/reference/manifest-schema): Fields of platform-manifest.json. The JSON Schema is published at /schemas/manifest.json.
 - [Runtime config schema](https://platform.docs.local/docs/reference/runtime-config-schema): Fields of platform-config.json. The JSON Schema is published at /schemas/runtime-config.json.
 - [Diagnostics](https://platform.docs.local/docs/reference/diagnostics): Every diagnostic event the host records, with its level. The developer tools show the snapshot and the live stream; telemetry receives a subset.
@@ -110,7 +112,7 @@ Four public packages: @platform/mfe-react (MFE SDK), @platform/vite (Vite plugin
 
 ## Examples
 
-- [Conformance shell](https://platform.docs.local/docs/examples#appsconformance-shell): apps/conformance-shell — TanStack Start SSR shell using @platform/host
+- [Conformance shell](https://platform.docs.local/docs/examples#appsconformance-shell): apps/conformance-shell — TanStack Start SSR shell on @platform/host, and the reference chrome in src/components
 - [asset-tracker (React 19, Tecton)](https://platform.docs.local/docs/examples#appsconformance-react19--asset-tracker): apps/conformance-react19 — routes, guards, commands, settings, storage, widgets
 - [legacy-reports (React 18)](https://platform.docs.local/docs/examples#appsconformance-react18--legacy-reports): apps/conformance-react18 — React 18 remote on a legacy route prefix
 - [widget-a (React 19 widgets)](https://platform.docs.local/docs/examples#appsconformance-widget-a--widget-a): apps/conformance-widget-a — hidden widget library

@@ -27,7 +27,7 @@ export default defineConfig({
 | Shared dependency inference    | `package.json` dependencies → shared requests by version group                                                                                                         |
 | Generated entry                | `.platform/entry.tsx`: imports `src/mfe.tsx`, applies `withTecton`, exports the definition                                                                             |
 | `@module-federation/vite`      | `name: federationName(mfeId)`, `filename: "remoteEntry.js"`, `exposes: { "./mfe": ".platform/entry.tsx" }`, `shared` with share scopes, `manifest: true`, `dts: false` |
-| Dev endpoints                  | `/platform-manifest.json`, `/@platform/refresh-preamble`, `/__platform/harness/` (the built harness from `@platform/host`, or a fallback page)                         |
+| Dev endpoints                  | `/platform-manifest.json` (the development manifest) and `/@platform/refresh-preamble` (React Refresh for this remote's React instance)                                |
 | Restart diagnostics            | Detects manifest-affecting changes and flags `dev.restartRequired`                                                                                                     |
 | Vite defaults                  | `server.cors: true`, `build.target: "es2022"`, `build.cssCodeSplit: false`, the generated entry as build input, `resolve.dedupe` for React, the router and the SDK     |
 
@@ -82,7 +82,6 @@ All options are optional.
 | `manifest`         | `{ fileName? }`                                                        | `platform-manifest.json`                                                                 |
 | `federation`       | `(config) => config`                                                   | Escape hatch for the generated Module Federation options                                 |
 | `runtime`          | `{ react?, reactDom?, tanstackRouter?, platformReact? }`               | Compatibility metadata overrides (defaults from `package.json`)                          |
-| `harness`          | `{ enabled?, dir? }`                                                   | Serve the local harness at `/__platform/harness/` (`true`)                               |
 
 Plugin-only options (not read from `mfe.config.ts`):
 
@@ -124,4 +123,4 @@ The scaffold ships this file (together with the `Register` augmentation of `@pla
 
 ## Restart-requiring changes
 
-The plugin reads `mfe.config.ts` (and the files it imports), `package.json` and the generated route tree at startup; shared dependency requests and the federation configuration derive from them. When one of them changes while `platform dev` is running, the plugin re-resolves the configuration, compares the config hash and, if it differs, sets `dev.restartRequired: true` with `dev.restartReason` on the dev manifest, logs a `DEV_RESTART_REQUIRED` warning and sends a `platform:restart-required` websocket event; the host or harness shows a restart diagnostic instead of a stale remote. See [Local development](/docs/local-development#restart-diagnostics).
+The plugin reads `mfe.config.ts` (and the files it imports), `package.json` and the generated route tree at startup; shared dependency requests and the federation configuration derive from them. When one of them changes while `platform dev` is running, the plugin re-resolves the configuration, compares the config hash and, if it differs, sets `dev.restartRequired: true` with `dev.restartReason` on the dev manifest, logs a `DEV_RESTART_REQUIRED` warning and sends a `platform:restart-required` websocket event; the shell shows a restart diagnostic instead of a stale remote. See [Local development](/docs/local-development#restart-diagnostics).

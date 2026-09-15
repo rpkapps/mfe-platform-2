@@ -2,7 +2,7 @@
   "name": "@platform/mfe-react",
   "version": "0.1.0",
   "type": "module",
-  "description": "MFE-facing SDK: isolated MFE and widget bootstrap, TanStack Router integration with shell-backed history, platform context, storage, commands, settings, help, release notes, breadcrumbs and telemetry.",
+  "description": "MFE-facing SDK: isolated MFE and widget bootstrap, TanStack Router integration with shell-backed history, platform context, storage, commands, settings, help, release notes, breadcrumbs, telemetry and authenticated fetch.",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

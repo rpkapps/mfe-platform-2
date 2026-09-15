@@ -36,7 +36,7 @@ const packages = [
     title: "MFE SDK",
     description:
       "createMfe, createWidget, platform context, slice subscriptions, storage, commands, settings, help, release notes, breadcrumbs and telemetry. The only runtime package an MFE needs.",
-    href: "/docs/reference/platform-react",
+    href: "/docs/reference/mfe-react",
   },
   {
     icon: WrenchIcon,

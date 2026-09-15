@@ -7,22 +7,22 @@ The scaffold has exactly one place for each concern. Add features by adding file
 
 ## File locations
 
-| Concern             | Location                                     | Canonical API                                                                                             |
-| ------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Bootstrap           | `src/mfe.tsx`                                | `createMfe({ routeTree, widgets, registrations })` (default export)                                       |
-| Routes              | `src/routes/**`                              | `createFileRoute` / `createRootRouteWithContext<MfeRouterContext>`                                        |
-| Route tree          | `src/routeTree.gen.ts`                       | generated; never edited                                                                                   |
-| Widgets             | `src/widgets/*.tsx`                          | components; `createWidget({ component, propsSchema })` in `src/mfe.tsx`                                   |
-| Commands            | next to the feature (`src/routes/index.tsx`) | `useRegisterCommand` in the component that owns the feature                                               |
-| Settings            | `src/routes/settings.tsx` (or a `use*` hook) | `useRegisterSettingsGroup`                                                                                |
-| Storage             | `src/lib/storage.ts`                         | `createPlatformStorage`                                                                                   |
-| Data access         | `src/lib/api.ts`                             | `useRuntimeEnv().API_BASE_URL` / `context.platform.runtime.env`                                           |
-| Help, release notes | `src/mfe.tsx` (`registrations`)              | static entries; `useRegisterHelp` / `useRegisterReleaseNotes` for state-dependent ones                    |
+| Concern             | Location                                     | Canonical API                                                                                                 |
+| ------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Bootstrap           | `src/mfe.tsx`                                | `createMfe({ routeTree, widgets, registrations })` (default export)                                           |
+| Routes              | `src/routes/**`                              | `createFileRoute` / `createRootRouteWithContext<MfeRouterContext>`                                            |
+| Route tree          | `src/routeTree.gen.ts`                       | generated; never edited                                                                                       |
+| Widgets             | `src/widgets/*.tsx`                          | components; `createWidget({ component, propsSchema })` in `src/mfe.tsx`                                       |
+| Commands            | next to the feature (`src/routes/index.tsx`) | `useRegisterCommand` in the component that owns the feature                                                   |
+| Settings            | `src/routes/settings.tsx` (or a `use*` hook) | `useRegisterSettingsGroup`                                                                                    |
+| Storage             | `src/lib/storage.ts`                         | `createPlatformStorage`                                                                                       |
+| Data access         | `src/lib/api.ts`                             | `useRuntimeEnv().API_BASE_URL` / `context.platform.runtime.env`                                               |
+| Help, release notes | `src/mfe.tsx` (`registrations`)              | static entries; `useRegisterHelp` / `useRegisterReleaseNotes` for state-dependent ones                        |
 | Typing              | `src/platform.d.ts`                          | `Register` augmentations for `@platform/mfe-react` (env, feature flags) and `@tanstack/react-router` (router) |
-| Configuration       | `mfe.config.ts`                              | `defineMfeConfig`                                                                                         |
-| Identity            | `.platform/identity.json`                    | generated once; committed                                                                                 |
-| Styles              | `src/styles.css`                             | imported by `src/mfe.tsx`; scoped under `[data-mfe]` at build time                                        |
-| Tests               | `src/__tests__/*.test.tsx`, `e2e/*.spec.ts`  | `@platform/mfe-react/testing`; Playwright against the harness                                                 |
+| Configuration       | `mfe.config.ts`                              | `defineMfeConfig`                                                                                             |
+| Identity            | `.platform/identity.json`                    | generated once; committed                                                                                     |
+| Styles              | `src/styles.css`                             | imported by `src/mfe.tsx`; scoped under `[data-mfe]` at build time                                            |
+| Tests               | `src/__tests__/*.test.tsx`                   | `renderMfe` and `createTestBridge` from `@platform/mfe-react/testing`                                         |
 
 ## Bootstrap
 

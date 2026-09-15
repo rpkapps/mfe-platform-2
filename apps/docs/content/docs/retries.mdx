@@ -41,4 +41,4 @@ await host.remotes.retry("asset-tracker") // re-resolve the URL, refetch the man
 await host.remotes.loadManifest("asset-tracker", { force: true }) // refetch the manifest only
 ```
 
-`MfeOutlet` and `WidgetSlot` call `retry` from their _Retry_ buttons and mount again. In development, the harness _Failure lab_ simulates manifest 404s, unavailable remotes, dropped capabilities, denied permission groups and incompatible shared dependencies to exercise these states.
+`MfeOutlet` and `WidgetSlot` call `retry` from their _Retry_ buttons and mount again. To exercise these states, the developer tools' [_Faults_ panel](/docs/developer-tools#fault-injection) simulates manifest 404s, unavailable remotes, withheld capabilities, denied permission groups and incompatible shared dependencies against the running shell.
