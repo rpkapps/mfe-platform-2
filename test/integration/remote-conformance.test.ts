@@ -42,14 +42,27 @@ const apps = [
   },
 ]
 
-const missing = apps.filter(
-  (app) => !existsSync(join(root, app.dir, "dist", "platform-manifest.json"))
+const built = apps.filter((app) =>
+  existsSync(join(root, app.dir, "dist", "platform-manifest.json"))
 )
 
-describe("built conformance remotes", () => {
-  // A directory rename once made this whole file skip silently, so the absence
-  // of built remotes is a failure with a name, not a quiet pass.
+describe("the conformance remotes this file names", () => {
+  // Renaming an app directory without updating the list above once made every
+  // test below skip silently. The source directories are checked whatever the
+  // build state, so a rename fails here rather than passing by doing nothing.
+  it("all exist", () => {
+    const absent = apps.filter((app) => !existsSync(join(root, app.dir, "package.json")))
+    expect(absent.map((app) => app.dir)).toEqual([])
+  })
+})
+
+// Anyone who has not run `pnpm build:apps` yet has no artefacts to check, so
+// the suite skips rather than failing on a clean checkout; CI builds the
+// remotes before `pnpm test`, which is what makes these run there. A *partial*
+// build is still a failure, because that is the shape a broken build takes.
+describe.skipIf(built.length === 0)("built conformance remotes", () => {
   it("every remote has been built", () => {
+    const missing = apps.filter((app) => !built.includes(app))
     expect(missing.map((app) => app.dir)).toEqual([])
   })
 

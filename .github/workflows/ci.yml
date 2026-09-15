@@ -29,8 +29,11 @@ jobs:
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm typecheck
-      - run: pnpm test
+      # `build:apps` before `test`: the integration suite checks the built
+      # remotes' manifests, and skips when there are none — so with the old
+      # order CI never ran those checks at all.
       - run: pnpm build:apps
+      - run: pnpm test
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm e2e
         env:
