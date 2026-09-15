@@ -60,3 +60,13 @@ export async function layerOf(page: Page, testId: string): Promise<number> {
     return node ? Number(node.style.zIndex) : -1
   }, testId)
 }
+
+/** Open the palette, search, run the first matching entry and wait for the palette to close. */
+export async function runPaletteCommand(page: Page, query: string, name: RegExp) {
+  const input = page.getByTestId(ids.shell.paletteInput)
+  await expect(input).toBeHidden()
+  await openPalette(page)
+  await input.fill(query)
+  await page.getByRole("menuitem", { name }).click()
+  await expect(input).toBeHidden()
+}

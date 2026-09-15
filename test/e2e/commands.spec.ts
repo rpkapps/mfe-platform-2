@@ -1,22 +1,18 @@
 import { expect, test } from "@playwright/test"
 
-import { enableDevtools, gotoShell, ids, openPalette, waitForAssetTracker } from "./helpers"
+import { enableDevtools, gotoShell, ids, openPalette, runPaletteCommand, waitForAssetTracker } from "./helpers"
 
 test.describe("command palette", () => {
   test("registers, searches and runs MFE commands; cleans up on unmount", async ({ page }) => {
     await gotoShell(page, "/asset-tracker")
     await waitForAssetTracker(page)
-    await openPalette(page)
-    await page.getByTestId(ids.shell.paletteInput).fill("Increment asset")
-    await page.getByRole("menuitem", { name: /Increment asset counter/ }).click()
+    await runPaletteCommand(page, "Increment asset", /Increment asset counter/)
     await expect(page.getByTestId(ids.assetTracker.counter)).toContainText("Counter 1")
     // Shortcut dispatch through the shell.
     await page.keyboard.press(process.platform === "darwin" ? "Meta+Shift+I" : "Control+Shift+I")
     await expect(page.getByTestId(ids.assetTracker.counter)).toContainText("Counter 2")
     // Async command shows a running state and finishes with a notification.
-    await openPalette(page)
-    await page.getByTestId(ids.shell.paletteInput).fill("slow sync")
-    await page.getByRole("menuitem", { name: /Run slow sync/ }).click()
+    await runPaletteCommand(page, "slow sync", /Run slow sync/)
     await expect(page.getByText("Sync finished")).toBeVisible()
     // Navigation metadata, settings fields and help are searchable too.
     await openPalette(page)

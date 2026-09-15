@@ -38,11 +38,13 @@ test.describe("widgets and overlays", () => {
     await expect(first).toBeVisible()
     await page.keyboard.press("Escape")
     await expect(first).toBeHidden()
-    // React 18 plain modal after a React 19 dialog: later opener is on top.
-    await page.getByTestId(ids.widgets.assetCardOpen).click()
-    await expect(page.getByTestId(ids.widgets.assetCardDialog)).toBeVisible()
-    await page.getByTestId(ids.widgets.stackedModalOpen).click({ force: true })
+    // A React 19 Tecton dialog opened while a React 18 plain modal is up: the later opener
+    // is on top. (The modal covers the page, so the second trigger receives a synthetic click.)
+    await page.getByTestId(ids.widgets.stackedModalOpen).click()
     await expect(page.getByTestId(ids.widgets.stackedModalDialog)).toBeVisible()
-    expect(await layerOf(page, ids.widgets.stackedModalDialog)).toBeGreaterThan(await layerOf(page, ids.widgets.assetCardDialog))
+    await page.getByTestId(ids.widgets.assetCardOpen).dispatchEvent("click")
+    await expect(page.getByTestId(ids.widgets.assetCardDialog)).toBeVisible()
+    expect(await layerOf(page, ids.widgets.assetCardDialog)).toBeGreaterThan(await layerOf(page, ids.widgets.stackedModalDialog))
+    expect(await page.getByTestId(ids.widgets.stackedModalDialog).evaluate((el) => el.closest("[data-platform-overlay-root]")?.getAttribute("data-mfe"))).toBe("legacy-reports")
   })
 })
