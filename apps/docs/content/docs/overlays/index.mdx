@@ -1,0 +1,39 @@
+---
+title: Overlays
+description: Ordinary Tecton dialogs, popovers, menus and tooltips work in every MFE and widget without configuration, through a centralized shell overlay manager.
+---
+
+## What you write
+
+```tsx
+import { Dialog, DialogTrigger, DialogContent } from "@tecton/react/components/dialog"
+
+<DialogTrigger>
+  <Button>Edit</Button>
+  <Dialog>
+    <DialogContent>…</DialogContent>
+  </Dialog>
+</DialogTrigger>
+```
+
+No portal container, no z-index, no owner attribute. Tecton's `PortalProvider` adapter, applied by `withTecton` in the generated entry, points React Aria's portals at an owner-tagged root created by the overlay manager.
+
+## What the manager does
+
+- creates body-level portal roots per MFE instance: `<div data-platform-overlay-root data-mfe="asset-tracker" data-platform-instance="asset-tracker#1">`,
+- allocates layers deterministically in opening order (`--platform-layer`, `data-platform-layer`),
+- tracks open modals (`hasOpenModal()`, `data-platform-modal-count` on `body`) so the shell can inert its chrome,
+- removes roots and layers on unmount,
+- supports a contained mode (root inside the owner container) for embedded previews,
+- emits `overlay.opened` / `overlay.closed` diagnostics.
+
+Focus trapping, focus restoration, Escape handling and backdrop behaviour stay with React Aria; the manager observes and never patches the DOM, `document.body`, React portals or component behaviour.
+
+## Pages
+
+- [Transparent overlays](/docs/overlays/transparent-overlays): the provider adapter and why styles still apply outside the MFE container.
+- [Modal ordering](/docs/overlays/modal-ordering): stacking rules across MFEs and widgets.
+
+## Failure
+
+If a root cannot be created (`OVERLAY_FAILED`, for example a document without a body during tests), overlays fall back to `document.body`, lose the owner attribute for that instance and a diagnostic is recorded. Everything else keeps working.

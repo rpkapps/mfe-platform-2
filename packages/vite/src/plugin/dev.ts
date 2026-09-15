@@ -8,9 +8,8 @@ import type { Plugin, ViteDevServer } from "vite"
 
 import { generateManifest } from "../manifest"
 import { findPackageJson } from "../project"
-import { resolvePlatformConfig, type ResolvedPlatformConfig } from "../resolve-config"
-import { computeConfigHash, restartError, toBuildError, type PlatformContext } from "./context"
-import { buildFederationConfig } from "../resolve-config"
+import { buildFederationConfig, resolvePlatformConfig, type ResolvedPlatformConfig } from "../resolve-config"
+import { computeConfigHash, restartError, type PlatformContext } from "./context"
 
 export const DEV_MANIFEST_PATH = "/platform-manifest.json"
 export const REFRESH_PREAMBLE_PATH = "/@platform/refresh-preamble"
@@ -292,11 +291,19 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
         ]
         server.config.logger.info(`\n${lines.join("\n")}\n`)
       }
+      let summarized = false
       const summarize = () => {
+        if (summarized) return
+        summarized = true
         void devManifest(server.resolvedUrls?.local[0] ? new URL(server.resolvedUrls.local[0]).origin : undefined).then(printSummary, printSummary)
       }
-      if (server.httpServer) server.httpServer.once("listening", () => setTimeout(summarize, 0))
-      else summarize()
+      // The Vite CLI prints its URLs once `resolvedUrls` is known; programmatic servers get a delayed fallback.
+      const printUrls = server.printUrls.bind(server)
+      server.printUrls = () => {
+        printUrls()
+        summarize()
+      }
+      if (server.httpServer) server.httpServer.once("listening", () => setTimeout(summarize, 100))
     },
   }
 }
@@ -304,5 +311,3 @@ export function platformDevPlugin(context: PlatformContext): Plugin {
 function base(server: ViteDevServer): string {
   return server.config.base.replace(/\/$/, "")
 }
-
-export { toBuildError }

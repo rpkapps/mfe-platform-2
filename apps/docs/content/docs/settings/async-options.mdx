@@ -1,0 +1,57 @@
+---
+title: Async options
+description: Select and multi-select fields can load their options asynchronously with cancellation, caching, retry and stale-selection handling.
+---
+
+## Provider
+
+`options` may be a function instead of an array. It receives typed platform capabilities, the group's current state and an `AbortSignal`:
+
+```ts
+fields: {
+  site: {
+    defaultValue: "",
+    options: async ({ platform, state, signal }) => {
+      const response = await fetch(
+        `${platform.runtime.env.API_BASE_URL}/sites?tenant=${platform.tenant?.id ?? ""}`,
+        { signal }
+      )
+      if (!response.ok) throw new Error(`Sites unavailable (${response.status})`)
+      const sites: { id: string; name: string; archived: boolean }[] = await response.json()
+      return sites.map((site) => ({
+        value: site.id,
+        label: site.name,
+        disabled: site.archived,
+        keywords: [site.id],
+      }))
+    },
+    optionsCacheMs: 5 * 60_000,
+  },
+}
+```
+
+`platform` is the same typed view as `usePlatform()` minus anything that could reach shell internals or browser storage: providers get context, capabilities, runtime environment and telemetry, nothing else.
+
+## Loading, errors and retry
+
+The control shows a loading state while the promise is pending, an error state with the message when it rejects, and a *Retry* action. Errors are isolated to the field (`controller.options.error`), never to the group or the shell.
+
+## Cancellation
+
+The signal aborts when the dependencies change (a new `state`), when the field unmounts or when the settings page closes. Providers should pass it to `fetch` and ignore results after abort.
+
+## Caching
+
+Results are cached per field and dependency snapshot for `optionsCacheMs` (default 60 000 ms). `controller.options.retry()` bypasses the cache.
+
+## Stale selections
+
+When the stored value is not among the loaded options (a site was deleted), the control keeps the value, shows it as *unavailable* and offers *Reset*. The value is not silently changed, because a transient loading error must not destroy a selection.
+
+## Disabled options
+
+`disabled: true` options are visible but not selectable; a stored value pointing at a disabled option is treated as stale.
+
+## Static options
+
+Arrays are still the simplest choice when the list is known at build time. Both forms share the same `SettingsOption` shape: `{ value, label, description?, disabled?, keywords? }`.

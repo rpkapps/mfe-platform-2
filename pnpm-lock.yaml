@@ -247,6 +247,9 @@ importers:
 
   apps/conformance-react18:
     dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
       '@platform/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -314,6 +317,9 @@ importers:
 
   apps/conformance-react19:
     dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
       '@platform/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -469,6 +475,9 @@ importers:
 
   apps/conformance-widget-a:
     dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
       '@platform/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -551,6 +560,9 @@ importers:
 
   apps/conformance-widget-b:
     dependencies:
+      '@platform-internal/conformance':
+        specifier: workspace:*
+        version: link:../../internal/conformance
       '@platform/react':
         specifier: workspace:*
         version: link:../../packages/react

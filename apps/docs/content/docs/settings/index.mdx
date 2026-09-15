@@ -1,0 +1,141 @@
+---
+title: Settings
+description: Register settings groups and fields from an MFE. The shell places, persists and validates them; the MFE owns their meaning, defaults and renderers.
+---
+
+## Groups first
+
+Groups are the primary API. A group has a local key, a title and typed fields:
+
+```ts title="src/settings.ts"
+import { useRegisterSettingsGroup } from "@platform/react"
+import { z } from "zod"
+
+export function useDisplaySettings() {
+  return useRegisterSettingsGroup({
+    key: "display",
+    title: "Display",
+    description: "How the asset list is rendered",
+    fields: {
+      density: {
+        defaultValue: "comfortable",
+        schema: z.enum(["comfortable", "compact"]),
+        options: [
+          { value: "comfortable", label: "Comfortable" },
+          { value: "compact", label: "Compact" },
+        ],
+      },
+      pageSize: { defaultValue: 25, min: 10, max: 100, step: 5 },
+      showArchived: { defaultValue: false, description: "Include archived assets" },
+    },
+  })
+}
+```
+
+The hook returns the live values: `const { density } = useDisplaySettings().values`.
+
+The declarative form is `<SettingsRegistration definition={…} />`, a thin wrapper.
+
+## Definition
+
+Rules enforced at registration (`SETTINGS_INVALID`):
+
+- `key` is local, kebab-case, unique within the MFE; the platform namespaces it as `<mfeId>:<key>`.
+- Every field has `defaultValue`. A field named `value` is refused: the framework owns the current value and hands it to renderers through a controller.
+- `schema`, when present, is Standard Schema compatible and accepts the default value.
+- `managedBy: "mfe"` groups need a `route`.
+
+Fields accept these overrides: `label`, `description`, `keywords`, `schema`, `options`, `renderer`, `kind`, `serialize`, `migrate`, `version`, `visibleWhen`, `disabledWhen`, `readOnlyWhen`, `optionsCacheMs`, `min`, `max`, `step`, `placeholder`.
+
+## Inference
+
+| From | Inferred |
+| --- | --- |
+| `defaultValue: true` | boolean control |
+| `defaultValue: "…"` | text control |
+| `defaultValue: 25` | numeric control |
+| `options` present | single select |
+| array default + `options` | multi-select |
+| key `showArchived` | label "Show archived" |
+| `schema` | validation on read and on commit |
+| `renderer` | custom control; control metadata from `kind` when given |
+
+## Independent fields
+
+For dynamically composed settings, register fields on their own; they merge into the named group:
+
+```ts
+useRegisterSettingsField({
+  group: "display", // or { key, title, … } to create the group on the fly
+  key: "highlightOverdue",
+  defaultValue: true,
+})
+```
+
+## Controller and renderers
+
+Custom renderers receive a typed controller and never touch storage:
+
+```tsx
+const SliderRenderer: SettingsRenderer<number> = ({ controller }) => (
+  <Slider
+    id={controller.ids.input}
+    aria-labelledby={controller.ids.label}
+    value={controller.value}
+    onChange={controller.setValue}
+    isDisabled={controller.disabled}
+  />
+)
+```
+
+The controller carries `value`, `setValue`, `reset`, `validation`, `loading`, `error`, `ids` (input, label, description, error), `dependencies` (the group's other values), `options` (`items`, `loading`, `error`, `retry`) and the `readOnly`/`disabled` flags. The SDK converts the component into a mountable surface, so it renders with your React inside the shell's settings page.
+
+## Ownership modes
+
+### `managedBy: "framework"` (default)
+
+- the shell owns settings navigation and placement,
+- the shell owns the persistence policy (browser storage today),
+- the framework owns schema validation and storage integration,
+- the MFE owns meaning, defaults, renderers and migrations.
+
+### `managedBy: "mfe"`
+
+- the MFE owns the complete page, state, persistence, validation and migrations,
+- the shell owns discovery, route placement, loading and error boundaries only,
+- field-level search is optional and not assumed.
+
+See [Custom settings pages](/docs/settings/custom-pages).
+
+## Persistence
+
+Framework-managed values are stored through the host's `SettingsValuePort` under `platform:<mfeId>:settings:<group>.<field>` as `{ v, value }` envelopes, validated on read and on commit. Values are shared by every instance of the MFE.
+
+## Invalid stored values
+
+When a stored value fails its schema (or its `version` differs from the field's):
+
+1. the declared `migrate(stored, version)` runs, if any; a valid result is used (`origin: "migrated"`),
+2. otherwise the field resets to `defaultValue` with `validation: { valid: false, message, recovered: "default" }`,
+3. the settings host shows the recoverable state with a *Reset* action and reports `SETTINGS_VALUE_INVALID` for that field only.
+
+Other fields, other groups and the shell are unaffected. See [Settings schemas](/docs/settings/schemas).
+
+## Visibility and enablement
+
+`visibleWhen`, `disabledWhen` and `readOnlyWhen` are synchronous predicates over the group's current values:
+
+```ts
+refreshSeconds: { defaultValue: 30, visibleWhen: (state) => state.autoRefresh === true }
+```
+
+## Lifecycle
+
+Registrations are removed when the owning component unmounts; stale live entries are never retained. Static contributions in the manifest keep the group discoverable in the settings host and the palette before the remote loads. Two live instances of the same MFE registering the same group share it; the first registration wins and the second is a no-op.
+
+## Sub-pages
+
+- [Groups](/docs/settings/groups): placement, ordering, icons, dependencies between fields.
+- [Schemas](/docs/settings/schemas): Standard Schema and Zod, migrations, resets.
+- [Async options](/docs/settings/async-options): abortable providers, caching, stale selections.
+- [Custom pages](/docs/settings/custom-pages): `managedBy: "mfe"`.

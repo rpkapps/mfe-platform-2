@@ -1,0 +1,57 @@
+---
+title: Slice subscriptions
+description: Subscribe to exactly the part of the platform context a component needs. Unrelated changes do not rerender it.
+---
+
+## Select a slice
+
+```tsx
+import { usePlatform } from "@platform/react"
+
+function UserName() {
+  const displayName = usePlatform((p) => p.user?.displayName)
+  return <span>{displayName}</span>
+}
+```
+
+`UserName` rerenders when `displayName` changes and stays put when the theme, the job or a feature flag changes.
+
+## Object slices
+
+Selectors may return objects; they are compared with shallow equality by default, so a new object with the same values does not rerender:
+
+```tsx
+const { locale, timezone } = usePlatform((p) => ({ locale: p.locale, timezone: p.timezone }))
+```
+
+Pass a custom comparator as the second argument for deep or custom comparisons:
+
+```tsx
+const flags = usePlatform((p) => p.featureFlags, deepEqual)
+```
+
+## How it works
+
+The host keeps the shell context in a store; each instance gets a derived read-only store that adds its own `mfeId`, `instanceId`, capabilities and runtime view. `usePlatform(selector)` uses `useSyncExternalStore` on that store with a cached selector result: the selector runs when the store changes, and if the new slice is equal to the previous one the previous reference is returned, so React skips the render. Everything runs inside the MFE's React instance — no shell context provider is involved.
+
+## Outside React
+
+```ts
+const platform = usePlatform()
+const unsubscribe = platform.subscribe(() => console.log(platform.getState().project))
+```
+
+Route loaders get the same through `context.platform.getState()` and `context.platform.subscribe()`.
+
+## Tests
+
+`createTestBridge()` returns a bridge whose context store can be updated to assert rerender behaviour:
+
+```ts
+const bridge = createTestBridge({ mfeId: "asset-tracker", user: { id: "u1", displayName: "Ada" } })
+const { rerenders } = renderMfe(definition, { bridge })
+bridge.context.update({ theme: "light" }) // UserName does not rerender
+bridge.context.update({ user: { id: "u1", displayName: "Grace" } }) // it does
+```
+
+The conformance app exposes a render counter (`asset-tracker-render-count`) that the E2E suite watches while switching the theme and the project.

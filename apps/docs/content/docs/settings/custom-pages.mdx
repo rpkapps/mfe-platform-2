@@ -1,0 +1,52 @@
+---
+title: Custom settings pages
+description: With managedBy mfe the MFE renders a whole settings page on one of its routes. The shell only lists, places, loads and guards it.
+---
+
+## Register the page
+
+```ts title="src/settings.ts"
+useRegisterSettingsGroup({
+  key: "integrations",
+  title: "Integrations",
+  description: "Connect external systems",
+  managedBy: "mfe",
+  route: "/settings/integrations", // MFE-relative
+  fields: {}, // optional: metadata for search only
+})
+```
+
+```tsx title="src/routes/settings/integrations.tsx"
+export const Route = createFileRoute("/settings/integrations")({
+  staticData: { breadcrumb: "Integrations", navigation: { hidden: true } },
+  component: IntegrationsSettingsPage,
+})
+```
+
+The settings host shows *Integrations* under the MFE's section and, when selected, navigates to `/asset-tracker/settings/integrations`. The route renders inside the MFE root with its guards, loaders and error boundaries.
+
+## Ownership
+
+| Concern | Owner |
+| --- | --- |
+| Page rendering, layout, controls | MFE |
+| State and persistence | MFE (use [`createPlatformStorage`](/docs/storage), never raw browser storage) |
+| Validation and migrations | MFE |
+| Discovery, placement, loading, error boundary | Shell |
+| Field-level search | optional; only fields declared in `fields` are indexed |
+
+## Search metadata
+
+Because the page is opaque to the shell, the palette can only search what you declare. List keys, labels and keywords in `fields` without renderers to make individual settings findable; the shell links each result to the page.
+
+```ts
+fields: {
+  webhookUrl: { defaultValue: "", label: "Webhook URL", keywords: ["hook", "callback"] },
+}
+```
+
+Arbitrary custom components cannot provide automatic field-level search without this metadata; see [Unsupported cases](/docs/unsupported-cases).
+
+## Combining both modes
+
+An MFE can have framework-managed groups for simple values and one MFE-managed page for complex flows. Keep them separate groups.

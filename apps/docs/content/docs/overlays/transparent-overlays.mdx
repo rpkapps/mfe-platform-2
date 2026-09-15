@@ -1,0 +1,44 @@
+---
+title: Transparent overlays
+description: The Tecton portal provider adapter gives every MFE an owner-tagged, body-level overlay root, so scoped styles and theme tokens apply to dialogs that escape the MFE container.
+---
+
+## The problem
+
+CSS is scoped under `[data-mfe="asset-tracker"]` and the MFE root is a `div` somewhere in the shell layout. A dialog rendered inside that `div` would be clipped by `overflow`, stacking contexts and transforms of the layout. A dialog portalled to `document.body` escapes the layout but also escapes the scoped styles.
+
+## The adapter
+
+`withTecton(definition)` (from `@platform/react/tecton`, applied automatically by the generated entry when Tecton is enabled) wraps the MFE tree in Tecton's `PortalProvider` (`@tecton/react/tecton/portal`) with a container obtained from the overlay manager:
+
+```tsx
+// what the generated entry does, conceptually
+const root = bridge.overlays.createRoot({ owner: { mfeId, instanceId, widgetId }, attributes: { class: theme } })
+<PortalProvider getContainer={() => root.element}>{children}</PortalProvider>
+```
+
+React Aria components (`Dialog`, `Popover`, `Menu`, `Tooltip`, `ComboBox` listbox, `Select` popover, Tecton `Command` dialogs) read the portal container from that provider. Because the root element carries `data-mfe`, `data-platform-instance` and the theme class, scoped selectors, custom properties and dark-mode tokens match inside it exactly as inside the MFE container.
+
+## Theme sync
+
+`withTecton` also mirrors the shell theme (`resolvedTheme` from the platform context) onto the MFE root and the overlay root, so a shell theme switch restyles open dialogs immediately.
+
+## Widgets
+
+Each widget instance gets its own root (`data-platform-widget="asset-card"`), so two instances of the same widget can open overlays independently and are disposed independently.
+
+## Contained mode
+
+For embedded previews or storybook-like surfaces, ask the manager for a root inside the owner container:
+
+```ts
+bridge.overlays.createRoot({ owner, contained: true, container: myElement })
+```
+
+Overlays then render inside the container (positioned relative to it) and still get the owner attribute.
+
+## What is not done
+
+- No `document.body` patching, no global `createPortal` wrapper, no monkeypatched Tecton components.
+- No Shadow DOM.
+- No overlay configuration in MFE code.

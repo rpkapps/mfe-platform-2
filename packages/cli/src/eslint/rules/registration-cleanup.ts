@@ -1,4 +1,4 @@
-import { AST_NODE_TYPES, type TSESTree } from "@typescript-eslint/utils"
+import { AST_NODE_TYPES } from "@typescript-eslint/utils"
 
 import { collectPlatformImports, createRule, enclosingFunctionName, IMPERATIVE_REGISTERS, isComponentOrHookName, memberChain, PLATFORM_HOOKS, platformCalleeName } from "../utils"
 
@@ -50,6 +50,6 @@ export default createRule<[], MessageIds>({
           context.report({ node, messageId: "disposerDiscarded", data: { name: chain.join(".") } })
         }
       },
-    } satisfies Record<string, (node: never) => void> & { CallExpression(node: TSESTree.CallExpression): void }
+    }
   },
 })

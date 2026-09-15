@@ -1,0 +1,51 @@
+---
+title: Developer tools
+description: A private, lazily loaded panel in the host that shows the diagnostic snapshot, the live event stream and the shared-dependency graph.
+---
+
+## Enabling
+
+Developer tools load only in the browser when all three hold:
+
+1. the namespaced flag is set: `localStorage.setItem("platform:devtools", "1")` (or through the shell's *Developer tools* toggle),
+2. the host policy permits it: `devtools.policy` is `flag` (default) or `always` — `never` disables them entirely,
+3. the environment is supported: `devtools.environments` (default `development`, `local`, `test`, `staging`) contains the runtime `environment`.
+
+Otherwise `PlatformDevtools` renders nothing and a `devtools: denied` diagnostic explains why (`DEVTOOLS_UNAVAILABLE`).
+
+```tsx title="apps/shell/src/routes/__root.tsx"
+import { PlatformDevtools } from "@platform/host/react"
+
+<PlatformDevtools position="bottom-right" />
+```
+
+## Lazy loading
+
+The panel, React Flow and their styles live in `@platform-internal/devtools`, a separately code-split chunk that the host `import()`s on first open. The MFE SDK bundle contains none of it. When the chunk fails to load the shell records `devtools: failed` and keeps running.
+
+## Panels
+
+| Panel | Shows |
+| --- | --- |
+| Remotes | loaded MFEs, manifest URL and its source (query, override, runtime config, registry, default), protocol and compatibility errors, loading/retry/mount/unmount state, an override editor |
+| Instances | loaded widget instances with props, mount state, React and TanStack Router versions |
+| Routes | route matches per instance, guard outcomes (`allowed`, `redirected`, `rejected`) |
+| Dependencies | shared versus bundled packages per MFE, version-group resolution, and the React Flow graph of providers and requesters |
+| Commands | registered commands, their states, shortcut conflicts |
+| Settings | registered groups and fields, invalid stored values |
+| Breadcrumbs, Help, Releases | current trail, help entries, release information per MFE |
+| Context | session and current-user summary, permission groups, safe per-MFE runtime environment (sensitive-looking keys masked) |
+| Telemetry | live event stream from the memory adapter |
+| Events | every diagnostic (`manifest.*`, `remote.*`, `shared.resolved`, `mount.*`, `overlay.*`, `hmr.update`, `error`) with level filters |
+
+## Read-only and redacted
+
+The snapshot is a frozen copy of the host state; the panel never mutates registries. Configuration is shown through `redactRuntimeConfig`, and `PlatformError`s are shown serialised (`toJSON()`), including `owner`, `source`, `override`, `hint` and `docsUrl`.
+
+## Extending
+
+`createPlatformHost({ devtools: { panels: [myPanel] } })` accepts additional panels declared as `{ id, title, mount(container, api) → { dispose } }`. Panels receive the diagnostics bus and the snapshot API, never React values from the host.
+
+## In tests
+
+The E2E suite asserts that the devtools chunk is not requested until the flag is set and the toggle is pressed, and that the dependency graph renders one node per shared provider.

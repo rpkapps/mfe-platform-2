@@ -1,0 +1,30 @@
+---
+title: Modal ordering
+description: Deterministic layer allocation across MFEs and widgets, with owner metadata for every open overlay.
+---
+
+## Rules
+
+1. Every overlay that appears inside an overlay root becomes a **layer**. Layers are ordered by opening time; later overlays stack higher.
+2. Z-indexes are allocated from `baseZIndex` (default 1000) in steps of 10: the first open overlay gets 1000, the second 1010, and so on. Reordering happens when a layer closes, so the stack stays dense.
+3. Owner metadata (`mfeId`, `instanceId`, `widgetId`) is attached to every layer; the shell chrome is inerted while `hasOpenModal()` is true.
+4. Nested overlays (a menu in a dialog, a dialog opened from a widget's dialog) are layers of their own and stack above their opener because they open later.
+5. Focus trapping and Escape are handled by React Aria per overlay; the manager does not intercept keys. Escape closes the top-most React Aria overlay, which is also the top-most layer.
+
+## Across widgets
+
+Two widgets on a dashboard open dialogs one after the other: the second dialog is on top and receives focus. Closing it returns focus to the first dialog's trigger (React Aria restoration) and the first dialog is the top layer again. The conformance apps mount React 18 and React 19 widgets that open overlapping modals and assert the order.
+
+## Inspecting
+
+`bridge.overlays.getState()` returns `{ roots, layers, top }`; the developer tools *Overlays* panel lists open layers with owner and z-index, and `overlay.opened`/`overlay.closed` appear in the diagnostics stream.
+
+## Host configuration
+
+```ts
+createPlatformHost({
+  overlays: { baseZIndex: 2000, ownerAttribute: "data-mfe" },
+})
+```
+
+Keep the shell's own overlays (its command palette, its dialogs) on the same manager by rendering them inside a shell-owned root (`owner: { mfeId: "shell", instanceId: "shell" }`), so ordering is global rather than per origin.

@@ -98,6 +98,7 @@ export interface BridgeInput {
   runtimeConfig: RuntimeConfig
   diagnostics: DiagnosticSink
   notifications?: NotificationPort
+  headless?: boolean
 }
 
 export interface BuiltBridge {
@@ -147,7 +148,7 @@ export function createBridge(input: BridgeInput): BuiltBridge {
     diagnostics: input.diagnostics,
     notifications,
     settingsValues: createSettingsValuePort(host.storage, mfeId, input.diagnostics),
-    host: { kind: host.kind, dev: manifest.dev !== undefined, environment: host.environment },
+    host: { kind: host.kind, dev: manifest.dev !== undefined, environment: host.environment, headless: input.headless },
   }
   return { bridge, contextStore }
 }

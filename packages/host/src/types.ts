@@ -145,6 +145,8 @@ export interface MountOptions {
   instanceId?: string
   slot?: string
   signal?: AbortSignal
+  /** Keep the remote's registrations live without showing it (the shell settings page). */
+  headless?: boolean
 }
 
 export interface WidgetMountOptions {

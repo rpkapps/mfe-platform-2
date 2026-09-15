@@ -1,0 +1,70 @@
+---
+title: Runtime environment
+description: Typed, allow-listed runtime values per MFE, provided by the shell at container start rather than baked in at build time.
+---
+
+## Declare the keys
+
+```ts title="mfe.config.ts"
+import { defineMfeConfig } from "@platform/vite/config"
+
+export default defineMfeConfig({
+  env: {
+    API_BASE_URL: { required: true, description: "Base URL of the asset API" },
+    PAGE_SIZE: { default: 25 },
+    FEATURE_MAP: { default: false, description: "Show the map view" },
+  },
+})
+```
+
+The declaration is an **allow-list**: only these keys reach the MFE, with `default` applied when the runtime configuration omits one. A `required` key that is missing fails the mount with a clear diagnostic instead of an undefined value deep in the code. The declaration is written to the manifest (`env.keys`) so operators can see what an MFE expects.
+
+## Type them
+
+```ts title="src/env.d.ts"
+import "@platform/react"
+
+declare module "@platform/react" {
+  interface Register {
+    env: { API_BASE_URL: string; PAGE_SIZE: number; FEATURE_MAP: boolean }
+    featureFlags: { "assets.bulk-edit": boolean }
+  }
+}
+```
+
+The `Register` interface follows TanStack's pattern: augment it once and `useRuntimeEnv()`, `usePlatform((p) => p.runtime.env)` and `context.platform.runtime.env` are typed everywhere.
+
+## Read them
+
+```tsx
+import { useRuntimeEnv } from "@platform/react"
+
+function AssetList() {
+  const env = useRuntimeEnv()
+  const { data } = useQuery(assetsQuery(env.API_BASE_URL, env.PAGE_SIZE))
+  return …
+}
+```
+
+In loaders: `context.platform.runtime.env.API_BASE_URL`. In command handlers and option providers: `platform.runtime.env`.
+
+`runtime.shared` holds the values every MFE receives (`PLATFORM_SHARED_*`), and `runtime.environment` names the deployment (`production`, `staging`, `local`).
+
+## Where values come from
+
+| Source | Example |
+| --- | --- |
+| Docker entrypoint | `PLATFORM_MFE_ASSET_TRACKER_ENV_API_BASE_URL=https://api.example.com` |
+| Static document | `mfes.asset-tracker.env.API_BASE_URL` in `/platform-config.json` |
+| Local harness | `harness.env` in the harness panel or `mfe.config.ts` defaults |
+| Tests | `createTestBridge({ env: { API_BASE_URL: "http://test" } })` |
+
+See [Runtime configuration](/docs/runtime-configuration).
+
+## Build-time variables
+
+`import.meta.env.VITE_*` still works for values that are genuinely build constants, but it cannot change per container. The `platform/no-direct-runtime-env` [lint rule](/docs/linting#no-direct-runtime-env) reports `import.meta.env` and `process.env` reads in MFE code that look like runtime configuration (URLs, flags, tenant ids), pointing at `useRuntimeEnv`.
+
+## Never secrets
+
+Runtime environment values are public by contract: they are delivered to the browser. The entrypoint refuses variable names that look sensitive (`SECRET`, `PASSWORD`, `TOKEN`, `PRIVATE`, `CREDENTIAL`, `API_KEY`, `_KEY`), and an MFE never receives another MFE's values. See [Unsupported cases](/docs/unsupported-cases).

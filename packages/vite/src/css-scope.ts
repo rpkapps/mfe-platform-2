@@ -1,4 +1,4 @@
-import postcss, { type AtRule, type ChildNode, type Rule } from "postcss"
+import postcss, { type AtRule, type Rule } from "postcss"
 import selectorParser from "postcss-selector-parser"
 
 export interface ScopeCssOptions {
@@ -49,7 +49,11 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
     atRule.params = next
   })
 
-  if (options.dropFontFaces) root.walkAtRules(/^font-face$/i, (atRule) => atRule.remove())
+  if (options.dropFontFaces) {
+    root.walkAtRules(/^font-face$/i, (atRule) => {
+      atRule.remove()
+    })
+  }
 
   let propertyWarned = false
   let importWarned = false
@@ -66,7 +70,7 @@ export function scopeCss(css: string, options: ScopeCssOptions): ScopeCssResult 
 
   const isOwnerAttribute = (node: selectorParser.Node): boolean => selectorParser.isAttribute(node) && node.attribute === attribute && node.value === owner
   const createOwner = () => {
-    const node = selectorParser.attribute({ attribute, operator: "=", raws: {} })
+    const node = selectorParser.attribute({ attribute, operator: "=", value: owner, raws: {} })
     node.setValue(owner, { quoteMark: '"' })
     return node
   }
@@ -170,11 +174,11 @@ function countAtRules(root: postcss.Root, name: RegExp): number {
 }
 
 function isUnscopable(rule: Rule): boolean {
-  let parent: ChildNode | postcss.Document | postcss.Root | undefined = rule.parent as ChildNode | undefined
+  let parent: postcss.Container | undefined = rule.parent as postcss.Container | undefined
   while (parent && parent.type !== "root" && parent.type !== "document") {
     if (parent.type === "rule") return true
     if (parent.type === "atrule" && UNSCOPED_AT_RULES.test((parent as AtRule).name)) return true
-    parent = parent.parent as ChildNode | undefined
+    parent = parent.parent as postcss.Container | undefined
   }
   return false
 }

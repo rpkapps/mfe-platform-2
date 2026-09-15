@@ -1,0 +1,77 @@
+---
+title: Module Federation
+description: Module Federation 2 is platform infrastructure. The Vite plugin generates it, the host drives it, and MFE code never sees it.
+---
+
+## What the platform manages
+
+| Concern | Owner |
+| --- | --- |
+| Remote entry (`remoteEntry.js`), container name (`mfe_<id>`), exposed module (`./mfe`) | `@platform/vite` |
+| Shared dependency declarations with share scopes | `@platform/vite` from [inference](/docs/dependency-sharing) |
+| Manifest (`platform-manifest.json`) and the loader manifest (`mf-manifest.json`) | `@platform/vite` |
+| Remote registration, `loadRemote`, share-scope initialisation | `@platform/host` |
+| Preload behaviour (`remote.preload`, `loadPolicy`) | manifest + runtime configuration |
+| Retry and cache handling | `@platform/host` ([Retries](/docs/retries)) |
+| Allowed origins | manifest + runtime configuration ([Manifest overrides](/docs/manifest-overrides#origin-validation)) |
+| Protocol compatibility and runtime version negotiation | `@platform/host` |
+| Local-development overrides and HMR wiring | `@platform/vite` + `@platform/host` |
+
+## Hidden from MFE code
+
+MFE application code never:
+
+- writes Module Federation configuration,
+- calls `registerRemotes` or `loadRemote`,
+- configures remote containers or shared dependencies for the normal case,
+- imports `@module-federation/*`.
+
+The `platform/no-module-federation-imports` lint rule fails such imports. The `federation(config)` option in `mfe.config.ts` is the only escape hatch and applies to the generated configuration, not to your code.
+
+## Generated configuration
+
+For the record, this is what `platform()` passes to `@module-federation/vite`:
+
+```ts
+{
+  name: "mfe_asset_tracker",
+  filename: "remoteEntry.js",
+  exposes: { "./mfe": ".platform/entry.tsx" },
+  shared: {
+    react: { requiredVersion: "^19.3.0", singleton: false, shareScope: "react19" },
+    "react-dom": { requiredVersion: "^19.3.0", shareScope: "react19" },
+    "@tanstack/react-router": { requiredVersion: "^1.170.0", shareScope: "react19" },
+    "@tanstack/history": { requiredVersion: "^1.162.0", shareScope: "default" },
+    zod: { requiredVersion: "^4.6.0", shareScope: "default" },
+  },
+  manifest: true,
+  dts: false,
+}
+```
+
+## Protocol compatibility
+
+Every remote records `protocolVersion` (currently `1.0`) in its manifest; the host has its own. A remote is loadable when the **majors match**. The minor may differ: minors add optional fields and never change the meaning of existing ones.
+
+A mismatch raises `PROTOCOL_INCOMPATIBLE` before anything is loaded, naming the host and remote versions: upgrade the remote's `@platform/react` and `@platform/vite`, or the host's `@platform/host`, so the majors match. The check is loader-neutral and also covers manifests, `mount/dispose`, the bridge, registrations and diagnostics.
+
+## Loader abstraction
+
+The manifest, `mount/dispose`, capability, diagnostic and registration contracts do not mention Module Federation. The host talks to a `RemoteLoader`:
+
+```ts
+interface RemoteLoader {
+  name: string
+  register(manifest, { manifestUrl, dev? }): Promise<void>
+  load(manifest, { manifestUrl, signal? }): Promise<RemoteDefinition>
+  preload?(manifest, { manifestUrl }): Promise<void>
+  sharedReport?(mfeId): ShareResolution[]
+  invalidate?(mfeId): void
+}
+```
+
+`@platform-internal/module-federation` implements it with `@module-federation/runtime`; `createPlatformHost({ loader })` accepts another implementation (an ES-module loader, an import-map loader, a test loader). `manifest.entry.loader` names the loader an entry targets; today only `"module-federation"` is emitted.
+
+## HMR through federation
+
+In development the remote entry is served by the Vite dev server and the manifest carries a `dev` block (`hmr: true`, `origin`, `refreshPreamble`, `configHash`). The host imports `refreshPreamble` before the entry so React Refresh is installed for the remote's React instance, then loads through the same loader as production. Production artefacts have no `dev` block. See [Local development](/docs/local-development).

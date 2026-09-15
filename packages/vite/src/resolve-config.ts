@@ -202,7 +202,7 @@ export async function resolvePlatformConfig(input: ResolvePlatformConfigOptions)
 
 /** Module Federation configuration derived from the resolved config (before the `federation` escape hatch). */
 export function buildFederationConfig(config: ResolvedPlatformConfig): ModuleFederationOptions {
-  const shared: Record<string, { singleton?: boolean; requiredVersion?: string; shareScope?: string; version?: string; import?: boolean }> = {}
+  const shared: NonNullable<Exclude<ModuleFederationOptions["shared"], string[]>> = {}
   for (const request of config.shared.requests) {
     if (!request.shared) continue
     shared[request.name] = {
@@ -210,7 +210,6 @@ export function buildFederationConfig(config: ResolvedPlatformConfig): ModuleFed
       requiredVersion: request.requiredVersion,
       shareScope: request.scope,
       version: request.version,
-      import: true,
     }
   }
   const base: ModuleFederationOptions = {

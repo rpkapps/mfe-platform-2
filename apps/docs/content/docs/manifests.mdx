@@ -1,0 +1,74 @@
+---
+title: Manifests
+description: Every remote ships a typed, versioned platform-manifest.json generated at build time. You never maintain it by hand.
+---
+
+## Where it comes from
+
+`platform build` writes `dist/platform-manifest.json` next to `remoteEntry.js`. `platform manifest` prints the same document without building; `platform validate` checks a built one. In development the dev server serves it at `/platform-manifest.json` with a `dev` block.
+
+The JSON Schema is published at [`/schemas/manifest.json`](/schemas/manifest.json); the field list is in the [manifest schema reference](/docs/reference/manifest-schema).
+
+## Fields
+
+| Field | Content | Source |
+| --- | --- | --- |
+| `schemaVersion`, `protocolVersion` | `1`, `"1.0"` | platform |
+| `mfeId`, `kind` | identity; `mfe` or `widget-library` | identity file / inference |
+| `version`, `release` | `{ version, buildId?, commit?, builtAt?, channel? }` | `package.json`, build env |
+| `displayName`, `description` | human names | config / `package.json` |
+| `entry` | `{ loader: "module-federation", name, file, expose, type, loaderManifest? }` | generated |
+| `remote` | `{ baseUrl, allowedOrigins?, preload }` | config / defaults |
+| `routePrefix`, `routes[]` | prefix and per-route metadata (`path`, `fullPath`, `file`, `guarded`, `breadcrumb`, `navigation`, `permissionGroups`) | route files |
+| `navigation` | App Finder entry (`title`, `description`, `icon`, `keywords`, `category`, `order`) | config |
+| `discoverable`, `enabled`, `loadPolicy` | `true`, `true`, `lazy` by default | config |
+| `permissionGroups` | groups required to load the remote | config + routes |
+| `capabilities` | requested capability ids | SDK usage inference |
+| `commands[]`, `settings[]`, `help[]`, `releaseNotes[]`, `widgets[]` | static contributions | registration calls, `createWidget` |
+| `breadcrumbs` | `{ rootLabel?, renderer }` | config |
+| `shared[]` | requested shared dependencies with ranges, scopes and reasons | `package.json` + overrides |
+| `runtime` | `{ react, reactDom?, tanstackRouter?, platformReact? }` with `requiredVersion`, `major`, `builtWith` | `package.json` + `runtime` overrides |
+| `tecton` | `{ enabled, version?, cssProtocol?, tokens?, foundation }` | dependency + config |
+| `css` | `{ ownerAttribute, scoped, assets[] }` | build |
+| `env` | allow-listed runtime environment keys with `required`, `description`, `default` | `env` config |
+| `dev` | `{ hmr, origin, refreshPreamble, configHash, restartRequired?, restartReason? }` | dev server only |
+
+## MFE id
+
+`mfeId` is the stable identity of an independently deployed remote. It is kebab-case (`asset-tracker`), starts with a letter and is inferred from the package name on the first run (`@acme/asset-tracker` → `asset-tracker`). Invalid ids fail with `MFE_ID_INVALID`; the override is `mfeId` in `mfe.config.ts`.
+
+Do not confuse it with `instanceId` (one per mount, `asset-tracker#3`) or an App Finder "app id": widget libraries and utility remotes have an `mfeId` but no App Finder entry.
+
+## Identity persistence
+
+The first build or dev run writes `.platform/identity.json`:
+
+```json title=".platform/identity.json"
+{ "mfeId": "asset-tracker", "createdAt": "2026-01-15T09:30:00.000Z" }
+```
+
+Commit it. From then on the persisted id wins over inference, so renaming the package or its display name never silently changes storage keys, command ids or settings namespaces. Setting `mfeId` explicitly in `mfe.config.ts` renames the remote and updates the file — that is a deliberate migration, and stored data under the old namespace is not carried over.
+
+## Validation
+
+The host validates every manifest with the Zod schema before registering the remote. Failures raise `MANIFEST_INVALID` with the offending paths (`routes.2.path: …`) and the manifest URL as the source. Typical causes:
+
+- a manifest produced by an older `@platform/vite` that predates a required field,
+- a hand-edited file,
+- a proxy rewriting the JSON.
+
+Run `platform validate` in the remote project to see the same issues locally. A manifest that validates but declares an incompatible `protocolVersion` fails later with `PROTOCOL_INCOMPATIBLE`.
+
+## `discoverable: false`
+
+```ts title="mfe.config.ts"
+export default defineMfeConfig({ discoverable: false })
+```
+
+A hidden remote is still a complete platform remote: it can own deep-linkable routes, be mounted as widgets, provide commands, settings, help and release notes, and be loaded as a dependency of another surface. Only the App Finder ignores it. Widget libraries are hidden by default. See [Hidden MFEs](/docs/hidden-mfes).
+
+## Inspecting
+
+- `pnpm manifest` in the remote project.
+- `curl https://remotes.example.com/asset-tracker/platform-manifest.json`.
+- Developer tools → *Remotes*: effective manifest URL, its source and the loaded manifest.

@@ -1,0 +1,39 @@
+---
+title: Command palette
+description: The shell owns the palette UI and its search index. MFEs contribute commands and metadata; business data is out of scope.
+---
+
+## What the shell searches
+
+| Source | Entries | Available before loading the remote? |
+| --- | --- | --- |
+| [Commands](/docs/commands) | label, description, keywords, group, shortcut | static ones (`registrations.commands`, manifest) yes; hook-registered ones once mounted |
+| MFE navigation metadata | `navigation.title`, `keywords` from the manifest and route `staticData.navigation` | yes |
+| Settings groups and fields | titles, labels, keywords ([Settings](/docs/settings)) | groups yes (manifest); fields for framework-managed groups |
+| Help entries | title, description, keywords | static ones yes |
+| Release notes | version, title, keywords | static ones yes |
+| Breadcrumbs | current trail entries, when the host enables it | active MFE only |
+
+Permission groups filter results: a command or route the user cannot use is not shown.
+
+## Rendering
+
+```tsx title="apps/shell/src/routes/__root.tsx"
+import { CommandPalette } from "@platform/host/react"
+
+<CommandPalette shortcut="mod+k" placeholder="Search commands, pages and settings…" />
+```
+
+The component is Tecton's `Command` inside a `CommandDialog`, grouped by source and MFE display name, with running and failed states for async commands.
+
+## Programmatic access
+
+```ts
+host.commands.run("asset-tracker:new-asset", { source: "api" })
+host.commands.list() // RegisteredCommand[]
+host.commands.conflicts() // ShortcutConflict[]
+```
+
+## Not business data
+
+The first release does not search business entities (assets, reports, users). Commands may implement their own pickers after being invoked (a "Go to asset…" command that opens a Tecton `Combobox`), but the palette index stays limited to the sources above. This keeps the index static, permission-aware and fast, and avoids leaking data through metadata. General business-data search is listed under [Unsupported cases](/docs/unsupported-cases).

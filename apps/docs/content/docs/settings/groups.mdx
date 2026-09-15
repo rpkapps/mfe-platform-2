@@ -1,0 +1,67 @@
+---
+title: Settings groups
+description: Groups place, order and label an MFE's settings in the shell. Fields in a group can depend on each other.
+---
+
+## Placement
+
+```ts
+useRegisterSettingsGroup({
+  key: "notifications",
+  title: "Notifications",
+  group: "Asset tracker", // placement section in the settings host; defaults to the MFE display name
+  order: 20,
+  icon: "bell",
+  keywords: ["alerts", "email"],
+  fields: { … },
+})
+```
+
+The settings host groups by MFE (or by `group`), orders by `order` then title, and shows `icon` when the shell supports icons.
+
+## Several groups per MFE
+
+An MFE registers as many groups as it needs; each has its own local key. Keys are namespaced (`asset-tracker:notifications`), so two MFEs can both have a `display` group.
+
+## Dependencies between fields
+
+Predicates and option providers receive the current values of the group:
+
+```ts
+fields: {
+  autoRefresh: { defaultValue: false },
+  refreshSeconds: {
+    defaultValue: 30,
+    min: 5,
+    visibleWhen: (state) => state.autoRefresh === true,
+  },
+  site: {
+    defaultValue: "",
+    options: ({ state, signal, platform }) => fetchSites(platform.tenant?.id, { signal }),
+  },
+  area: {
+    defaultValue: "",
+    disabledWhen: (state) => !state.site,
+    options: ({ state, signal }) => fetchAreas(state.site as string, { signal }),
+  },
+}
+```
+
+Custom renderers see the same values as `controller.dependencies`.
+
+## Reading values
+
+The hook returns the live, validated values of the group and a setter for programmatic changes:
+
+```tsx
+const { values, set, reset } = useDisplaySettings()
+values.density // "comfortable" | "compact"
+set("density", "compact")
+reset("density") // back to defaultValue
+```
+
+Values update in every instance of the MFE and across tabs (local storage).
+
+## Ordering and discoverability
+
+Groups declared statically (literal definitions in the source) are listed in the manifest (`settings[]`) with their fields' keys, labels, kinds and keywords, so the settings host can show the section and the palette can search it before the remote loads. Opening the section loads the remote and mounts the live group.
